@@ -1,51 +1,13 @@
 import { ArrowRight, Mail } from "lucide-react";
-import { useEffect, useState } from "react";
 
 const Hero = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  const [splineLoaded, setSplineLoaded] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
-
   return (
     <section
       id="top"
-      className="relative w-full overflow-hidden"
+      className="relative w-full"
       style={{ height: "100dvh", minHeight: "640px" }}
     >
-      {/* Background layer */}
-      <div className="absolute inset-0 z-0" aria-hidden="true">
-        {!isMobile ? (
-          <>
-            {!splineLoaded && <div className="absolute inset-0 mobile-hero-bg" />}
-            <iframe
-              src="https://my.spline.design/gradientbackground-muF6CBRi4cCND8Pm8PbPOhHd/"
-              title="Background"
-              loading="lazy"
-              onLoad={() => setSplineLoaded(true)}
-              className="absolute inset-0 w-full h-full"
-              style={{ border: 0, pointerEvents: "none" }}
-            />
-          </>
-        ) : (
-          <div className="absolute inset-0 mobile-hero-bg" />
-        )}
-      </div>
-
-      {/* Frosted overlay + vignette */}
-      <div className="absolute inset-0 z-10 frosted-overlay pointer-events-none" aria-hidden="true" />
-
-      {/* Film grain */}
-      <div className="absolute inset-0 z-20 grain-layer pointer-events-none" aria-hidden="true" />
-
-      {/* Content */}
-      <div className="relative z-30 h-full mx-auto max-w-6xl px-6 flex flex-col justify-center">
+      <div className="relative z-10 h-full mx-auto max-w-6xl px-6 flex flex-col justify-center">
         <p className="text-xs uppercase tracking-[0.2em] text-primary/90 mb-4">
           Backend & ML Engineer
         </p>
@@ -79,8 +41,7 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Scroll hint */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 text-xs uppercase tracking-[0.2em] text-muted-foreground/60">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 text-xs uppercase tracking-[0.2em] text-muted-foreground/60">
         Scroll
       </div>
     </section>

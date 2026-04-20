@@ -6,6 +6,7 @@ import GitHubRepos from "@/components/sections/GitHubRepos";
 import About from "@/components/sections/About";
 import Contact from "@/components/sections/Contact";
 import GrainFilter from "@/components/sections/GrainFilter";
+import SiteBackground from "@/components/sections/SiteBackground";
 
 const Index = () => {
   useEffect(() => {
