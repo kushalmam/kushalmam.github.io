@@ -6,6 +6,7 @@ import GitHubRepos from "@/components/sections/GitHubRepos";
 import About from "@/components/sections/About";
 import Contact from "@/components/sections/Contact";
 import GrainFilter from "@/components/sections/GrainFilter";
+import SiteBackground from "@/components/sections/SiteBackground";
 
 const Index = () => {
   useEffect(() => {
@@ -42,10 +43,11 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen text-foreground">
       <GrainFilter />
+      <SiteBackground />
       <Nav />
-      <main>
+      <main className="relative z-0">
         <Hero />
         <Projects />
         <GitHubRepos />
