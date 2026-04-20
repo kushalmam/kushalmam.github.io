@@ -1,0 +1,115 @@
+const skillGroups: { label: string; items: string[] }[] = [
+  { label: "Languages", items: ["Python", "SQL", "C++", "TypeScript", "Java", "Bash"] },
+  { label: "Backend", items: ["FastAPI", "Flask", "Nginx", "SQLAlchemy"] },
+  {
+    label: "Data / ML",
+    items: ["PostgreSQL", "Snowflake", "Parquet", "scikit-learn", "Prophet", "Optuna", "TensorRT", "YOLOv8"],
+  },
+  { label: "Frontend", items: ["Next.js", "React", "Recharts"] },
+  { label: "Cloud / Infra", items: ["AWS EC2", "AWS Lambda", "Docker", "GitLab CI", "ROS2"] },
+];
+
+const experience = [
+  {
+    role: "Data Engineer",
+    company: "NYU Enterprise Data Management",
+    period: "Apr 2025 — Present",
+    detail:
+      "Build 100GB+ ETL pipelines into Snowflake; instrument data quality checks across enrollment systems.",
+  },
+  {
+    role: "Computer Vision Lead",
+    company: "RoboMaster · Ultraviolet",
+    period: "Jan 2024 — Present",
+    detail:
+      "Lead the CV stack for autonomous targeting: YOLOv8 + TensorRT on Jetson, ROS2 control loop under 30ms.",
+  },
+];
+
+const About = () => {
+  return (
+    <section id="about" className="relative py-28 md:py-36 border-t border-white/5">
+      <div className="mx-auto max-w-6xl px-6">
+        <p className="text-xs uppercase tracking-[0.2em] text-primary/90 mb-3">About</p>
+        <h2 className="text-3xl md:text-4xl font-semibold tracking-tight max-w-3xl">
+          I like systems that have to be both fast and correct.
+        </h2>
+
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2 space-y-5 text-muted-foreground leading-relaxed">
+            <p>
+              I'm a CS undergrad at NYU (BS '26) continuing into the MS in Financial Engineering ('27).
+              My day-to-day sits at the intersection of low-latency backends, ML systems, and
+              quantitative tooling.
+            </p>
+            <p>
+              Lately that's meant 100GB ETL pipelines into Snowflake at NYU's data team, real-time
+              autonomous targeting for RoboMaster, and weekend builds like an agentic Polymarket
+              researcher and a hackathon-winning live medical coder.
+            </p>
+            <p>
+              I care about the boring details — caching, p99s, schema design — because that's
+              usually where the user-visible delight comes from.
+            </p>
+
+            <div className="pt-6">
+              <h3 className="text-xs uppercase tracking-[0.18em] text-foreground mb-5">
+                Experience
+              </h3>
+              <ul className="space-y-5">
+                {experience.map((e) => (
+                  <li key={e.company} className="surface-card p-5">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{e.role}</p>
+                        <p className="text-sm text-muted-foreground">{e.company}</p>
+                      </div>
+                      <span className="text-xs text-muted-foreground/80">{e.period}</span>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">{e.detail}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="pt-6">
+              <h3 className="text-xs uppercase tracking-[0.18em] text-foreground mb-3">
+                Education & Certifications
+              </h3>
+              <div className="surface-card p-5 text-sm">
+                <p className="text-foreground font-medium">New York University</p>
+                <p className="text-muted-foreground">
+                  BS Computer Science · 2026 · MS Financial Engineering · 2027
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="pill">AWS Certified AI Practitioner</span>
+                  <span className="pill">Bloomberg Market Concepts</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-xs uppercase tracking-[0.18em] text-foreground mb-5">Skills</h3>
+            <div className="space-y-6">
+              {skillGroups.map((g) => (
+                <div key={g.label}>
+                  <p className="text-xs text-muted-foreground/80 mb-2.5">{g.label}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {g.items.map((s) => (
+                      <span key={s} className="pill">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default About;
