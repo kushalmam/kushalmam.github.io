@@ -7,17 +7,23 @@ const Hero = () => {
       className="relative w-full"
       style={{ height: "100dvh", minHeight: "640px" }}
     >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 55% at 25% 50%, rgba(13,13,20,0.55) 0%, rgba(13,13,20,0.25) 45%, rgba(13,13,20,0) 75%)",
+        }}
+      />
       <div className="relative z-10 h-full mx-auto max-w-6xl px-6 flex flex-col justify-center">
-        <p className="text-xs uppercase tracking-[0.2em] text-primary/90 mb-4">
-          Backend & ML Engineer
-        </p>
+        <p className="eyebrow mb-5">Backend &amp; ML Engineer</p>
         <h1
-          className="font-semibold tracking-tight text-foreground leading-[0.95]"
-          style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}
+          className="font-display text-foreground leading-[0.95]"
+          style={{ fontSize: "clamp(3rem, 7vw, 6rem)" }}
         >
           Kushal Mamillapalli
         </h1>
-        <p className="mt-6 max-w-2xl text-base md:text-lg text-muted-foreground leading-relaxed">
+        <p className="mt-7 max-w-2xl text-base md:text-lg text-muted-foreground leading-relaxed">
           I build low-latency backends and ML pipelines — from 100GB ETL systems at NYU to
           real-time autonomous targeting on RoboMaster.
         </p>
@@ -26,23 +32,13 @@ const Hero = () => {
         </p>
 
         <div className="mt-10 flex flex-wrap gap-3">
-          <a
-            href="#work"
-            className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-5 py-3 text-sm font-medium hover:bg-foreground/90 transition-colors"
-          >
+          <a href="#work" className="btn-primary">
             View my work <ArrowRight className="h-4 w-4" />
           </a>
-          <a
-            href="#contact"
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-foreground hover:bg-white/5 transition-colors"
-          >
+          <a href="#contact" className="btn-ghost">
             <Mail className="h-4 w-4" /> Get in touch
           </a>
         </div>
-      </div>
-
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 text-xs uppercase tracking-[0.2em] text-muted-foreground/60">
-        Scroll
       </div>
     </section>
   );

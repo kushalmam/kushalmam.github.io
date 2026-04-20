@@ -43,18 +43,18 @@ const SiteBackground = () => {
       <div
         className="fixed inset-0 -z-30"
         style={{
-          backdropFilter: "blur(12px) saturate(120%)",
-          WebkitBackdropFilter: "blur(12px) saturate(120%)",
-          backgroundColor: "rgba(13, 13, 20, 0.4)",
+          backdropFilter: "blur(14px) saturate(115%)",
+          WebkitBackdropFilter: "blur(14px) saturate(115%)",
+          backgroundColor: "rgba(13, 13, 20, 0.58)",
         }}
       />
 
-      {/* Layer 2 — Radial vignette */}
+      {/* Layer 2 — Radial vignette + top/bottom scrim for text legibility */}
       <div
         className="fixed inset-0 -z-20"
         style={{
           background:
-            "radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.6) 100%)",
+            "radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.55) 100%), linear-gradient(180deg, rgba(13,13,20,0.35) 0%, rgba(13,13,20,0) 30%, rgba(13,13,20,0) 70%, rgba(13,13,20,0.35) 100%)",
         }}
       />
 

@@ -26,7 +26,10 @@ const Nav = () => {
       }`}
     >
       <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
-        <a href="#top" className="text-sm font-semibold tracking-tight text-foreground">
+        <a
+          href="#top"
+          className="font-display text-lg tracking-tight text-foreground"
+        >
           Kushal M.
         </a>
 
@@ -44,7 +47,7 @@ const Nav = () => {
 
         <button
           aria-label="Toggle menu"
-          className="md:hidden text-foreground"
+          className="md:hidden text-foreground p-1 -mr-1"
           onClick={() => setOpen((v) => !v)}
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -59,7 +62,7 @@ const Nav = () => {
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="text-sm text-muted-foreground hover:text-foreground"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 {l.label}
               </a>

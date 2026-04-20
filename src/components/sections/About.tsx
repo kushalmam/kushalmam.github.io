@@ -30,12 +30,12 @@ const About = () => {
   return (
     <section id="about" className="relative py-28 md:py-36 border-t border-white/5">
       <div className="mx-auto max-w-6xl px-6">
-        <p className="text-xs uppercase tracking-[0.2em] text-primary/90 mb-3">About</p>
-        <h2 className="text-3xl md:text-4xl font-semibold tracking-tight max-w-3xl">
+        <p className="eyebrow mb-4">About</p>
+        <h2 className="font-display text-4xl md:text-5xl leading-[1.05] max-w-3xl">
           I like systems that have to be both fast and correct.
         </h2>
 
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-5 text-muted-foreground leading-relaxed">
             <p>
               I'm a CS undergrad at NYU (BS '26) continuing into the MS in Financial Engineering ('27).
@@ -53,9 +53,7 @@ const About = () => {
             </p>
 
             <div className="pt-6">
-              <h3 className="text-xs uppercase tracking-[0.18em] text-foreground mb-5">
-                Experience
-              </h3>
+              <h3 className="eyebrow text-foreground/90 mb-5">Experience</h3>
               <ul className="space-y-5">
                 {experience.map((e) => (
                   <li key={e.company} className="surface-card p-5">
@@ -64,18 +62,18 @@ const About = () => {
                         <p className="text-sm font-medium text-foreground">{e.role}</p>
                         <p className="text-sm text-muted-foreground">{e.company}</p>
                       </div>
-                      <span className="text-xs text-muted-foreground/80">{e.period}</span>
+                      <span className="text-[11px] text-muted-foreground/80 font-mono">
+                        {e.period}
+                      </span>
                     </div>
-                    <p className="mt-3 text-sm text-muted-foreground">{e.detail}</p>
+                    <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{e.detail}</p>
                   </li>
                 ))}
               </ul>
             </div>
 
             <div className="pt-6">
-              <h3 className="text-xs uppercase tracking-[0.18em] text-foreground mb-3">
-                Education & Certifications
-              </h3>
+              <h3 className="eyebrow text-foreground/90 mb-4">Education &amp; Certifications</h3>
               <div className="surface-card p-5 text-sm">
                 <p className="text-foreground font-medium">New York University</p>
                 <p className="text-muted-foreground">
@@ -90,7 +88,7 @@ const About = () => {
           </div>
 
           <div>
-            <h3 className="text-xs uppercase tracking-[0.18em] text-foreground mb-5">Skills</h3>
+            <h3 className="eyebrow text-foreground/90 mb-5">Skills</h3>
             <div className="space-y-6">
               {skillGroups.map((g) => (
                 <div key={g.label}>

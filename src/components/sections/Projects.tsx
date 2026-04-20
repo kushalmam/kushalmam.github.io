@@ -42,8 +42,8 @@ const Projects = () => {
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-14 flex items-end justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-primary/90 mb-3">Selected work</p>
-            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">
+            <p className="eyebrow mb-4">Selected work</p>
+            <h2 className="font-display text-4xl md:text-5xl leading-[1.05]">
               Things I've built recently
             </h2>
           </div>
@@ -52,10 +52,8 @@ const Projects = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((p) => (
             <article key={p.title} className="surface-card surface-card-hover p-6 flex flex-col">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-primary/80 mb-3">
-                {p.highlight}
-              </p>
-              <h3 className="text-xl font-semibold text-foreground">{p.title}</h3>
+              <p className="eyebrow mb-3 text-primary/80">{p.highlight}</p>
+              <h3 className="text-xl font-semibold text-foreground tracking-tight">{p.title}</h3>
               <p className="mt-3 text-sm text-muted-foreground leading-relaxed flex-1">
                 {p.blurb}
               </p>

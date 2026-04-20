@@ -59,9 +59,9 @@ const GitHubRepos = () => {
     <section id="github" className="relative py-28 md:py-36 border-t border-white/5">
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-14">
-          <p className="text-xs uppercase tracking-[0.2em] text-primary/90 mb-3">From GitHub</p>
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Recent repositories</h2>
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="eyebrow mb-4">From GitHub</p>
+          <h2 className="font-display text-4xl md:text-5xl leading-[1.05]">Recent repositories</h2>
+          <p className="mt-4 text-sm text-muted-foreground">
             Live from{" "}
             <a
               href="https://github.com/Techdude01"
@@ -109,15 +109,15 @@ const GitHubRepos = () => {
               className="surface-card surface-card-hover p-6 group block"
             >
               <div className="flex items-start justify-between gap-4">
-                <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                <h3 className="text-lg font-semibold text-foreground tracking-tight group-hover:text-primary transition-colors">
                   {r.name}
                 </h3>
-                <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" />
+                <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </div>
               <p className="mt-3 text-sm text-muted-foreground leading-relaxed line-clamp-2 min-h-[2.5rem]">
                 {r.description || "No description provided."}
               </p>
-              <div className="mt-5 flex items-center gap-5 text-xs text-muted-foreground">
+              <div className="mt-5 flex items-center gap-5 text-xs text-muted-foreground font-mono">
                 {r.language && (
                   <span className="inline-flex items-center gap-1.5">
                     <span
