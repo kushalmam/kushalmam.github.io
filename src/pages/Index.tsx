@@ -43,10 +43,11 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen text-foreground">
       <GrainFilter />
+      <SiteBackground />
       <Nav />
-      <main>
+      <main className="relative z-0">
         <Hero />
         <Projects />
         <GitHubRepos />
