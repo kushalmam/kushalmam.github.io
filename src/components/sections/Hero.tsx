@@ -12,11 +12,11 @@ const Hero = () => {
         className="pointer-events-none absolute inset-0 z-0"
         style={{
           background:
-            "radial-gradient(ellipse 60% 55% at 25% 50%, rgba(13,13,20,0.55) 0%, rgba(13,13,20,0.25) 45%, rgba(13,13,20,0) 75%)",
+            "radial-gradient(ellipse 60% 55% at 25% 50%, rgba(13,13,20,0.44) 0%, rgba(13,13,20,0.2) 45%, rgba(13,13,20,0) 75%)",
         }}
       />
       <div className="relative z-10 h-full mx-auto max-w-6xl px-6 flex flex-col justify-center">
-        <p className="eyebrow mb-5">Backend &amp; ML Engineer</p>
+        <p className="eyebrow mb-5">Software Engineer</p>
         <h1
           className="font-display text-foreground leading-[0.95]"
           style={{ fontSize: "clamp(3rem, 7vw, 6rem)" }}
@@ -24,8 +24,8 @@ const Hero = () => {
           Kushal Mamillapalli
         </h1>
         <p className="mt-7 max-w-2xl text-base md:text-lg text-muted-foreground leading-relaxed">
-          I build low-latency backends and ML pipelines — from 100GB ETL systems at NYU to
-          real-time autonomous targeting on RoboMaster.
+          I like building low-latency systems. Right now that’s mostly backend work, data plumbing,
+          and the occasional ML system that needs to behave in the real world.
         </p>
         <p className="mt-2 text-sm text-muted-foreground/80">
           CS @ NYU · BS '26 · MS Financial Engineering '27

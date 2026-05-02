@@ -10,9 +10,9 @@ import SiteBackground from "@/components/sections/SiteBackground";
 
 const Index = () => {
   useEffect(() => {
-    document.title = "Kushal Mamillapalli — Backend & ML Engineer";
+    document.title = "Kushal Mamillapalli — Software Engineer";
     const desc =
-      "Portfolio of Kushal Mamillapalli — NYU CS / Financial Engineering. Low-latency backends, ML pipelines, and quant tooling.";
+      "Portfolio of Kushal Mamillapalli — NYU CS / Financial Engineering. I like building low-latency systems, data pipelines, and useful tools.";
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");
@@ -30,7 +30,7 @@ const Index = () => {
       }
       el.setAttribute("content", content);
     };
-    setOg("og:title", "Kushal Mamillapalli — Backend & ML Engineer");
+    setOg("og:title", "Kushal Mamillapalli — Software Engineer");
     setOg("og:description", desc);
 
     let canonical = document.querySelector('link[rel="canonical"]');

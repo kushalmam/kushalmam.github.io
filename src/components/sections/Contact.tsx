@@ -6,11 +6,11 @@ const Contact = () => {
       <div className="mx-auto max-w-6xl px-6">
         <p className="eyebrow mb-4">Contact</p>
         <h2 className="font-display text-4xl md:text-6xl leading-[1.02] max-w-3xl">
-          Let's build something fast and useful.
+          Let's build something that actually holds up.
         </h2>
         <p className="mt-6 text-muted-foreground max-w-xl leading-relaxed">
-          Open to summer 2026 internships in backend, ML infra, or quant dev. The fastest way to
-          reach me is email.
+          Open to summer 2026 internships in backend, ML infra, or quant dev. Email's still the
+          fastest way to reach me.
         </p>
 
         <div className="mt-10 flex flex-wrap gap-3">
