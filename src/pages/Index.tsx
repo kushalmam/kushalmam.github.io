@@ -12,7 +12,7 @@ const Index = () => {
   useEffect(() => {
     document.title = "Kushal Mamillapalli — Software Engineer";
     const desc =
-      "Portfolio of Kushal Mamillapalli — NYU CS / Financial Engineering. I like building low-latency systems, data pipelines, and useful tools.";
+      "Portfolio of Kushal Mamillapalli — NYU CS. I like building low-latency systems, data pipelines, and useful tools.";
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");
@@ -49,9 +49,11 @@ const Index = () => {
       <Nav />
       <main className="relative z-0">
         <Hero />
-        <Projects />
-        <GitHubRepos />
-        <About />
+        <div className="middle-page-surface">
+          <Projects />
+          <GitHubRepos />
+          <About />
+        </div>
         <Contact />
       </main>
     </div>

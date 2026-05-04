@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Star, GitFork, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import LiquidGlassPane from "@/components/sections/LiquidGlassPane";
 
 type Repo = {
   id: number;
@@ -56,12 +57,12 @@ const GitHubRepos = () => {
   }, []);
 
   return (
-    <section id="github" className="relative py-28 md:py-36 border-t border-white/5">
+    <section id="github" className="relative py-28 md:py-36">
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-14">
           <p className="eyebrow mb-4">From GitHub</p>
           <h2 className="font-display text-4xl md:text-5xl leading-[1.05]">Recent repositories</h2>
-          <p className="mt-4 text-sm text-muted-foreground">
+          <p className="mt-4 text-[15px] text-muted-foreground">
             Live from{" "}
             <a
               href="https://github.com/Techdude01"
@@ -77,16 +78,16 @@ const GitHubRepos = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {!repos && !error &&
             Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="surface-card p-6">
+              <LiquidGlassPane key={i} className="p-6">
                 <Skeleton className="h-5 w-1/2 mb-3" />
                 <Skeleton className="h-4 w-full mb-2" />
                 <Skeleton className="h-4 w-2/3 mb-6" />
                 <Skeleton className="h-3 w-1/3" />
-              </div>
+              </LiquidGlassPane>
             ))}
 
           {error && (
-            <div className="surface-card p-6 md:col-span-2 text-sm text-muted-foreground">
+            <LiquidGlassPane className="p-6 md:col-span-2 text-[15px] text-muted-foreground">
               Couldn't load live repos right now. Visit{" "}
               <a
                 href="https://github.com/Techdude01"
@@ -97,16 +98,18 @@ const GitHubRepos = () => {
                 github.com/Techdude01
               </a>
               .
-            </div>
+            </LiquidGlassPane>
           )}
 
           {repos?.map((r) => (
-            <a
+            <LiquidGlassPane
+              as="a"
               key={r.id}
               href={r.html_url}
               target="_blank"
               rel="noreferrer"
-              className="surface-card surface-card-hover p-6 group block"
+              interactive
+              className="p-6 group block"
             >
               <div className="flex items-start justify-between gap-4">
                 <h3 className="text-lg font-semibold text-foreground tracking-tight group-hover:text-primary transition-colors">
@@ -114,10 +117,10 @@ const GitHubRepos = () => {
                 </h3>
                 <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </div>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed line-clamp-2 min-h-[2.5rem]">
+              <p className="mt-3 text-[15px] text-muted-foreground leading-relaxed line-clamp-2 min-h-[2.5rem]">
                 {r.description || "No description provided."}
               </p>
-              <div className="mt-5 flex items-center gap-5 text-xs text-muted-foreground font-mono">
+              <div className="mt-5 flex items-center gap-5 text-[13px] text-muted-foreground font-mono">
                 {r.language && (
                   <span className="inline-flex items-center gap-1.5">
                     <span
@@ -135,7 +138,7 @@ const GitHubRepos = () => {
                 </span>
                 <span className="ml-auto">Updated {formatDate(r.pushed_at)}</span>
               </div>
-            </a>
+            </LiquidGlassPane>
           ))}
         </div>
       </div>

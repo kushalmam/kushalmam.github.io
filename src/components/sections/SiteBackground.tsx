@@ -17,6 +17,7 @@ const SiteBackground = () => {
         loop
         muted
         playsInline
+        poster="/videos/fluid-motion-poster.jpg"
         preload="auto"
       >
         <source src="/videos/pexels-fluid-motion.mp4" type="video/mp4" />

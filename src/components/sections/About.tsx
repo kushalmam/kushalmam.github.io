@@ -1,3 +1,5 @@
+import LiquidGlassPane from "@/components/sections/LiquidGlassPane";
+
 const skillGroups: { label: string; items: string[] }[] = [
   {
     label: "Languages",
@@ -51,7 +53,7 @@ const About = () => {
   return (
     <section
       id="about"
-      className="relative py-28 md:py-36 border-t border-white/5"
+      className="relative py-28 md:py-36"
     >
       <div className="mx-auto max-w-6xl px-6">
         <p className="eyebrow mb-4">About</p>
@@ -81,24 +83,24 @@ const About = () => {
               <h3 className="eyebrow text-foreground/90 mb-5">Experience</h3>
               <ul className="space-y-5">
                 {experience.map((e) => (
-                  <li key={e.company} className="surface-card p-5">
+                  <LiquidGlassPane key={e.company} as="li" className="p-5">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <div>
-                        <p className="text-sm font-medium text-foreground">
+                        <p className="text-[15px] font-medium text-foreground">
                           {e.role}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-[15px] text-muted-foreground">
                           {e.company}
                         </p>
                       </div>
-                      <span className="text-[11px] text-muted-foreground/80 font-mono">
+                      <span className="text-xs text-muted-foreground/80 font-mono">
                         {e.period}
                       </span>
                     </div>
-                    <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                    <p className="mt-3 text-[15px] text-muted-foreground leading-relaxed">
                       {e.detail}
                     </p>
-                  </li>
+                  </LiquidGlassPane>
                 ))}
               </ul>
             </div>
@@ -107,18 +109,15 @@ const About = () => {
               <h3 className="eyebrow text-foreground/90 mb-4">
                 Education &amp; Certifications
               </h3>
-              <div className="surface-card p-5 text-sm">
+              <LiquidGlassPane className="p-5 text-[15px]">
                 <p className="text-foreground font-medium">
                   New York University
                 </p>
-                <p className="text-muted-foreground">
-                  BS Computer Science · 2026 · MS Financial Engineering · 2027
-                </p>
+                <p className="text-muted-foreground">BS Computer Science · 2026</p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="pill">AWS Certified AI Practitioner</span>
-                  <span className="pill">Bloomberg Market Concepts</span>
                 </div>
-              </div>
+              </LiquidGlassPane>
             </div>
           </div>
 
@@ -127,7 +126,7 @@ const About = () => {
             <div className="space-y-6">
               {skillGroups.map((g) => (
                 <div key={g.label}>
-                  <p className="text-xs text-muted-foreground/80 mb-2.5">
+                  <p className="text-[13px] text-muted-foreground/80 mb-2.5">
                     {g.label}
                   </p>
                   <div className="flex flex-wrap gap-2">

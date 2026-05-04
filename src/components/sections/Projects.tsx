@@ -1,4 +1,5 @@
 import { Github, ExternalLink } from "lucide-react";
+import LiquidGlassPane from "@/components/sections/LiquidGlassPane";
 
 type Project = {
   title: string;
@@ -51,10 +52,15 @@ const Projects = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((p) => (
-            <article key={p.title} className="surface-card surface-card-hover p-6 flex flex-col">
+            <LiquidGlassPane
+              key={p.title}
+              as="article"
+              interactive
+              className="p-6 flex flex-col"
+            >
               <p className="eyebrow mb-3 text-primary/80">{p.highlight}</p>
               <h3 className="text-xl font-semibold text-foreground tracking-tight">{p.title}</h3>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed flex-1">
+              <p className="mt-3 text-[15px] text-muted-foreground leading-relaxed flex-1">
                 {p.blurb}
               </p>
 
@@ -72,7 +78,7 @@ const Projects = () => {
                     href={p.github}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <Github className="h-3.5 w-3.5" /> GitHub
                   </a>
@@ -82,13 +88,13 @@ const Projects = () => {
                     href={p.demo}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <ExternalLink className="h-3.5 w-3.5" /> Live
                   </a>
                 )}
               </div>
-            </article>
+            </LiquidGlassPane>
           ))}
         </div>
       </div>

@@ -1,20 +1,13 @@
 import { ArrowRight, Mail } from "lucide-react";
+import LiquidGlassButton from "@/components/sections/LiquidGlassButton";
 
 const Hero = () => {
   return (
     <section
       id="top"
-      className="relative w-full"
+      className="video-bookend video-bookend-start relative w-full"
       style={{ height: "100dvh", minHeight: "640px" }}
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 55% at 25% 50%, rgba(13,13,20,0.44) 0%, rgba(13,13,20,0.2) 45%, rgba(13,13,20,0) 75%)",
-        }}
-      />
       <div className="relative z-10 h-full mx-auto max-w-6xl px-6 flex flex-col justify-center">
         <p className="eyebrow mb-5">Software Engineer</p>
         <h1
@@ -27,17 +20,15 @@ const Hero = () => {
           I like building low-latency systems. Right now that’s mostly backend work, data plumbing,
           and the occasional ML system that needs to behave in the real world.
         </p>
-        <p className="mt-2 text-sm text-muted-foreground/80">
-          CS @ NYU · BS '26 · MS Financial Engineering '27
-        </p>
+        <p className="mt-2 text-[15px] text-muted-foreground/80">CS @ NYU · BS '26</p>
 
         <div className="mt-10 flex flex-wrap gap-3">
-          <a href="#work" className="btn-primary">
+          <LiquidGlassButton href="#work" variant="primary">
             View my work <ArrowRight className="h-4 w-4" />
-          </a>
-          <a href="#contact" className="btn-ghost">
+          </LiquidGlassButton>
+          <LiquidGlassButton href="#contact" variant="ghost">
             <Mail className="h-4 w-4" /> Get in touch
-          </a>
+          </LiquidGlassButton>
         </div>
       </div>
     </section>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import ThemeSlider from "@/components/sections/ThemeSlider";
 
 const links = [
   { href: "#work", label: "Work" },
@@ -34,24 +35,30 @@ const Nav = () => {
         </a>
 
         <div className="hidden md:flex items-center gap-8">
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {l.label}
-            </a>
-          ))}
+          <div className="flex items-center gap-8">
+            {links.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                className="text-[15px] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {l.label}
+              </a>
+            ))}
+          </div>
+          <ThemeSlider />
         </div>
 
-        <button
-          aria-label="Toggle menu"
-          className="md:hidden text-foreground p-1 -mr-1"
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="md:hidden flex items-center gap-3">
+          <ThemeSlider />
+          <button
+            aria-label="Toggle menu"
+            className="text-foreground p-1 -mr-1"
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -62,7 +69,7 @@ const Nav = () => {
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-[15px] text-muted-foreground hover:text-foreground transition-colors"
               >
                 {l.label}
               </a>

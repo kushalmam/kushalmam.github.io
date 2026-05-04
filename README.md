@@ -1,6 +1,6 @@
 # kushal-fol
 
-Personal portfolio for Kushal Mamillapalli — NYU CS / Financial Engineering.
+Personal portfolio for Kushal Mamillapalli — NYU CS.
 
 ## Stack
 
