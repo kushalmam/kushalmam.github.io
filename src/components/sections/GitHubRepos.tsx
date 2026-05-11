@@ -57,11 +57,13 @@ const GitHubRepos = () => {
   }, []);
 
   return (
-    <section id="github" className="relative py-28 md:py-36">
+    <section id="github" aria-labelledby="github-heading" className="relative py-28 md:py-36">
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-14">
           <p className="eyebrow mb-4">From GitHub</p>
-          <h2 className="font-display text-4xl md:text-5xl leading-[1.05]">Recent repositories</h2>
+          <h2 id="github-heading" className="font-display text-4xl md:text-5xl leading-[1.05]">
+            Recent repositories
+          </h2>
           <p className="mt-4 text-[15px] text-muted-foreground">
             Live from{" "}
             <a
@@ -75,72 +77,92 @@ const GitHubRepos = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {!repos && !error &&
-            Array.from({ length: 4 }).map((_, i) => (
-              <LiquidGlassPane key={i} className="p-6">
+        {!repos && !error && (
+          <div
+            aria-busy="true"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            <p className="sr-only" role="status">
+              Loading recent repositories.
+            </p>
+
+            {Array.from({ length: 4 }).map((_, i) => (
+              <LiquidGlassPane key={i} aria-hidden="true" className="p-6">
                 <Skeleton className="h-5 w-1/2 mb-3" />
                 <Skeleton className="h-4 w-full mb-2" />
                 <Skeleton className="h-4 w-2/3 mb-6" />
                 <Skeleton className="h-3 w-1/3" />
               </LiquidGlassPane>
             ))}
+          </div>
+        )}
 
-          {error && (
-            <LiquidGlassPane className="p-6 md:col-span-2 text-[15px] text-muted-foreground">
-              Couldn't load live repos right now. Visit{" "}
-              <a
-                href="https://github.com/Techdude01"
-                target="_blank"
-                rel="noreferrer"
-                className="text-foreground underline-offset-4 hover:underline"
-              >
-                github.com/Techdude01
-              </a>
-              .
-            </LiquidGlassPane>
-          )}
-
-          {repos?.map((r) => (
-            <LiquidGlassPane
-              as="a"
-              key={r.id}
-              href={r.html_url}
+        {error && (
+          <LiquidGlassPane
+            role="status"
+            className="p-6 text-[15px] text-muted-foreground"
+          >
+            Couldn't load live repos right now. Visit{" "}
+            <a
+              href="https://github.com/Techdude01"
               target="_blank"
               rel="noreferrer"
-              interactive
-              className="p-6 group block"
+              className="text-foreground underline-offset-4 hover:underline"
             >
-              <div className="flex items-start justify-between gap-4">
-                <h3 className="text-lg font-semibold text-foreground tracking-tight group-hover:text-primary transition-colors">
-                  {r.name}
-                </h3>
-                <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </div>
-              <p className="mt-3 text-[15px] text-muted-foreground leading-relaxed line-clamp-2 min-h-[2.5rem]">
-                {r.description || "No description provided."}
-              </p>
-              <div className="mt-5 flex items-center gap-5 text-[13px] text-muted-foreground font-mono">
-                {r.language && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <span
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: langColor[r.language] || "#888" }}
+              github.com/Techdude01
+            </a>
+            .
+          </LiquidGlassPane>
+        )}
+
+        {repos && (
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {repos.map((r) => (
+              <LiquidGlassPane key={r.id} as="li" className="list-none p-0">
+                <a
+                  href={r.html_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="surface-card-hover p-6 group block rounded-xl"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="text-lg font-semibold text-foreground tracking-tight group-hover:text-primary transition-colors">
+                      {r.name}
+                    </h3>
+                    <ExternalLink
+                      className="h-4 w-4 text-muted-foreground shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                      aria-hidden="true"
                     />
-                    {r.language}
-                  </span>
-                )}
-                <span className="inline-flex items-center gap-1.5">
-                  <Star className="h-3.5 w-3.5" /> {r.stargazers_count}
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <GitFork className="h-3.5 w-3.5" /> {r.forks_count}
-                </span>
-                <span className="ml-auto">Updated {formatDate(r.pushed_at)}</span>
-              </div>
-            </LiquidGlassPane>
-          ))}
-        </div>
+                  </div>
+                  <p className="mt-3 text-[15px] text-muted-foreground leading-relaxed line-clamp-2 min-h-[2.5rem]">
+                    {r.description || "No description provided."}
+                  </p>
+                  <div className="mt-5 flex items-center gap-5 text-[13px] text-muted-foreground font-mono">
+                    {r.language && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{ backgroundColor: langColor[r.language] || "#888" }}
+                          aria-hidden="true"
+                        />
+                        {r.language}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1.5">
+                      <Star className="h-3.5 w-3.5" aria-hidden="true" /> {r.stargazers_count}
+                      <span className="sr-only"> stars</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <GitFork className="h-3.5 w-3.5" aria-hidden="true" /> {r.forks_count}
+                      <span className="sr-only"> forks</span>
+                    </span>
+                    <span className="ml-auto">Updated {formatDate(r.pushed_at)}</span>
+                  </div>
+                </a>
+              </LiquidGlassPane>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );

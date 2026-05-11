@@ -82,22 +82,22 @@
 
     .light {
         color-scheme: light;
-        --background: 42 18% 82%;
+        --background: 216 30% 86%;
         --foreground: 232 28% 6%;
 
-        --card: 42 18% 86%;
+        --card: 214 34% 90%;
         --card-foreground: 232 28% 6%;
 
-        --popover: 42 18% 86%;
+        --popover: 214 34% 90%;
         --popover-foreground: 232 28% 6%;
 
         --primary: 220 76% 28%;
-        --primary-foreground: 42 18% 88%;
+        --primary-foreground: 214 34% 92%;
 
-        --secondary: 215 12% 76%;
+        --secondary: 214 24% 80%;
         --secondary-foreground: 232 28% 6%;
 
-        --muted: 215 12% 76%;
+        --muted: 214 24% 80%;
         --muted-foreground: 228 22% 18%;
 
         --accent: 184 66% 24%;
@@ -107,7 +107,7 @@
         --destructive-foreground: 0 0% 100%;
 
         --border: 232 18% 11%;
-        --input: 215 12% 72%;
+        --input: 214 22% 76%;
         --ring: 220 76% 28%;
 
         --hairline: 232 28% 6%;
@@ -120,7 +120,7 @@
         --video-mask-mid: 0.04;
         --video-mask-edge: 0.1;
         --video-mask-bottom: 0.04;
-        --portfolio-glass-fill: 214 16% 84%;
+        --portfolio-glass-fill: 214 32% 88%;
         --portfolio-glass-fill-alpha: 0.2;
         --portfolio-glass-border: 0 0% 100%;
         --portfolio-glass-border-alpha: 0.28;
@@ -129,20 +129,20 @@
         --portfolio-liquid-opacity: 0.58;
         --portfolio-glass-shadow: 218 42% 28%;
         --portfolio-glass-shadow-alpha: 0.22;
-        --middle-surface-fill: 42 18% 84%;
+        --middle-surface-fill: 216 30% 88%;
         --middle-surface-alpha: 0.9;
         --middle-surface-border-alpha: 0.05;
         --middle-surface-shadow-alpha: 0.08;
         --middle-surface-bleed: 28rem;
         --bookend-shader-alpha: 0.01;
 
-        --sidebar-background: 42 18% 82%;
+        --sidebar-background: 216 30% 86%;
         --sidebar-foreground: 232 28% 6%;
         --sidebar-primary: 220 76% 28%;
-        --sidebar-primary-foreground: 42 18% 88%;
-        --sidebar-accent: 215 12% 76%;
+        --sidebar-primary-foreground: 214 34% 92%;
+        --sidebar-accent: 214 24% 80%;
         --sidebar-accent-foreground: 232 28% 6%;
-        --sidebar-border: 215 12% 72%;
+        --sidebar-border: 214 22% 76%;
         --sidebar-ring: 220 76% 28%;
     }
 }
@@ -180,6 +180,26 @@
             0 0 0 4px hsl(var(--ring) / 0.7);
         border-radius: 6px;
         transition: box-shadow 160ms var(--ease-out-soft);
+    }
+
+    .skip-link {
+        position: fixed;
+        top: 0.75rem;
+        left: 0.75rem;
+        z-index: 100;
+        transform: translateY(calc(-100% - 1.5rem));
+        border-radius: 999px;
+        background: hsl(var(--background));
+        color: hsl(var(--foreground));
+        padding: 0.65rem 0.9rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        box-shadow: 0 12px 34px -22px hsl(var(--foreground) / 0.7);
+        transition: transform 160ms var(--ease-out-soft);
+    }
+
+    .skip-link:focus-visible {
+        transform: translateY(0);
     }
 }
 
@@ -363,6 +383,9 @@
                 transparent 72%
             );
         opacity: 0.55;
+        transition:
+            opacity 260ms var(--ease-out-soft),
+            transform 260ms var(--ease-out-soft);
     }
 
     .surface-card-hover:hover {
@@ -379,6 +402,11 @@
                     var(--portfolio-glass-shadow) /
                         calc(var(--portfolio-glass-shadow-alpha) + 0.14)
                 );
+    }
+
+    .surface-card-hover:hover::after {
+        opacity: 0.82;
+        transform: translateY(-1px);
     }
 
     .nkzw-liquid-measure {
@@ -447,6 +475,56 @@
         border-color: hsl(0 0% 100% / 0.16);
     }
 
+    .hero-reveal {
+        animation: hero-reveal 720ms var(--ease-out-soft) both;
+    }
+
+    .hero-reveal-delay-1 {
+        animation-delay: 80ms;
+    }
+
+    .hero-reveal-delay-2 {
+        animation-delay: 160ms;
+    }
+
+    .hero-reveal-delay-3 {
+        animation-delay: 240ms;
+    }
+
+    .hero-reveal-delay-4 {
+        animation-delay: 320ms;
+    }
+
+    .hero-proof-pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2rem;
+        border-radius: 999px;
+        border: 1px solid hsl(var(--hairline) / 0.1);
+        background: hsl(var(--background) / 0.22);
+        padding: 0.48rem 0.78rem;
+        color: hsl(var(--foreground) / 0.86);
+        font-size: 0.82rem;
+        line-height: 1;
+        box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.08);
+        backdrop-filter: blur(14px) saturate(1.35);
+        -webkit-backdrop-filter: blur(14px) saturate(1.35);
+    }
+
+    .project-result {
+        display: inline-flex;
+        width: fit-content;
+        max-width: 100%;
+        border-radius: 999px;
+        border: 1px solid hsl(var(--primary) / 0.24);
+        background: hsl(var(--primary) / 0.08);
+        padding: 0.44rem 0.68rem;
+        color: hsl(var(--foreground) / 0.9);
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+        font-size: 0.72rem;
+        line-height: 1.2;
+    }
+
     .nav-blur {
         backdrop-filter: blur(18px) saturate(1.6);
         -webkit-backdrop-filter: blur(18px) saturate(1.6);
@@ -483,6 +561,10 @@
         background: url("/videos/fluid-motion-poster.jpg") center / cover;
         filter: blur(var(--video-blur)) saturate(var(--video-saturation))
             brightness(var(--video-brightness)) contrast(var(--video-contrast));
+    }
+
+    .site-video-poster {
+        background-image: url("/videos/fluid-motion-poster.jpg");
     }
 
     .site-video-color-grade {
@@ -841,11 +923,14 @@
         border: 1px solid hsl(var(--hairline) / 0.1);
         transition:
             background-color 200ms var(--ease-out-soft),
+            box-shadow 200ms var(--ease-out-soft),
             transform 200ms var(--ease-out-soft);
     }
 
     .btn-primary:hover {
         background-color: hsl(var(--foreground) / 0.9);
+        box-shadow: 0 12px 34px -24px hsl(var(--foreground) / 0.9);
+        transform: translateY(-1px);
     }
 
     .btn-primary:active {
@@ -858,12 +943,25 @@
         background: hsl(var(--background) / 0.2);
         transition:
             background-color 200ms var(--ease-out-soft),
-            border-color 200ms var(--ease-out-soft);
+            border-color 200ms var(--ease-out-soft),
+            transform 200ms var(--ease-out-soft);
     }
 
     .btn-ghost:hover {
         background-color: hsl(0 0% 100% / 0.06);
         border-color: hsl(0 0% 100% / 0.22);
+        transform: translateY(-1px);
+    }
+}
+
+@keyframes hero-reveal {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
     }
 }
 

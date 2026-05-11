@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Menu, X } from "lucide-react";
 import ThemeSlider from "@/components/sections/ThemeSlider";
 
 const links = [
   { href: "#work", label: "Work" },
-  { href: "#github", label: "GitHub" },
   { href: "#about", label: "About" },
   { href: "#contact", label: "Contact" },
 ];
 
 const Nav = () => {
+  const menuId = useId();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -22,6 +22,7 @@ const Nav = () => {
 
   return (
     <nav
+      aria-label="Primary"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled ? "nav-blur" : ""
       }`}
@@ -52,7 +53,9 @@ const Nav = () => {
         <div className="md:hidden flex items-center gap-3">
           <ThemeSlider />
           <button
-            aria-label="Toggle menu"
+            aria-controls={menuId}
+            aria-expanded={open}
+            aria-label={open ? "Close menu" : "Open menu"}
             className="text-foreground p-1 -mr-1"
             onClick={() => setOpen((v) => !v)}
           >
@@ -62,7 +65,11 @@ const Nav = () => {
       </div>
 
       {open && (
-        <div className="md:hidden nav-blur border-t border-white/5">
+        <div
+          id={menuId}
+          aria-label="Mobile navigation"
+          className="md:hidden nav-blur border-t border-white/5"
+        >
           <div className="px-6 py-4 flex flex-col gap-4">
             {links.map((l) => (
               <a

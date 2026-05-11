@@ -19,7 +19,7 @@ const Contact = () => {
 
         <div className="mt-10 flex flex-wrap gap-3">
           <LiquidGlassButton href="mailto:km6238@nyu.edu" variant="primary">
-            <Mail className="h-4 w-4" /> km6238@nyu.edu
+            <Mail className="h-4 w-4" aria-hidden="true" /> km6238@nyu.edu
           </LiquidGlassButton>
           <LiquidGlassButton
             href="https://github.com/Techdude01"
@@ -27,7 +27,7 @@ const Contact = () => {
             rel="noreferrer"
             variant="ghost"
           >
-            <Github className="h-4 w-4" /> GitHub
+            <Github className="h-4 w-4" aria-hidden="true" /> GitHub
           </LiquidGlassButton>
           <LiquidGlassButton
             href="https://linkedin.com/in/kushal-mamillapalli"
@@ -35,12 +35,12 @@ const Contact = () => {
             rel="noreferrer"
             variant="ghost"
           >
-            <Linkedin className="h-4 w-4" /> LinkedIn
+            <Linkedin className="h-4 w-4" aria-hidden="true" /> LinkedIn
           </LiquidGlassButton>
         </div>
 
         <div className="mt-12 flex items-center gap-2 text-[13px] text-muted-foreground font-mono">
-          <MapPin className="h-3.5 w-3.5" /> Secaucus, NJ · 785-836-0862
+          <MapPin className="h-3.5 w-3.5" aria-hidden="true" /> Secaucus, NJ · 785-836-0862
         </div>
       </div>
 

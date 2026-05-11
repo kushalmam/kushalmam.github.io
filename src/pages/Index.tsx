@@ -44,10 +44,13 @@ const Index = () => {
 
   return (
     <div className="relative min-h-screen text-foreground">
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
       <GrainFilter />
       <SiteBackground />
       <Nav />
-      <main className="relative z-0">
+      <main id="main-content" className="relative z-0" tabIndex={-1}>
         <Hero />
         <div className="middle-page-surface">
           <Projects />

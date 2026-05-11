@@ -59,20 +59,17 @@ const ThemeSlider = () => {
     updateFromPosition(event.clientX, event.currentTarget);
   };
 
+  const currentThemeName = value === 1 ? "Light" : "Dark";
+
   return (
-    <div className="theme-slider-shell" aria-label="Theme exposure control">
-      <button
-        type="button"
-        aria-label="Use dark mode"
-        className="theme-slider-button"
-        onClick={() => commitTheme(0)}
-        disabled={!mounted}
-      >
+    <div className="theme-slider-shell">
+      <span className="theme-slider-button" aria-hidden="true">
         <Moon className="theme-slider-icon" aria-hidden="true" />
-      </button>
+      </span>
       <input
         type="range"
-        aria-label="Theme exposure"
+        aria-label="Color theme"
+        aria-valuetext={currentThemeName}
         className="theme-slider-root"
         min={0}
         max={1}
@@ -87,15 +84,9 @@ const ThemeSlider = () => {
           if (event.buttons === 1) handlePointerUpdate(event);
         }}
       />
-      <button
-        type="button"
-        aria-label="Use light mode"
-        className="theme-slider-button"
-        onClick={() => commitTheme(1)}
-        disabled={!mounted}
-      >
+      <span className="theme-slider-button" aria-hidden="true">
         <SunMedium className="theme-slider-icon" aria-hidden="true" />
-      </button>
+      </span>
     </div>
   );
 };

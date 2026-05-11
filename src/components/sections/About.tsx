@@ -49,6 +49,8 @@ const experience = [
   },
 ];
 
+const skillId = (label: string) => `skills-${label.toLowerCase().replace(/\W+/g, "-")}`;
+
 const About = () => {
   return (
     <section
@@ -125,18 +127,21 @@ const About = () => {
             <h3 className="eyebrow text-foreground/90 mb-5">Skills</h3>
             <div className="space-y-6">
               {skillGroups.map((g) => (
-                <div key={g.label}>
-                  <p className="text-[13px] text-muted-foreground/80 mb-2.5">
+                <section key={g.label} aria-labelledby={skillId(g.label)}>
+                  <h4
+                    id={skillId(g.label)}
+                    className="text-[13px] font-normal text-muted-foreground/80 mb-2.5"
+                  >
                     {g.label}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
+                  </h4>
+                  <ul className="flex flex-wrap gap-2">
                     {g.items.map((s) => (
-                      <span key={s} className="pill">
+                      <li key={s} className="pill">
                         {s}
-                      </span>
+                      </li>
                     ))}
-                  </div>
-                </div>
+                  </ul>
+                </section>
               ))}
             </div>
           </div>
