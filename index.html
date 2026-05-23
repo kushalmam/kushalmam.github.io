@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0d0d14" />
+    <meta name="robots" content="index, follow" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,31 +12,332 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap"
     />
+    <link rel="canonical" href="https://kushalmam.github.io/" />
 
     <title>Kushal Mamillapalli — Backend & Data Systems Engineer</title>
     <meta
       name="description"
-      content="Portfolio of Kushal Mamillapalli — backend systems, data engineering, and ML infrastructure."
+      content="Kushal Mamillapalli is a backend and data systems engineer building production data pipelines, APIs, and ML infrastructure."
     />
     <meta name="author" content="Kushal Mamillapalli" />
 
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://kushalmam.github.io/" />
+    <meta property="og:site_name" content="Kushal Mamillapalli" />
     <meta property="og:title" content="Kushal Mamillapalli — Backend & Data Systems Engineer" />
     <meta
       property="og:description"
-      content="Portfolio of Kushal Mamillapalli — backend systems, data engineering, and ML infrastructure."
+      content="Backend systems, data engineering, and ML infrastructure work across production data, robotics, and applied AI."
     />
+    <meta property="og:image" content="https://kushalmam.github.io/videos/fluid-motion-poster.jpg" />
+    <meta property="og:image:alt" content="Kushal Mamillapalli portfolio preview" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Kushal Mamillapalli — Backend & Data Systems Engineer" />
     <meta
       name="twitter:description"
-      content="Portfolio of Kushal Mamillapalli — backend systems, data engineering, and ML infrastructure."
+      content="Backend systems, data engineering, and ML infrastructure work across production data, robotics, and applied AI."
     />
+    <meta name="twitter:image" content="https://kushalmam.github.io/videos/fluid-motion-poster.jpg" />
+    <meta name="twitter:image:alt" content="Kushal Mamillapalli portfolio preview" />
+    <script type="application/ld+json" id="portfolio-person-schema">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Kushal Mamillapalli",
+        "url": "https://kushalmam.github.io/",
+        "jobTitle": "Backend & Data Systems Engineer",
+        "email": "mailto:km6238@nyu.edu",
+        "sameAs": [
+          "https://github.com/Techdude01",
+          "https://linkedin.com/in/kushal-mamillapalli"
+        ],
+        "alumniOf": {
+          "@type": "CollegeOrUniversity",
+          "name": "NYU Tandon School of Engineering"
+        },
+        "knowsAbout": [
+          "Backend systems",
+          "Data engineering",
+          "ML infrastructure",
+          "FastAPI",
+          "PostgreSQL",
+          "Snowflake",
+          "TensorRT"
+        ]
+      }
+    </script>
+    <style>
+      .static-fallback {
+        min-height: 100vh;
+        margin: 0;
+        background: #0d0d14;
+        color: #f1eee8;
+        font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+        line-height: 1.55;
+        padding: clamp(2rem, 6vw, 5rem) 1.25rem;
+      }
+
+      .static-fallback * {
+        box-sizing: border-box;
+      }
+
+      .static-fallback a {
+        color: inherit;
+        text-decoration-color: rgba(241, 238, 232, 0.35);
+        text-underline-offset: 0.25rem;
+      }
+
+      .static-fallback__wrap {
+        width: min(100%, 68rem);
+        margin: 0 auto;
+      }
+
+      .static-fallback__eyebrow,
+      .static-fallback dt,
+      .static-fallback__stack,
+      .static-fallback__period {
+        color: rgba(241, 238, 232, 0.58);
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .static-fallback h1,
+      .static-fallback h2,
+      .static-fallback h3 {
+        font-family: "Instrument Serif", Georgia, serif;
+        font-weight: 400;
+        letter-spacing: 0;
+      }
+
+      .static-fallback h1 {
+        max-width: 10ch;
+        margin: 1rem 0;
+        font-size: clamp(3.2rem, 9vw, 7rem);
+        line-height: 0.9;
+      }
+
+      .static-fallback h2 {
+        margin: 0 0 1rem;
+        font-size: clamp(1.5rem, 3vw, 2rem);
+      }
+
+      .static-fallback h3 {
+        margin: 0;
+        font-size: 1.35rem;
+      }
+
+      .static-fallback__lede {
+        max-width: 42rem;
+        color: rgba(241, 238, 232, 0.72);
+        font-size: 1.1rem;
+      }
+
+      .static-fallback__facts {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+        margin: 3rem 0 4rem;
+      }
+
+      .static-fallback__facts div,
+      .static-fallback section,
+      .static-fallback article,
+      .static-fallback li {
+        border-top: 1px solid rgba(241, 238, 232, 0.16);
+      }
+
+      .static-fallback__facts div {
+        padding-top: 1rem;
+      }
+
+      .static-fallback dt,
+      .static-fallback dd {
+        margin: 0;
+      }
+
+      .static-fallback dd {
+        margin-top: 0.35rem;
+      }
+
+      .static-fallback section {
+        padding: 2.2rem 0;
+      }
+
+      .static-fallback article {
+        display: grid;
+        grid-template-columns: minmax(10rem, 0.85fr) minmax(0, 1.5fr);
+        gap: 1rem 2rem;
+        padding: 1.15rem 0;
+      }
+
+      .static-fallback ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .static-fallback li {
+        padding: 0.9rem 0;
+      }
+
+      .static-fallback p {
+        margin: 0.35rem 0 0;
+        color: rgba(241, 238, 232, 0.72);
+      }
+
+      .static-fallback__stack {
+        margin-top: 0.65rem;
+      }
+
+      .static-fallback__contact {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.5rem;
+      }
+
+      .static-fallback__contact li {
+        border: 0;
+        padding: 0;
+      }
+
+      @media (max-width: 720px) {
+        .static-fallback__facts,
+        .static-fallback article {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main class="static-fallback" aria-labelledby="static-title">
+        <div class="static-fallback__wrap">
+          <p class="static-fallback__eyebrow">NYU Tandon CS '26 / AI + infrastructure</p>
+          <h1 id="static-title">Kushal Mamillapalli</h1>
+          <p class="static-fallback__lede">
+            Software engineer focused on backend systems, data engineering, and ML infrastructure.
+          </p>
+
+          <dl class="static-fallback__facts" aria-label="Portfolio highlights">
+            <div>
+              <dt>Education</dt>
+              <dd>NYU Tandon CS '26</dd>
+            </div>
+            <div>
+              <dt>Incoming</dt>
+              <dd>Spotify Engineering Intern '26</dd>
+            </div>
+            <div>
+              <dt>Base</dt>
+              <dd>Secaucus / New York</dd>
+            </div>
+          </dl>
+
+          <section aria-labelledby="static-profile">
+            <h2 id="static-profile">Profile</h2>
+            <p>
+              Senior CS student at NYU Tandon building production data systems, backend APIs,
+              and applied ML infrastructure across university data, robotics, and product prototypes.
+            </p>
+          </section>
+
+          <section aria-labelledby="static-projects">
+            <h2 id="static-projects">Selected Projects</h2>
+            <article>
+              <div>
+                <h3>NBAnomaly</h3>
+                <p class="static-fallback__period">Dec. 2025 to Present</p>
+                <p>78% backtest precision / 4.5s to 2.5ms LLM report path</p>
+              </div>
+              <div>
+                <p>
+                  NBA anomaly-scouting platform over 10+ seasons with FastAPI on AWS EC2,
+                  Nginx, PostgreSQL cache-aside reads, rate-limited ingestion, and Isolation Forest modeling.
+                </p>
+                <p class="static-fallback__stack">FastAPI / AWS EC2 / Nginx / PostgreSQL / Gemini</p>
+                <p><a href="https://github.com/Techdude01/NBAnomaly">View NBAnomaly on GitHub</a></p>
+              </div>
+            </article>
+            <article>
+              <div>
+                <h3>AutoCPT</h3>
+                <p class="static-fallback__period">Feb. 2025</p>
+                <p>HackNYU 2025 winner / under 500ms live responses</p>
+              </div>
+              <div>
+                <p>
+                  Live-visit coding assistant that converts physician audio to CPT codes,
+                  with async Flask streaming, retries, audit logs, Whisper, LLaMA-3, and YOLOv8 overlays.
+                </p>
+                <p class="static-fallback__stack">Flask / Whisper / LLaMA-3 / Groq / YOLOv8 / React</p>
+                <p><a href="https://github.com/Techdude01/AutoCPT">View AutoCPT on GitHub</a></p>
+              </div>
+            </article>
+            <article>
+              <div>
+                <h3>MarketMind</h3>
+                <p class="static-fallback__period">March 2026</p>
+                <p>+/- 0.3 sentiment divergence / EV, ROI, breakeven analytics</p>
+              </div>
+              <div>
+                <p>
+                  Polymarket research pipeline comparing live news sentiment with crowd-implied
+                  probabilities using FinBERT, Cardiff RoBERTa, PostgreSQL, REST, and Recharts.
+                </p>
+                <p class="static-fallback__stack">Python / FinBERT / Cardiff RoBERTa / PostgreSQL / REST / Recharts</p>
+                <p><a href="https://github.com/Techdude01/MarketMind-yHack26">View MarketMind on GitHub</a></p>
+              </div>
+            </article>
+          </section>
+
+          <section aria-labelledby="static-experience">
+            <h2 id="static-experience">Experience</h2>
+            <ul>
+              <li>
+                <strong>Spotify</strong>
+                <p>Incoming Engineering Intern, Summer 2026, focused on data engineering for recommendation systems.</p>
+              </li>
+              <li>
+                <strong>NYU Enterprise Data Management</strong>
+                <p>
+                  Reduced NYU Financial Aid ETL runtime 40%, storage 73%, and compute 2 hours/run
+                  across 100GB+ Snowflake and Parquet pipelines.
+                </p>
+              </li>
+              <li>
+                <strong>RoboMaster Team Ultraviolet</strong>
+                <p>
+                  Cut autonomous-targeting latency 70% from 40ms to 12ms and improved targeting
+                  F1-score 15% with YOLOv8 and TensorRT inference.
+                </p>
+              </li>
+            </ul>
+          </section>
+
+          <section aria-labelledby="static-skills">
+            <h2 id="static-skills">Technical Skills</h2>
+            <p>
+              Python, SQL, C++, TypeScript, FastAPI, Flask, REST APIs, PostgreSQL,
+              Snowflake, Parquet, scikit-learn, Prophet, Optuna, XGBoost, YOLOv8,
+              TensorRT, AWS EC2, Docker, GitLab CI, Linux, React, and Recharts.
+            </p>
+          </section>
+
+          <section aria-labelledby="static-contact">
+            <h2 id="static-contact">Contact</h2>
+            <ul class="static-fallback__contact">
+              <li><a href="mailto:km6238@nyu.edu">km6238@nyu.edu</a></li>
+              <li><a href="https://github.com/Techdude01">GitHub</a></li>
+              <li><a href="https://linkedin.com/in/kushal-mamillapalli">LinkedIn</a></li>
+            </ul>
+          </section>
+        </div>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -154,27 +154,95 @@ const contacts = [
   },
 ];
 
-const setMeta = () => {
-  const title = "Kushal Mamillapalli - Backend & Data Systems Engineer";
-  const description =
-    "Portfolio of Kushal Mamillapalli: backend systems, data engineering, and ML infrastructure.";
+const siteMeta = {
+  url: "https://kushalmam.github.io/",
+  title: "Kushal Mamillapalli — Backend & Data Systems Engineer",
+  description:
+    "Kushal Mamillapalli is a backend and data systems engineer building production data pipelines, APIs, and ML infrastructure.",
+  socialDescription:
+    "Backend systems, data engineering, and ML infrastructure work across production data, robotics, and applied AI.",
+  image: "https://kushalmam.github.io/videos/fluid-motion-poster.jpg",
+  imageAlt: "Kushal Mamillapalli portfolio preview",
+};
 
-  document.title = title;
-  document
-    .querySelector<HTMLMetaElement>('meta[name="description"]')
-    ?.setAttribute("content", description);
-  document
-    .querySelector<HTMLMetaElement>('meta[property="og:title"]')
-    ?.setAttribute("content", title);
-  document
-    .querySelector<HTMLMetaElement>('meta[property="og:description"]')
-    ?.setAttribute("content", description);
-  document
-    .querySelector<HTMLMetaElement>('meta[name="twitter:title"]')
-    ?.setAttribute("content", title);
-  document
-    .querySelector<HTMLMetaElement>('meta[name="twitter:description"]')
-    ?.setAttribute("content", description);
+const personSchema = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Kushal Mamillapalli",
+  url: siteMeta.url,
+  jobTitle: "Backend & Data Systems Engineer",
+  email: "mailto:km6238@nyu.edu",
+  sameAs: [
+    "https://github.com/Techdude01",
+    "https://linkedin.com/in/kushal-mamillapalli",
+  ],
+  alumniOf: {
+    "@type": "CollegeOrUniversity",
+    name: "NYU Tandon School of Engineering",
+  },
+  knowsAbout: [
+    "Backend systems",
+    "Data engineering",
+    "ML infrastructure",
+    "FastAPI",
+    "PostgreSQL",
+    "Snowflake",
+    "TensorRT",
+  ],
+};
+
+const setMetaTag = (
+  attribute: "name" | "property",
+  key: string,
+  content: string,
+) => {
+  let meta = document.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
+
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.setAttribute(attribute, key);
+    document.head.appendChild(meta);
+  }
+
+  meta.setAttribute("content", content);
+};
+
+const setMeta = () => {
+  document.title = siteMeta.title;
+
+  setMetaTag("name", "description", siteMeta.description);
+  setMetaTag("name", "author", "Kushal Mamillapalli");
+  setMetaTag("name", "robots", "index, follow");
+  setMetaTag("name", "twitter:card", "summary_large_image");
+  setMetaTag("name", "twitter:title", siteMeta.title);
+  setMetaTag("name", "twitter:description", siteMeta.socialDescription);
+  setMetaTag("name", "twitter:image", siteMeta.image);
+  setMetaTag("name", "twitter:image:alt", siteMeta.imageAlt);
+
+  setMetaTag("property", "og:type", "website");
+  setMetaTag("property", "og:url", siteMeta.url);
+  setMetaTag("property", "og:site_name", "Kushal Mamillapalli");
+  setMetaTag("property", "og:title", siteMeta.title);
+  setMetaTag("property", "og:description", siteMeta.socialDescription);
+  setMetaTag("property", "og:image", siteMeta.image);
+  setMetaTag("property", "og:image:alt", siteMeta.imageAlt);
+
+  let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.setAttribute("rel", "canonical");
+    document.head.appendChild(canonical);
+  }
+  canonical.setAttribute("href", siteMeta.url);
+
+  let schema = document.querySelector<HTMLScriptElement>("#portfolio-person-schema");
+  if (!schema) {
+    schema = document.createElement("script");
+    schema.id = "portfolio-person-schema";
+    schema.type = "application/ld+json";
+    document.head.appendChild(schema);
+  }
+  schema.textContent = JSON.stringify(personSchema);
 };
 
 const ThemeToggle = () => {
