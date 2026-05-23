@@ -5,7 +5,7 @@ import NotFound from "./pages/NotFound.tsx";
 
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="/" element={<PortfolioPage />} />
         <Route path="*" element={<NotFound />} />
