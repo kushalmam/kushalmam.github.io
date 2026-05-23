@@ -1,5 +1,6 @@
-import { AnchorHTMLAttributes, ReactNode } from "react";
+import { AnchorHTMLAttributes, MouseEvent, ReactNode } from "react";
 import LiquidGlass from "@nkzw/liquid-glass";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 type LiquidGlassButtonProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
@@ -21,10 +22,33 @@ const buttonPresets = {
 function LiquidGlassButton({
   children,
   className,
+  onClick,
+  href,
   variant = "ghost",
   ...props
 }: LiquidGlassButtonProps) {
   const preset = buttonPresets[variant];
+  const navigate = useNavigate();
+
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    onClick?.(event);
+
+    if (
+      event.defaultPrevented ||
+      !href?.startsWith("/") ||
+      props.target ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.shiftKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    navigate(href);
+  };
 
   return (
     <span className={cn("nkzw-liquid-button-shell", `nkzw-liquid-button-${variant}`)}>
@@ -54,6 +78,8 @@ function LiquidGlassButton({
           "nkzw-liquid-button-link",
           className,
         )}
+        href={href}
+        onClick={handleClick}
         {...props}
       >
         {children}

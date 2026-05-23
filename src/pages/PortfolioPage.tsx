@@ -1,0 +1,528 @@
+import { useEffect, useState } from "react";
+import {
+  ArrowUpRight,
+  Github,
+  Linkedin,
+  Mail,
+  Moon,
+  SunMedium,
+} from "lucide-react";
+import { useTheme } from "next-themes";
+import GrainFilter from "@/components/sections/GrainFilter";
+import SiteBackground from "@/components/sections/SiteBackground";
+
+const navItems = [
+  { href: "#about", label: "Profile" },
+  { href: "#work", label: "Work" },
+  { href: "#experience", label: "Experience" },
+  { href: "#education", label: "Education" },
+  { href: "#tech", label: "Tech" },
+  { href: "#contact", label: "Contact" },
+];
+
+const projects = [
+  {
+    name: "NBAnomaly",
+    period: "Dec. 2025 to Present",
+    outcome: "78% backtest precision / 4.5s -> 2.5ms LLM report path",
+    details: [
+      "Built an NBA anomaly-scouting platform over 10+ seasons with FastAPI on AWS EC2, Nginx, rate-limited ingestion, and exponential backoff.",
+      "Trained an Isolation Forest over 15+ engineered features and added cache-aside PostgreSQL before Gemini calls.",
+    ],
+    stack: ["FastAPI", "AWS EC2", "Nginx", "PostgreSQL", "Gemini"],
+    href: "https://github.com/Techdude01/NBAnomaly",
+    linkLabel: "GitHub",
+  },
+  {
+    name: "AutoCPT",
+    period: "Feb. 2025",
+    outcome: "HackNYU 2025 winner / <500ms live responses",
+    details: [
+      "Built a live-visit coding assistant saving clinicians 16+ hours/week by converting physician audio to CPT codes.",
+      "Delivered async Flask streaming with retries, audit logs, Groq-hosted LLaMA-3, Whisper, and YOLOv8 fracture overlays in React.",
+    ],
+    stack: ["Flask", "Whisper", "LLaMA-3", "Groq", "YOLOv8", "React"],
+    href: "https://github.com/Techdude01/AutoCPT",
+    linkLabel: "GitHub",
+  },
+  {
+    name: "MarketMind",
+    period: "March 2026",
+    outcome: "+/- 0.3 sentiment divergence / EV, ROI, breakeven analytics",
+    details: [
+      "Built a Polymarket research pipeline surfacing mispricings by comparing live news sentiment with crowd-implied probabilities.",
+      "Routed thesis text through FinBERT and Cardiff RoBERTa into PostgreSQL, then shipped REST and Recharts analytics against live CLOB prices.",
+    ],
+    stack: ["Python", "FinBERT", "Cardiff RoBERTa", "PostgreSQL", "REST", "Recharts"],
+    href: "https://github.com/Techdude01/MarketMind-yHack26",
+    linkLabel: "GitHub",
+  },
+];
+
+const experience = [
+  {
+    period: "Incoming, Summer 2026",
+    company: "Spotify",
+    location: "New York, NY",
+    role: "Engineering Intern",
+    details: [
+      "Joining Spotify Personalization as a 10-week Engineering Intern focused on data engineering for recommendation systems.",
+    ],
+  },
+  {
+    period: "Apr. 2025 to Present",
+    company: "NYU Enterprise Data Management",
+    location: "New York, NY",
+    role: "Backend & Data Systems Engineering Intern",
+    details: [
+      "Reduced NYU Financial Aid ETL runtime 40%, storage 73%, and compute 2 hours/run by optimizing 100GB+ Snowflake/Parquet pipelines in Python and SQL.",
+      "Reached 4% MAPE on 600K-row departmental forecasts with Optuna-tuned SARIMA, Prophet, and XGBoost pipelines in GitLab CI, cutting debugging time 75%.",
+    ],
+  },
+  {
+    period: "Jan. 2024 to Present",
+    company: "RoboMaster Team Ultraviolet",
+    location: "Brooklyn, NY",
+    role: "Software Engineer Lead",
+    details: [
+      "Cut autonomous-targeting latency 70% from 40ms to 12ms by optimizing C++/Python capture, preprocessing, and YOLOv8/TensorRT inference.",
+      "Raised sustained camera ingest by 40+ FPS, eliminated UART corruption with bounded Python queues, thin C++ SDK shims, and a dual-CRC protocol.",
+      "Improved targeting F1-score 15% with TensorRT-quantized YOLOv8 inference and lower onboard compute overhead.",
+    ],
+  },
+];
+
+const education = [
+  {
+    school: "NYU Tandon School of Engineering",
+    location: "Brooklyn, NY",
+    degree: "Senior / B.S. Computer Science / Mathematics minor",
+    period: "2023 to 2026 / Expected May 2026",
+    details: [
+      "GPA: 3.9/4.0",
+      "Dean's List, 2023 to Present",
+      "Coursework: Data Structures, Algorithms, Operating Systems, Databases, Computer Networking, Computer Security, Machine Learning, Linear Algebra",
+    ],
+  },
+];
+
+const skills = [
+  {
+    label: "Languages",
+    items: ["Python", "SQL", "C++", "TypeScript", "Java", "Bash"],
+  },
+  {
+    label: "Backend / API",
+    items: ["FastAPI", "Flask", "REST APIs", "WebSockets", "Nginx", "SQLAlchemy"],
+  },
+  {
+    label: "Data / ML",
+    items: ["PostgreSQL", "Snowflake", "Parquet", "Pandas", "NumPy", "scikit-learn", "Prophet", "Optuna", "XGBoost", "YOLOv8", "TensorRT"],
+  },
+  {
+    label: "Cloud / Infra",
+    items: ["AWS EC2", "AWS Lambda", "AWS Secrets Manager", "Docker", "GitLab CI", "Linux", "ROS2"],
+  },
+  {
+    label: "Frontend / Visualization",
+    items: ["Next.js", "React", "React Query", "Recharts"],
+  },
+  {
+    label: "Certifications",
+    items: ["AWS Certified AI Practitioner", "Bloomberg Market Concepts"],
+  },
+];
+
+const contacts = [
+  {
+    label: "Email",
+    value: "km6238@nyu.edu",
+    href: "mailto:km6238@nyu.edu",
+    Icon: Mail,
+  },
+  {
+    label: "GitHub",
+    value: "Techdude01",
+    href: "https://github.com/Techdude01",
+    Icon: Github,
+  },
+  {
+    label: "LinkedIn",
+    value: "kushal-mamillapalli",
+    href: "https://linkedin.com/in/kushal-mamillapalli",
+    Icon: Linkedin,
+  },
+];
+
+const setMeta = () => {
+  const title = "Kushal Mamillapalli - Backend & Data Systems Engineer";
+  const description =
+    "Portfolio of Kushal Mamillapalli: backend systems, data engineering, and ML infrastructure.";
+
+  document.title = title;
+  document
+    .querySelector<HTMLMetaElement>('meta[name="description"]')
+    ?.setAttribute("content", description);
+  document
+    .querySelector<HTMLMetaElement>('meta[property="og:title"]')
+    ?.setAttribute("content", title);
+  document
+    .querySelector<HTMLMetaElement>('meta[property="og:description"]')
+    ?.setAttribute("content", description);
+  document
+    .querySelector<HTMLMetaElement>('meta[name="twitter:title"]')
+    ?.setAttribute("content", title);
+  document
+    .querySelector<HTMLMetaElement>('meta[name="twitter:description"]')
+    ?.setAttribute("content", description);
+};
+
+const ThemeToggle = () => {
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const isLight = mounted && resolvedTheme === "light";
+  const nextTheme = isLight ? "dark" : "light";
+
+  return (
+    <button
+      type="button"
+      className="theme-toggle"
+      aria-label={`Switch to ${nextTheme} mode`}
+      aria-pressed={isLight}
+      onClick={() => setTheme(nextTheme)}
+    >
+      {isLight ? (
+        <Moon className="theme-icon" aria-hidden="true" />
+      ) : (
+        <SunMedium className="theme-icon" aria-hidden="true" />
+      )}
+    </button>
+  );
+};
+
+const SectionHeading = ({
+  id,
+  eyebrow,
+  title,
+  children,
+}: {
+  id: string;
+  eyebrow: string;
+  title: string;
+  children?: React.ReactNode;
+}) => (
+  <header className="section-heading">
+    <p className="eyebrow" id={id}>
+      {eyebrow}
+    </p>
+    <h2>{title}</h2>
+    {children}
+  </header>
+);
+
+const PortfolioPage = () => {
+  const [showHeaderName, setShowHeaderName] = useState(
+    () => window.location.hash !== "" && window.location.hash !== "#top",
+  );
+
+  useEffect(() => {
+    setMeta();
+  }, []);
+
+  useEffect(() => {
+    let frame = 0;
+
+    const updateHeaderName = () => {
+      if (frame) return;
+
+      frame = window.requestAnimationFrame(() => {
+        const hero = document.getElementById("top");
+        const header = document.querySelector<HTMLElement>(".site-header");
+        const threshold = (header?.offsetHeight ?? 0) + 24;
+        setShowHeaderName((hero?.getBoundingClientRect().bottom ?? 0) <= threshold);
+        frame = 0;
+      });
+    };
+
+    updateHeaderName();
+    if (window.location.hash && window.location.hash !== "#top") {
+      setShowHeaderName(true);
+    }
+
+    const updateHeaderNameFromHash = () => {
+      if (window.location.hash && window.location.hash !== "#top") {
+        setShowHeaderName(true);
+        return;
+      }
+
+      updateHeaderName();
+    };
+
+    window.addEventListener("scroll", updateHeaderName, { passive: true });
+    window.addEventListener("resize", updateHeaderName);
+    window.addEventListener("hashchange", updateHeaderNameFromHash);
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", updateHeaderName);
+      window.removeEventListener("resize", updateHeaderName);
+      window.removeEventListener("hashchange", updateHeaderNameFromHash);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!window.location.hash) return;
+
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(
+        decodeURIComponent(window.location.hash.slice(1)),
+      );
+      if (!target) return;
+
+      const header = document.querySelector<HTMLElement>(".site-header");
+      const headerOffset = (header?.offsetHeight ?? 0) + 24;
+      const top = target.getBoundingClientRect().top + window.scrollY - headerOffset;
+      window.scrollTo({ top: Math.max(top, 0) });
+    });
+  }, []);
+
+  return (
+    <div className="portfolio-shell">
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
+      <GrainFilter />
+      <SiteBackground />
+
+      <header className={`site-header${showHeaderName ? " site-header--scrolled" : ""}`}>
+        <div className="site-header-inner">
+          <a
+            href="#top"
+            className="site-name"
+            aria-label="Kushal Mamillapalli home"
+            aria-hidden={!showHeaderName}
+            tabIndex={showHeaderName ? undefined : -1}
+          >
+            Kushal Mamillapalli
+          </a>
+          <nav className="site-nav" aria-label="Section navigation">
+            {navItems.map((item) => (
+              <a key={item.href} href={item.href}>
+                {item.label}
+              </a>
+            ))}
+          </nav>
+          <ThemeToggle />
+        </div>
+      </header>
+
+      <main id="main-content" tabIndex={-1}>
+        <section className="hero-section" id="top" aria-labelledby="hero-title">
+          <div className="page-wrap">
+            <p className="eyebrow">NYU Tandon CS '26 / AI + infrastructure</p>
+            <h1 id="hero-title">Kushal Mamillapalli</h1>
+            <p className="hero-copy">
+              Software Engineer focused on backend systems, data engineering,
+              and ML infrastructure.
+            </p>
+            <dl className="hero-facts" aria-label="Portfolio highlights">
+              <div>
+                <dt>Education</dt>
+                <dd>NYU Tandon CS '26</dd>
+              </div>
+              <div>
+                <dt>Incoming</dt>
+                <dd>Spotify Engineering Intern '26</dd>
+              </div>
+              <div>
+                <dt>Base</dt>
+                <dd>Secaucus / New York</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <section className="content-section" id="about" aria-labelledby="about-heading">
+          <div className="page-wrap">
+            <SectionHeading
+              id="about-heading"
+              eyebrow="Profile"
+              title="Backend, data, ML infra."
+            />
+            <div className="prose-block">
+              <p>
+                Senior CS student at NYU Tandon focused on AI and infrastructure,
+                building production data systems, backend APIs, and applied ML
+                infrastructure across university data, robotics, and product
+                prototypes.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="content-section" id="work" aria-labelledby="work-heading">
+          <div className="page-wrap">
+            <SectionHeading
+              id="work-heading"
+              eyebrow="Work"
+              title="Projects"
+            />
+
+            <div className="project-list">
+              {projects.map((project) => (
+                <article className="project-row" key={project.name}>
+                  <div>
+                    <h3>{project.name}</h3>
+                    <p className="row-kicker">{project.period}</p>
+                    <p className="row-result">{project.outcome}</p>
+                  </div>
+                  <ul className="detail-list">
+                    {project.details.map((detail) => (
+                      <li key={detail}>{detail}</li>
+                    ))}
+                  </ul>
+                  <ul className="inline-list" aria-label={`${project.name} stack`}>
+                    {project.stack.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                  <a
+                    className="text-link"
+                    href={project.href}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {project.linkLabel}
+                    <ArrowUpRight className="link-icon" aria-hidden="true" />
+                  </a>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section
+          className="content-section"
+          id="experience"
+          aria-labelledby="experience-heading"
+        >
+          <div className="page-wrap">
+            <SectionHeading
+              id="experience-heading"
+              eyebrow="Experience"
+              title="Experience"
+            />
+
+            <ol className="timeline-list">
+              {experience.map((item) => (
+                <li key={`${item.role}-${item.company}`} className="timeline-row">
+                  <time>{item.period}</time>
+                  <div>
+                    <h3>{item.company}</h3>
+                    <p className="row-kicker">
+                      {item.role} / {item.location}
+                    </p>
+                    <ul className="detail-list">
+                      {item.details.map((detail) => (
+                        <li key={detail}>{detail}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section
+          className="content-section"
+          id="education"
+          aria-labelledby="education-heading"
+        >
+          <div className="page-wrap">
+            <SectionHeading
+              id="education-heading"
+              eyebrow="Education"
+              title="Education"
+            />
+            <ol className="education-list">
+              {education.map((item) => (
+                <li key={`${item.degree}-${item.period}`}>
+                  <div className="education-primary">
+                    <h3>{item.school}</h3>
+                    <p className="row-kicker">
+                      {item.location} / {item.period}
+                    </p>
+                  </div>
+                  <p className="education-degree">{item.degree}</p>
+                  <ul className="education-details">
+                    {item.details.map((detail) => (
+                      <li key={detail}>{detail}</li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section className="content-section" id="tech" aria-labelledby="tech-heading">
+          <div className="page-wrap">
+            <SectionHeading
+              id="tech-heading"
+              eyebrow="Tech"
+              title="Technical skills"
+            />
+            <div className="skill-list" aria-label="Technical skill groups">
+              {skills.map((group) => (
+                <section key={group.label} className="skill-row">
+                  <h3>{group.label}</h3>
+                  <p>{group.items.join(", ")}</p>
+                </section>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="content-section contact-section" id="contact" aria-labelledby="contact-heading">
+          <div className="page-wrap">
+            <SectionHeading
+              id="contact-heading"
+              eyebrow="Contact"
+              title="Contact"
+            />
+            <ul className="contact-list">
+              {contacts.map(({ href, label, value, Icon }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target={href.startsWith("http") ? "_blank" : undefined}
+                    rel={href.startsWith("http") ? "noreferrer" : undefined}
+                  >
+                    <Icon className="contact-icon" aria-hidden="true" />
+                    <span>{label}</span>
+                    <strong>{value}</strong>
+                    <ArrowUpRight className="link-icon" aria-hidden="true" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="location-line">Secaucus / New York</p>
+          </div>
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <div className="page-wrap">
+          <span>(c) {new Date().getFullYear()} Kushal Mamillapalli</span>
+          <a href="#top">Back to top</a>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default PortfolioPage;
