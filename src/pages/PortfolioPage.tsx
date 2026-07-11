@@ -12,7 +12,7 @@ import GrainFilter from "@/components/sections/GrainFilter";
 import SiteBackground from "@/components/sections/SiteBackground";
 
 const navItems = [
-  { href: "#about", label: "Profile" },
+  { href: "#top", label: "About" },
   { href: "#work", label: "Work" },
   { href: "#experience", label: "Experience" },
   { href: "#education", label: "Education" },
@@ -21,6 +21,24 @@ const navItems = [
 ];
 
 const sectionIds = new Set(["top", ...navItems.map((item) => item.href.slice(1))]);
+
+const homeHighlights = [
+  {
+    label: "NYU data systems",
+    metric: "40% faster ETL",
+    detail: "Optimized 100GB+ financial-aid pipelines, reducing storage 73%.",
+  },
+  {
+    label: "Real-time robotics",
+    metric: "70% lower latency",
+    detail: "Cut autonomous targeting from 40ms to 12ms as software lead.",
+  },
+  {
+    label: "Product delivery",
+    metric: "HackNYU winner",
+    detail: "Built AutoCPT, a live clinical coding assistant with sub-500ms responses.",
+  },
+];
 
 const getSectionFromHash = () => {
   const hash = decodeURIComponent(window.location.hash.replace(/^#/, ""));
@@ -374,50 +392,61 @@ const PortfolioPage = () => {
 
       <main id="main-content" className="portfolio-content" tabIndex={-1} ref={contentRef}>
         <section
-          className="hero-section viewport-section"
+          className="hero-section viewport-section home-hero"
           id="top"
           aria-labelledby="hero-title"
           hidden={activeSection !== "top"}
         >
-          <div className="page-wrap">
-            <p className="eyebrow">NYU Tandon CS '26 / AI + infrastructure</p>
-            <h1 id="hero-title">Kushal Mamillapalli</h1>
-            <p className="hero-copy">
-              Software Engineer focused on backend systems, data engineering,
-              and ML infrastructure.
-            </p>
-            <dl className="hero-facts" aria-label="Portfolio highlights">
-              <div>
-                <dt>Education</dt>
-                <dd>NYU Tandon CS '26</dd>
+          <div className="page-wrap home-layout">
+            <div className="home-intro">
+              <p className="eyebrow">Backend &amp; Data Engineer / NYU Tandon CS '26</p>
+              <h1 id="hero-title">Kushal Mamillapalli</h1>
+              <p className="hero-copy">
+                I&apos;m a backend and data engineer finishing Computer Science at
+                NYU Tandon in 2026. I build APIs, data pipelines, and real-time
+                systems—from high-volume university data infrastructure to
+                robotics software. Based in Secaucus / New York, I&apos;m joining
+                Spotify as an Engineering Intern in summer 2026.
+              </p>
+              <div className="home-actions" aria-label="About page actions">
+                <a
+                  className="home-action home-action--primary"
+                  href="#work"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    navigateTo("work");
+                  }}
+                >
+                  View selected work
+                  <ArrowUpRight className="link-icon" aria-hidden="true" />
+                </a>
+                <a
+                  className="home-action"
+                  href="#contact"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    navigateTo("contact");
+                  }}
+                >
+                  Get in touch
+                </a>
               </div>
-              <div>
-                <dt>Incoming</dt>
-                <dd>Spotify Engineering Intern '26</dd>
-              </div>
-              <div>
-                <dt>Base</dt>
-                <dd>Secaucus / New York</dd>
-              </div>
-            </dl>
-          </div>
-        </section>
-
-        <section className="content-section viewport-section" id="about" aria-labelledby="about-heading" hidden={activeSection !== "about"}>
-          <div className="page-wrap">
-            <SectionHeading
-              id="about-heading"
-              eyebrow="Profile"
-              title="Backend, data, ML infra."
-            />
-            <div className="prose-block">
-              <p>
-                Senior CS student at NYU Tandon focused on AI and infrastructure,
-                building production data systems, backend APIs, and applied ML
-                infrastructure across university data, robotics, and product
-                prototypes.
+              <p className="home-personal">
+                <span>Beyond coursework</span>
+                I lead software for NYU&apos;s RoboMaster Team Ultraviolet and enjoy
+                building systems where data, performance, and real-world constraints meet.
               </p>
             </div>
+
+            <dl className="home-highlights" aria-label="Selected highlights">
+              {homeHighlights.map((highlight) => (
+                <div key={highlight.metric}>
+                  <dt>{highlight.label}</dt>
+                  <dd>{highlight.metric}</dd>
+                  <p>{highlight.detail}</p>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
