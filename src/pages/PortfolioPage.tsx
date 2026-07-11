@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
   Github,
@@ -19,6 +19,13 @@ const navItems = [
   { href: "#tech", label: "Tech" },
   { href: "#contact", label: "Contact" },
 ];
+
+const sectionIds = new Set(["top", ...navItems.map((item) => item.href.slice(1))]);
+
+const getSectionFromHash = () => {
+  const hash = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+  return sectionIds.has(hash) ? hash : "top";
+};
 
 const projects = [
   {
@@ -292,70 +299,38 @@ const SectionHeading = ({
 );
 
 const PortfolioPage = () => {
-  const [showHeaderName, setShowHeaderName] = useState(
-    () => window.location.hash !== "" && window.location.hash !== "#top",
-  );
+  const [activeSection, setActiveSection] = useState(getSectionFromHash);
+  const contentRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setMeta();
   }, []);
 
   useEffect(() => {
-    let frame = 0;
+    const syncSectionWithLocation = () => setActiveSection(getSectionFromHash());
 
-    const updateHeaderName = () => {
-      if (frame) return;
-
-      frame = window.requestAnimationFrame(() => {
-        const hero = document.getElementById("top");
-        const header = document.querySelector<HTMLElement>(".site-header");
-        const threshold = (header?.offsetHeight ?? 0) + 24;
-        setShowHeaderName((hero?.getBoundingClientRect().bottom ?? 0) <= threshold);
-        frame = 0;
-      });
-    };
-
-    updateHeaderName();
-    if (window.location.hash && window.location.hash !== "#top") {
-      setShowHeaderName(true);
-    }
-
-    const updateHeaderNameFromHash = () => {
-      if (window.location.hash && window.location.hash !== "#top") {
-        setShowHeaderName(true);
-        return;
-      }
-
-      updateHeaderName();
-    };
-
-    window.addEventListener("scroll", updateHeaderName, { passive: true });
-    window.addEventListener("resize", updateHeaderName);
-    window.addEventListener("hashchange", updateHeaderNameFromHash);
+    window.addEventListener("hashchange", syncSectionWithLocation);
+    window.addEventListener("popstate", syncSectionWithLocation);
 
     return () => {
-      if (frame) window.cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", updateHeaderName);
-      window.removeEventListener("resize", updateHeaderName);
-      window.removeEventListener("hashchange", updateHeaderNameFromHash);
+      window.removeEventListener("hashchange", syncSectionWithLocation);
+      window.removeEventListener("popstate", syncSectionWithLocation);
     };
   }, []);
 
   useEffect(() => {
-    if (!window.location.hash) return;
+    contentRef.current?.scrollTo({ top: 0 });
+  }, [activeSection]);
 
-    window.requestAnimationFrame(() => {
-      const target = document.getElementById(
-        decodeURIComponent(window.location.hash.slice(1)),
-      );
-      if (!target) return;
+  const navigateTo = (section: string) => {
+    if (section === activeSection) {
+      contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
 
-      const header = document.querySelector<HTMLElement>(".site-header");
-      const headerOffset = (header?.offsetHeight ?? 0) + 24;
-      const top = target.getBoundingClientRect().top + window.scrollY - headerOffset;
-      window.scrollTo({ top: Math.max(top, 0) });
-    });
-  }, []);
+    window.history.pushState(null, "", `#${section}`);
+    setActiveSection(section);
+  };
 
   return (
     <div className="portfolio-shell">
@@ -365,20 +340,30 @@ const PortfolioPage = () => {
       <GrainFilter />
       <SiteBackground />
 
-      <header className={`site-header${showHeaderName ? " site-header--scrolled" : ""}`}>
+      <header className="site-header">
         <div className="site-header-inner">
           <a
             href="#top"
             className="site-name"
             aria-label="Kushal Mamillapalli home"
-            aria-hidden={!showHeaderName}
-            tabIndex={showHeaderName ? undefined : -1}
+            onClick={(event) => {
+              event.preventDefault();
+              navigateTo("top");
+            }}
           >
             Kushal Mamillapalli
           </a>
           <nav className="site-nav" aria-label="Section navigation">
             {navItems.map((item) => (
-              <a key={item.href} href={item.href}>
+              <a
+                key={item.href}
+                href={item.href}
+                aria-current={activeSection === item.href.slice(1) ? "page" : undefined}
+                onClick={(event) => {
+                  event.preventDefault();
+                  navigateTo(item.href.slice(1));
+                }}
+              >
                 {item.label}
               </a>
             ))}
@@ -387,8 +372,13 @@ const PortfolioPage = () => {
         </div>
       </header>
 
-      <main id="main-content" tabIndex={-1}>
-        <section className="hero-section" id="top" aria-labelledby="hero-title">
+      <main id="main-content" className="portfolio-content" tabIndex={-1} ref={contentRef}>
+        <section
+          className="hero-section viewport-section"
+          id="top"
+          aria-labelledby="hero-title"
+          hidden={activeSection !== "top"}
+        >
           <div className="page-wrap">
             <p className="eyebrow">NYU Tandon CS '26 / AI + infrastructure</p>
             <h1 id="hero-title">Kushal Mamillapalli</h1>
@@ -413,7 +403,7 @@ const PortfolioPage = () => {
           </div>
         </section>
 
-        <section className="content-section" id="about" aria-labelledby="about-heading">
+        <section className="content-section viewport-section" id="about" aria-labelledby="about-heading" hidden={activeSection !== "about"}>
           <div className="page-wrap">
             <SectionHeading
               id="about-heading"
@@ -431,7 +421,7 @@ const PortfolioPage = () => {
           </div>
         </section>
 
-        <section className="content-section" id="work" aria-labelledby="work-heading">
+        <section className="content-section viewport-section" id="work" aria-labelledby="work-heading" hidden={activeSection !== "work"}>
           <div className="page-wrap">
             <SectionHeading
               id="work-heading"
@@ -473,9 +463,10 @@ const PortfolioPage = () => {
         </section>
 
         <section
-          className="content-section"
+          className="content-section viewport-section"
           id="experience"
           aria-labelledby="experience-heading"
+          hidden={activeSection !== "experience"}
         >
           <div className="page-wrap">
             <SectionHeading
@@ -506,9 +497,10 @@ const PortfolioPage = () => {
         </section>
 
         <section
-          className="content-section"
+          className="content-section viewport-section"
           id="education"
           aria-labelledby="education-heading"
+          hidden={activeSection !== "education"}
         >
           <div className="page-wrap">
             <SectionHeading
@@ -537,7 +529,7 @@ const PortfolioPage = () => {
           </div>
         </section>
 
-        <section className="content-section" id="tech" aria-labelledby="tech-heading">
+        <section className="content-section viewport-section" id="tech" aria-labelledby="tech-heading" hidden={activeSection !== "tech"}>
           <div className="page-wrap">
             <SectionHeading
               id="tech-heading"
@@ -555,7 +547,7 @@ const PortfolioPage = () => {
           </div>
         </section>
 
-        <section className="content-section contact-section" id="contact" aria-labelledby="contact-heading">
+        <section className="content-section contact-section viewport-section" id="contact" aria-labelledby="contact-heading" hidden={activeSection !== "contact"}>
           <div className="page-wrap">
             <SectionHeading
               id="contact-heading"
@@ -584,10 +576,7 @@ const PortfolioPage = () => {
       </main>
 
       <footer className="site-footer">
-        <div className="page-wrap">
-          <span>(c) {new Date().getFullYear()} Kushal Mamillapalli</span>
-          <a href="#top">Back to top</a>
-        </div>
+        <span>(c) {new Date().getFullYear()} Kushal Mamillapalli</span>
       </footer>
     </div>
   );
