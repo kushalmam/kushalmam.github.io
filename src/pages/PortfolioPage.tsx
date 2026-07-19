@@ -25,8 +25,8 @@ const projects = [
     category: "Data platform",
     outcome: "78% backtest precision",
     details: [
-      "Built an NBA anomaly-scouting platform over 10+ seasons with FastAPI on AWS EC2, Nginx, rate-limited ingestion, and exponential backoff.",
-      "Trained an Isolation Forest over 15+ engineered features and added cache-aside PostgreSQL before Gemini calls, reducing the report path from 4.5 seconds to 2.5 milliseconds.",
+      "Built an NBA platform that surfaces player under- and overperformance across 10+ seasons with FastAPI on AWS EC2 and resilient ingestion.",
+      "Validated 78% backtest precision with an Isolation Forest and reduced LLM report latency from 4.5 seconds to 2.5ms with cache-aside PostgreSQL.",
     ],
     stack: ["FastAPI", "AWS EC2", "PostgreSQL", "Gemini"],
     href: "https://github.com/Techdude01/NBAnomaly",
@@ -37,74 +37,54 @@ const projects = [
     category: "Applied AI",
     outcome: "HackNYU 2025 Best Use of AI",
     details: [
-      "Won Reach Capital's Best Use of AI award at HackNYU 2025 for a live-visit coding assistant that saves clinicians 16+ hours a week by converting physician audio into CPT codes.",
-      "Led the computer-vision effort for custom YOLOv8 fracture detection and helped design diagnostic transcription, delivered through async Flask with sub-500ms live responses.",
+      "Built a live-visit assistant that turns clinician-patient conversations into suggested CPT codes, saving clinicians 16+ hours a week with Whisper, LLaMA-3, and Groq.",
+      "Enabled sub-500ms responses with async Flask, retry and audit logic, and React YOLOv8 overlays.",
     ],
     stack: ["Flask", "Whisper", "LLaMA-3", "YOLOv8", "React"],
     href: "https://github.com/Techdude01/AutoCPT",
-  },
-  {
-    name: "MarketMind",
-    period: "Mar. 2026",
-    category: "Market intelligence",
-    outcome: "Sentiment / probability divergence",
-    details: [
-      "Built a Polymarket research pipeline that surfaces possible mispricings by comparing live news sentiment with crowd-implied probabilities.",
-      "Routed thesis text through FinBERT and Cardiff RoBERTa into PostgreSQL, then shipped REST and Recharts analytics against live CLOB prices for EV, ROI, and breakeven analysis.",
-    ],
-    stack: ["Python", "FinBERT", "PostgreSQL", "Recharts"],
-    href: "https://github.com/Techdude01/MarketMind-yHack26",
   },
 ];
 
 const experience = [
   {
-    period: "Jun. 2026 — Present",
+    period: "Jun. 2026 — Aug. 2026",
     company: "Spotify",
-    location: "New York, NY / Hybrid",
-    role: "Data Engineering Intern, Personalization",
+    location: "New York City, NY",
+    role: "Data Engineering Intern",
     details: [
-      "Building personalization data pipelines that support Spotify's recommendation systems and product experiences.",
+      "Built a Claude skill using five MCPs to streamline event-deprecation and data-parity checks, cutting migration setup time an estimated 35%.",
+      "Consolidated three legacy events into a canonical Protobuf schema across five repositories and validated 4,560 production records in BigQuery.",
     ],
   },
   {
     period: "Apr. 2025 — Present",
-    company: "New York University",
-    location: "New York City Metropolitan Area / Hybrid",
-    role: "SWE / Technical Intern",
+    company: "NYU Enterprise Data Management",
+    location: "New York City, NY",
+    role: "Technical Systems Engineering Intern (Part-Time)",
     details: [
-      "Modernized university financial reporting in Python and SQL, including 100GB+ Snowflake and Parquet Financial Aid pipelines that cut runtime 40% and storage 73%.",
-      "Developed a Prophet-based forecasting engine for budget planning, reaching 4% MAPE on 600K rows and automating validation in GitLab CI.",
+      "Cut Financial Aid ETL runtime 40% by migrating 100GB+ inputs to Parquet, improving read times 54%.",
+      "Built a 600K-row SARIMA/Prophet forecasting engine with 4% MAPE and an Oracle Analytics Cloud dashboard.",
     ],
   },
   {
-    period: "Jan. 2024 — Present",
-    company: "NYU RoboMaster: Team Ultraviolet",
-    location: "New York, NY / On-site",
-    role: "Computer Vision Member / Lead",
+    period: "Jan. 2024 — Jun. 2026",
+    company: "NYU ARC Robotics",
+    location: "New York City, NY",
+    role: "Computer Vision Lead",
     details: [
-      "More than doubled inference throughput with CUDA DeepStream pipelines while cutting autonomous-targeting latency 70%, from 40ms to 12ms.",
-      "Improved detection with YOLO26-OBB and strengthened the vision-to-control stack with TensorRT, ROS2, and reliability-focused tooling.",
-    ],
-  },
-  {
-    period: "Jun. 2024 — Aug. 2024",
-    company: "NYU Tandon School of Engineering",
-    location: "New York, NY / On-site",
-    role: "Computer Vision / ETL Research Intern",
-    details: [
-      "Optimized 3D biological motion tracking in Python and OpenCV, reducing distortion residuals and reprojection error 48%.",
+      "Built a C++ ROS 2 auto-aim system with Basler/RealSense cameras, YOLO, and TensorRT/DeepStream.",
+      "Cut latency 70% (40ms to 12ms), raised throughput 2.3x, and improved armor-targeting F1 by 15%.",
     ],
   },
 ];
 
 const skills = [
-  { label: "Languages", items: ["Python", "SQL", "C++", "TypeScript", "Java", "Bash"] },
-  { label: "Backend & API", items: ["FastAPI", "Flask", "REST APIs", "WebSockets", "Nginx", "SQLAlchemy"] },
-  { label: "Data & ML", items: ["PostgreSQL", "Snowflake", "Parquet", "Pandas", "scikit-learn", "Prophet", "Optuna", "XGBoost", "YOLOv8", "TensorRT"] },
-  { label: "Cloud & Infra", items: ["AWS EC2", "AWS Lambda", "AWS Secrets Manager", "Docker", "GitLab CI", "Linux", "ROS2"] },
-  { label: "Frontend", items: ["Next.js", "React", "React Query", "Recharts"] },
-  { label: "Credentials", items: ["AWS Certified Machine Learning Engineer – Associate (May 2026 – May 2029)", "AWS Certified AI Practitioner", "Bloomberg Market Concepts"] },
+  { label: "Languages", items: ["Scala", "Java", "Python", "C++", "Bash", "sbt", "Maven"] },
+  { label: "Data & Streaming", items: ["Apache Beam/Scio", "Google Cloud Dataflow", "BigQuery", "Bigtable", "Pub/Sub", "Protobuf", "Avro"] },
+  { label: "ML & Vision", items: ["ROS 2", "TensorRT", "DeepStream", "CUDA/NVMM", "PyTorch", "YOLOv8", "scikit-learn", "Prophet", "Optuna"] },
+  { label: "Cloud Infrastructure", items: ["Google Cloud IAM", "Kubernetes", "GitHub Actions/CI"] },
+  { label: "Platforms", items: ["FastAPI", "Flask", "PostgreSQL", "Docker", "GitHub", "Oracle Analytics Cloud"] },
+  { label: "Credentials", items: ["AWS Certified Machine Learning Engineer – Associate (May 2026)"] },
 ];
 
 const ThemeToggle = () => {
@@ -206,15 +186,14 @@ export const AboutPage = () => {
         <div className="about-copy">
           <p className="section-label"><span>01</span> About</p>
           <h1 id="about-title">Kushal<br /><em>Mamillapalli</em></h1>
-          <p className="about-role">Data Engineering Intern @ Spotify / AI &amp; Backend Engineer</p>
+          <p className="about-role">Data Engineering Intern @ Spotify / Backend &amp; Data Systems Engineer</p>
           <p className="about-lede">
             I build AI and backend systems that go the distance—where performance
             has to hold up in the real world, not just in theory.
           </p>
           <p className="about-detail">
             A 2026 NYU Tandon Computer Science graduate, I&apos;m a Data Engineering
-            Intern on Spotify Personalization, working across data infrastructure,
-            computer vision, and applied AI.
+            Intern at Spotify, working across data infrastructure and computer vision.
           </p>
           <div className="about-actions">
             <Link className="button button-primary" to="/work">Selected work <ArrowUpRight aria-hidden="true" /></Link>
@@ -323,7 +302,7 @@ export const EducationPage = () => {
                 <p className="entry-meta">Brooklyn, NY / Sep. 2023 — May 2026</p>
                 <h2>NYU Tandon School of Engineering</h2>
               </div>
-              <p className="education-gpa">3.91 <span>/ 4.0 GPA</span></p>
+              <p className="education-gpa">3.9 <span>/ 4.0 GPA</span></p>
             </div>
             <p className="education-degree">B.S. Computer Science <span>with a Mathematics minor</span></p>
             <div className="education-grid">
@@ -331,13 +310,12 @@ export const EducationPage = () => {
                 <p className="section-label"><span>Recognition</span></p>
                 <ul className="recognition-list">
                   <li>NYU IT Distinguished Student Employee Award, 2026</li>
-                  <li>National Merit Scholar</li>
                   <li>Dean&apos;s List, 2023 — 2026</li>
                 </ul>
               </div>
               <div>
                 <p className="section-label"><span>Coursework</span></p>
-                <p>Data Structures, Algorithms, Object-Oriented Programming, Operating Systems, Networking, Security, Databases, Software Engineering, Machine Learning, Computer Architecture, Data Science, and Linear Algebra.</p>
+                <p>Data Structures, Algorithms, Operating Systems, Databases, Machine Learning, and Data Science.</p>
               </div>
             </div>
           </div>
