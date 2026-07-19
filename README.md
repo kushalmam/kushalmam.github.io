@@ -1,14 +1,15 @@
 # Kushal Fol
 
-Personal portfolio for Kushal Mamillapalli, an NYU Tandon CS student focused on
-backend systems, data engineering, and ML infrastructure.
+Personal portfolio and resume site for Kushal Mamillapalli, a NYU Tandon CS
+graduate focused on backend systems, data engineering, and ML infrastructure.
 
 ## Overview
 
-The site is a single-page React portfolio with section navigation for profile,
-projects, experience, education, technical skills, and contact links. It includes
-responsive layouts, light/dark theming, animated background treatments, and
-metadata updates for search/social previews.
+The site uses dedicated routed views for About, Work, Experience, Education,
+Tech, Resume, and Contact—each with its own focused reading surface rather than
+a long scroll through every resume section. The visual system is an editorial
+warm-paper resume with responsive layouts, light/dark theming, and search/social
+metadata.
 
 ## Tech Stack
 
@@ -52,15 +53,17 @@ bun run test:watch   # run Vitest in watch mode
 src/
   App.tsx                 # route setup and theme provider
   main.tsx                # React entrypoint
-  pages/PortfolioPage.tsx # portfolio content and page sections
+  pages/PortfolioPage.tsx # layout, page routes, and resume content
   pages/NotFound.tsx      # fallback route
-  components/sections/    # background, glass, and section UI pieces
+  components/legacy/      # archived experimental UI, including smoke background
+  components/sections/    # reusable experimental UI pieces
+public/documents/         # downloadable one-page resume PDF
   lib/utils.ts            # shared utility helpers
   test/                   # Vitest setup and example tests
 ```
 
 ## Content
 
-Portfolio copy, project details, experience, education, skills, and contact links
-currently live in `src/pages/PortfolioPage.tsx`. Update the arrays near the top of
-that file to change the displayed content.
+Portfolio copy, project details, experience, skills, and contact links live in
+`src/pages/PortfolioPage.tsx`. Update the arrays near the top of that file to
+change the displayed content.

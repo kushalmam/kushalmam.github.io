@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import GrainFilter from "@/components/sections/GrainFilter";
-import SiteBackground from "@/components/sections/SiteBackground";
+import SmokeBackground from "@/components/legacy/SmokeBackground";
 import ThemeSlider from "@/components/sections/ThemeSlider";
 import { cn } from "@/lib/utils";
 
@@ -49,7 +49,7 @@ const ProductShell = () => {
         Skip to content
       </a>
       <GrainFilter />
-      <SiteBackground />
+      <SmokeBackground />
 
       <aside className="product-sidebar" aria-label="Primary navigation">
         <Link to="/" className="sidebar-logo" aria-label="Kushal Mamillapalli overview">

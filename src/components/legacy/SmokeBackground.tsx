@@ -175,7 +175,7 @@ const loadThreeFromCdn = () => {
   return window.__portfolioThreeCdnPromise;
 };
 
-const SiteBackground = () => {
+const SmokeBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
   const [hasWebGlFallback, setHasWebGlFallback] = useState(true);
@@ -322,4 +322,4 @@ const SiteBackground = () => {
   );
 };
 
-export default SiteBackground;
+export default SmokeBackground;
