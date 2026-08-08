@@ -510,8 +510,8 @@ export const ContactPage = () => {
       </div>
 
       <div className="contact-actions">
-        <LiquidGlassButton href="mailto:km6238@nyu.edu" variant="primary">
-          <Mail className="h-4 w-4" aria-hidden="true" /> km6238@nyu.edu
+        <LiquidGlassButton href="mailto:kushalmam06@gmail.com" variant="primary">
+          <Mail className="h-4 w-4" aria-hidden="true" /> kushalmam06@gmail.com
         </LiquidGlassButton>
         <LiquidGlassButton
           href="https://github.com/Techdude01"

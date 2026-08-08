@@ -314,10 +314,10 @@ export const ContactPage = () => {
         </div>
         <ul className="contact-list">
           <li>
-            <a href="mailto:km6238@nyu.edu">
+            <a href="mailto:kushalmam06@gmail.com">
               <Mail aria-hidden="true" />
               <span>Email</span>
-              <strong>km6238@nyu.edu</strong>
+              <strong>kushalmam06@gmail.com</strong>
               <ArrowUpRight aria-hidden="true" />
             </a>
           </li>

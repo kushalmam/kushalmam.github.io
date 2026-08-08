@@ -26,7 +26,7 @@ const navItems = [
 
 const socialLinks = [
   {
-    href: "mailto:km6238@nyu.edu",
+    href: "mailto:kushalmam06@gmail.com",
     label: "Email",
     Icon: Mail,
   },
