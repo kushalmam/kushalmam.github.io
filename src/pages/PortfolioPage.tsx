@@ -192,15 +192,21 @@ export const AboutPage = () => {
         <div className="about-copy">
           <p className="section-label"><span>01</span> About</p>
           <h1 id="about-title">Kushal<br /><em>Mamillapalli</em></h1>
-          <p className="about-role">Data Engineering Intern @ Spotify / Backend &amp; Data Systems Engineer</p>
-          <p className="about-lede">
-            I build AI and backend systems that go the distance—where performance
-            has to hold up in the real world, not just in theory.
-          </p>
-          <p className="about-detail">
-            A 2026 NYU Tandon Computer Science graduate, I&apos;m a Data Engineering
-            Intern at Spotify, working across data infrastructure and computer vision.
-          </p>
+          <div className="about-details">
+            <p className="about-detail about-detail--current">
+              I&apos;m currently a Data Engineering Intern at Spotify, learning how
+              large-scale data systems stay reliable in practice.
+            </p>
+            <p className="about-detail about-detail--belief">
+              I believe good computer science should enrich people&apos;s lives. I&apos;m
+              drawn to data and backend engineering, and to AI and computer vision
+              when they make complex work more useful.
+            </p>
+            <p className="about-detail about-detail--education">
+              A 2026 NYU Tandon Computer Science graduate, I&apos;m interested in
+              engineering that makes complexity feel simpler for the people using it.
+            </p>
+          </div>
           <div className="about-actions">
             <Link className="button button-primary" to="/work">Selected work <ArrowUpRight aria-hidden="true" /></Link>
             <Link className="button" to="/resume">View résumé</Link>
