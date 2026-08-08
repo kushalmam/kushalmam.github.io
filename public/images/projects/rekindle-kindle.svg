@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 800" role="img" aria-labelledby="title desc">
+  <title id="title">Rekindle recommendation system illustration</title>
+  <desc id="desc">A playful e-reader with a recommendation queue showing time-safe ranking signals.</desc>
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4efe6" />
+      <stop offset="1" stop-color="#e4ddd1" />
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8f5ef" />
+      <stop offset="1" stop-color="#ebe7df" />
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#38302b" flood-opacity=".18" />
+    </filter>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="26" />
+    </filter>
+  </defs>
+
+  <rect width="1400" height="800" fill="url(#paper)" />
+  <circle cx="1130" cy="140" r="180" fill="#547f95" opacity=".10" filter="url(#soft)" />
+  <circle cx="260" cy="720" r="220" fill="#b45c60" opacity=".08" filter="url(#soft)" />
+
+  <path d="M0 100 C180 78 290 125 420 92 S720 62 860 102 S1120 128 1400 86" fill="none" stroke="#37302e" stroke-opacity=".10" stroke-width="2" />
+  <path d="M0 705 C210 670 330 738 500 700 S820 668 1010 712 S1220 746 1400 702" fill="none" stroke="#708b78" stroke-opacity=".28" stroke-width="3" />
+
+  <g font-family="Arial, sans-serif" fill="#746966">
+    <text x="74" y="78" font-size="17" letter-spacing="4">REKINDLE // RECOMMENDATION SYSTEM</text>
+    <text x="1190" y="78" font-size="15" letter-spacing="3" text-anchor="end">BUILD 01 / REPLAY</text>
+  </g>
+
+  <!-- E-reader -->
+  <g filter="url(#shadow)">
+    <rect x="132" y="136" width="510" height="548" rx="28" fill="#282421" />
+    <rect x="156" y="160" width="462" height="488" rx="14" fill="url(#screen)" />
+  </g>
+  <circle cx="387" cy="666" r="5" fill="#ab7b58" />
+
+  <g font-family="Arial, sans-serif">
+    <text x="190" y="207" fill="#547f95" font-size="14" letter-spacing="3">YOUR NEXT READ</text>
+    <text x="190" y="263" fill="#37302e" font-size="39" font-weight="700">You liked one book.</text>
+    <text x="190" y="306" fill="#37302e" font-size="39" font-weight="700">We found three.</text>
+    <path d="M190 337 H582" stroke="#37302e" stroke-opacity=".18" />
+  </g>
+
+  <!-- playful book cards -->
+  <g font-family="Arial, sans-serif">
+    <rect x="190" y="366" width="392" height="62" rx="8" fill="#d9e4e6" />
+    <rect x="207" y="379" width="36" height="36" rx="4" fill="#547f95" />
+    <text x="259" y="394" fill="#37302e" font-size="15" font-weight="700">The Long Way Home</text>
+    <text x="259" y="414" fill="#746966" font-size="12">rank 01 / confidence 0.82</text>
+
+    <rect x="190" y="441" width="392" height="62" rx="8" fill="#e1eadf" />
+    <rect x="207" y="454" width="36" height="36" rx="4" fill="#708b78" />
+    <text x="259" y="469" fill="#37302e" font-size="15" font-weight="700">A Field Guide to Elsewhere</text>
+    <text x="259" y="489" fill="#746966" font-size="12">rank 02 / time-safe replay</text>
+
+    <rect x="190" y="516" width="392" height="62" rx="8" fill="#f0ded9" />
+    <rect x="207" y="529" width="36" height="36" rx="4" fill="#b45c60" />
+    <text x="259" y="544" fill="#37302e" font-size="15" font-weight="700">Maybe stop re-reading that one</text>
+    <text x="259" y="564" fill="#746966" font-size="12">rank 03 / implicit feedback</text>
+  </g>
+
+  <!-- recommendation graph -->
+  <g stroke="#547f95" stroke-width="2" stroke-opacity=".5" fill="none">
+    <path d="M780 278 C875 278 858 194 968 194" />
+    <path d="M780 278 C900 278 888 358 1000 358" />
+    <path d="M780 278 C890 278 910 520 1028 520" />
+  </g>
+  <circle cx="780" cy="278" r="52" fill="#547f95" opacity=".13" />
+  <circle cx="780" cy="278" r="28" fill="#547f95" />
+  <text x="780" y="284" fill="#fff" font-family="Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">RANK</text>
+
+  <g font-family="Arial, sans-serif">
+    <rect x="968" y="148" width="330" height="92" rx="12" fill="#faf7f1" stroke="#37302e" stroke-opacity=".18" />
+    <circle cx="1000" cy="194" r="15" fill="#547f95" />
+    <text x="1030" y="185" fill="#37302e" font-size="16" font-weight="700">retrieval</text>
+    <text x="1030" y="208" fill="#746966" font-size="13">history-aware candidates</text>
+
+    <rect x="1000" y="312" width="298" height="92" rx="12" fill="#faf7f1" stroke="#37302e" stroke-opacity=".18" />
+    <circle cx="1032" cy="358" r="15" fill="#708b78" />
+    <text x="1062" y="349" fill="#37302e" font-size="16" font-weight="700">rerank</text>
+    <text x="1062" y="372" fill="#746966" font-size="13">LightGBM says “trust me”</text>
+
+    <rect x="1028" y="474" width="270" height="92" rx="12" fill="#faf7f1" stroke="#37302e" stroke-opacity=".18" />
+    <circle cx="1060" cy="520" r="15" fill="#b45c60" />
+    <text x="1090" y="511" fill="#37302e" font-size="16" font-weight="700">replay</text>
+    <text x="1090" y="534" fill="#746966" font-size="13">no future leakage</text>
+  </g>
+
+  <g transform="translate(670 620) rotate(-4)">
+    <rect width="450" height="66" rx="12" fill="#37302e" />
+    <text x="24" y="29" fill="#f4efe6" font-family="Arial, sans-serif" font-size="15" letter-spacing="1">THE MODEL SAYS:</text>
+    <text x="24" y="51" fill="#d9e4e6" font-family="Arial, sans-serif" font-size="18" font-weight="700">“ONE MORE BOOK.”</text>
+    <circle cx="410" cy="33" r="15" fill="#ab7b58" />
+    <text x="410" y="39" fill="#fff" font-family="Arial, sans-serif" font-size="18" text-anchor="middle">!</text>
+  </g>
+</svg>

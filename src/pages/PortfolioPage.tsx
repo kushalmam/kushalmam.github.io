@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
   Download,
-  FileText,
+  Github,
+  Linkedin,
+  Mail,
   Moon,
   SunMedium,
 } from "lucide-react";
@@ -12,80 +14,102 @@ import WatercolorBackground from "../components/WatercolorBackground.tsx";
 
 const navItems = [
   { to: "/", label: "About", number: "01" },
-  { to: "/work", label: "Work", number: "02" },
-  { to: "/experience", label: "Experience", number: "03" },
-  { to: "/education", label: "Education", number: "04" },
-  { to: "/tech", label: "Tech", number: "05" },
-  { to: "/resume", label: "Resume", number: "06" },
+  { to: "/projects", label: "Projects", number: "02" },
+  { to: "/resume", label: "Resume", number: "03" },
+  { to: "/contact", label: "Contact", number: "04" },
 ];
 
-const projects = [
+type ProjectPreviewKind = "recommendation" | "health" | "market" | "sports" | "clinical" | "pricing";
+
+type Project = {
+  name: string;
+  period: string;
+  category: string;
+  outcome: string;
+  description: string;
+  href: string;
+  preview: ProjectPreviewKind;
+  previewTitle: string;
+  previewMetrics: [string, string, string];
+  previewImage?: string;
+  featured?: boolean;
+};
+
+const projects: Project[] = [
+  {
+    name: "Rekindle",
+    period: "Jul. 2026",
+    category: "Recommendation systems",
+    outcome: "Time-safe retrieval + ranking",
+    description: "A history-aware product discovery system for Amazon Electronics, built around time-safe evaluation, implicit feedback, and a two-stage retrieval and ranking pipeline.",
+    href: "https://github.com/Techdude01/rekindle",
+    preview: "recommendation",
+    previewTitle: "Recall → rank",
+    previewMetrics: ["Replay", "Signals", "Rank"],
+    previewImage: "/images/projects/rekindle-kindle.svg",
+  },
+  {
+    name: "Verdia",
+    period: "Apr. 2026",
+    category: "Hack Princeton / health AI",
+    outcome: "Patient + insurer decision support",
+    description: "A healthcare-fintech prototype that turns a seven-day risk score into clearer choices for patients, care teams, and insurers through role-based dashboards.",
+    href: "https://github.com/Techdude01/Verdia---Hack-Princeton-Spring-26",
+    preview: "health",
+    previewTitle: "Health, made legible",
+    previewMetrics: ["Patient", "Risk 7d", "Insurer"],
+    previewImage: "/images/projects/verdia-dashboard.png",
+  },
+  {
+    name: "MarketMind",
+    period: "Mar. 2026",
+    category: "yHack26 / agentic research",
+    outcome: "Market research with a trace",
+    description: "A research workspace that brings together a Next.js interface, Flask API, and PostgreSQL-backed workflow for exploring markets with more context and less tab switching.",
+    href: "https://github.com/Techdude01/MarketMind-yHack26",
+    preview: "market",
+    previewTitle: "Question → signal",
+    previewMetrics: ["Sources", "Synthesis", "Next"],
+    previewImage: "/images/projects/marketmind-dashboard.jpg",
+  },
   {
     name: "NBAnomaly",
     period: "Dec. 2025 — Present",
     category: "Data platform",
     outcome: "78% backtest precision",
-    details: [
-      "Built an NBA platform that surfaces player under- and overperformance across 10+ seasons with FastAPI on AWS EC2 and resilient ingestion.",
-      "Validated 78% backtest precision with an Isolation Forest and reduced LLM report latency from 4.5 seconds to 2.5ms with cache-aside PostgreSQL.",
-    ],
-    stack: ["FastAPI", "AWS EC2", "PostgreSQL", "Gemini"],
+    description: "An NBA platform that surfaces player under- and overperformance across 10+ seasons, then turns the signal into a fast scouting report.",
     href: "https://github.com/Techdude01/NBAnomaly",
+    preview: "sports",
+    previewTitle: "Find the outlier",
+    previewMetrics: ["10+ yrs", "78%", "2.5ms"],
+    previewImage: "/images/projects/nbanomaly-dashboard.jpg",
+    featured: true,
   },
   {
     name: "AutoCPT",
     period: "Feb. 2025",
-    category: "Applied AI",
+    category: "Applied AI / HackNYU winner",
     outcome: "HackNYU 2025 Best Use of AI",
-    details: [
-      "Built a live-visit assistant that turns clinician-patient conversations into suggested CPT codes, saving clinicians 16+ hours a week with Whisper, LLaMA-3, and Groq.",
-      "Enabled sub-500ms responses with async Flask, retry and audit logic, and React YOLOv8 overlays.",
-    ],
-    stack: ["Flask", "Whisper", "LLaMA-3", "YOLOv8", "React"],
+    description: "A live-visit assistant that turns clinician-patient conversations into suggested CPT codes, with a focus on speed, auditability, and less manual work.",
     href: "https://github.com/Techdude01/AutoCPT",
-  },
-];
-
-const experience = [
-  {
-    period: "Jun. 2026 — Aug. 2026",
-    company: "Spotify",
-    location: "New York City, NY",
-    role: "Data Engineering Intern",
-    details: [
-      "Built a Claude/MCP deprecation skill across 10+ Spotify repositories with reader checks, SQL parity, and PR summaries, cutting manual work 70%.",
-      "Decommissioned two Dataflow pipelines and three Pub/Sub topics, reducing GCP spend by about $15K a year.",
-    ],
+    preview: "clinical",
+    previewTitle: "Voice → code",
+    previewMetrics: ["Whisper", "<500ms", "CPT"],
+    previewImage: "/images/projects/autocpt-dashboard.png",
+    featured: true,
   },
   {
-    period: "Apr. 2025 — Present",
-    company: "NYU Enterprise Data Management",
-    location: "New York City, NY",
-    role: "Technical Systems Engineering Intern (Part-Time)",
-    details: [
-      "Cut Financial Aid ETL runtime 40% by migrating 100GB+ inputs to Parquet, improving read times 54%.",
-      "Built a 600K-row SARIMA/Prophet forecasting engine with 4% MAPE and an Oracle Analytics Cloud dashboard.",
-    ],
+    name: "NYC Airbnb Pricing Lab",
+    period: "May 2026",
+    category: "ML / data research",
+    outcome: "Model comparison + error analysis",
+    description: "A pricing study built from NYC Airbnb data, with feature engineering, Optuna-tuned regression models, held-out metrics, and visual error analysis.",
+    href: "https://github.com/Techdude01/BNB_Pricing",
+    preview: "pricing",
+    previewTitle: "Price meets place",
+    previewMetrics: ["Features", "Models", "Error"],
+    previewImage: "/images/projects/bnb-price-vs-reviews.png",
   },
-  {
-    period: "Jan. 2024 — Jun. 2026",
-    company: "NYU ARC Robotics",
-    location: "New York City, NY",
-    role: "Computer Vision Lead",
-    details: [
-      "Built a C++ ROS 2 auto-aim system with Basler/RealSense cameras, YOLO, and TensorRT/DeepStream.",
-      "Cut latency 70% (40ms to 12ms), raised throughput 2.3x, and improved armor-targeting F1 by 15%.",
-    ],
-  },
-];
-
-const skills = [
-  { label: "Languages", items: ["Scala", "Java", "Python", "C++", "Bash", "sbt", "Maven"] },
-  { label: "Data & Streaming", items: ["Apache Beam/Scio", "Google Cloud Dataflow", "BigQuery", "Bigtable", "Pub/Sub", "Protobuf", "Avro"] },
-  { label: "ML & Vision", items: ["ROS 2", "TensorRT", "DeepStream", "CUDA/NVMM", "PyTorch", "YOLOv8", "scikit-learn", "Prophet", "Optuna"] },
-  { label: "Cloud Infrastructure", items: ["Google Cloud IAM", "Kubernetes", "GitHub Actions/CI"] },
-  { label: "Platforms", items: ["FastAPI", "Flask", "PostgreSQL", "Docker", "GitHub", "Oracle Analytics Cloud"] },
-  { label: "Credentials", items: ["AWS Certified Machine Learning Engineer – Associate (May 2026)"] },
 ];
 
 const ThemeToggle = () => {
@@ -109,10 +133,30 @@ const ThemeToggle = () => {
   );
 };
 
-const InkDivider = () => (
-  <svg className="ink-divider" viewBox="0 0 1200 16" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M2 8 C68 2, 126 14, 198 7 S334 2, 410 8 S546 14, 620 7 S758 2, 830 8 S968 14, 1042 7 S1144 3, 1198 8" />
-  </svg>
+const ProjectPreview = ({ project }: { project: Project }) => (
+  <div className={`project-preview project-preview--${project.preview}`}>
+    {project.previewImage ? (
+      <div className="project-preview-image-wrap">
+        <img src={project.previewImage} alt={`${project.name} analysis preview`} />
+      </div>
+    ) : (
+      <div className="project-preview-canvas" aria-hidden="true">
+        <div className="project-preview-glow" />
+        <div className="project-preview-copy">
+          <span>{project.category}</span>
+          <strong>{project.previewTitle}</strong>
+        </div>
+        <div className="project-preview-diagram">
+          <span className="project-preview-node project-preview-node--one">{project.previewMetrics[0]}</span>
+          <span className="project-preview-node project-preview-node--two">{project.previewMetrics[1]}</span>
+          <span className="project-preview-node project-preview-node--three">{project.previewMetrics[2]}</span>
+          <span className="project-preview-line project-preview-line--one" />
+          <span className="project-preview-line project-preview-line--two" />
+          <span className="project-preview-core"><ArrowUpRight aria-hidden="true" /></span>
+        </div>
+      </div>
+    )}
+  </div>
 );
 
 const ScrollToTop = () => {
@@ -164,9 +208,6 @@ export const PortfolioLayout = () => {
         <Outlet />
       </main>
 
-      <footer className="site-footer">
-        <span>© {new Date().getFullYear()} Kushal Mamillapalli</span>
-      </footer>
     </div>
   );
 };
@@ -190,7 +231,6 @@ export const AboutPage = () => {
     <section className="resume-page about-page" aria-labelledby="about-title">
       <div className="page-wrap about-layout">
         <div className="about-copy">
-          <p className="section-label"><span>01</span> About</p>
           <h1 id="about-title">Kushal<br /><em>Mamillapalli</em></h1>
           <div className="about-details">
             <p className="about-detail about-detail--current">
@@ -208,7 +248,7 @@ export const AboutPage = () => {
             </p>
           </div>
           <div className="about-actions">
-            <Link className="button button-primary" to="/work">Selected work <ArrowUpRight aria-hidden="true" /></Link>
+            <Link className="button button-primary" to="/projects">Selected projects <ArrowUpRight aria-hidden="true" /></Link>
             <Link className="button" to="/resume">View résumé</Link>
           </div>
         </div>
@@ -225,42 +265,37 @@ export const AboutPage = () => {
   );
 };
 
-export const WorkPage = () => {
-  usePageTitle("Selected Work", "Selected engineering projects by Kushal Mamillapalli.");
+export const ProjectsPage = () => {
+  usePageTitle("Projects", "Selected GitHub projects by Kushal Mamillapalli.");
 
   return (
-    <section className="resume-page" aria-label="Work">
+    <section className="resume-page projects-page" aria-labelledby="projects-title">
       <div className="page-wrap">
-        <div className="project-list">
-          {projects.map((project, index) => (
-            <div className="ink-separated-entry" key={project.name}>
-              {index > 0 && <InkDivider />}
-              <article className="project-entry">
-                <div className="project-index">0{index + 1}</div>
-                <div className="project-main">
-                  <div className="entry-heading">
-                    <div>
-                      <p className="entry-meta">{project.category} / {project.period}</p>
-                      <h2>{project.name}</h2>
-                    </div>
-                    <p className="project-outcome">{project.outcome}</p>
+        <header className="projects-intro">
+          <h1 id="projects-title">Built to be opened.</h1>
+        </header>
+
+        <div className="projects-grid">
+          {projects.map((project) => (
+            <article className={`project-card project-card--${project.preview}`} key={project.name}>
+              <ProjectPreview project={project} />
+              <div className="project-card-body">
+                <div className="project-card-heading">
+                  <div>
+                    <p className="entry-meta">{project.category} / {project.period}</p>
+                    <h2>{project.name}</h2>
                   </div>
-                  <div className="project-body">
-                    <ul className="detail-list">
-                      {project.details.map((detail) => <li key={detail}>{detail}</li>)}
-                    </ul>
-                    <div className="project-aside">
-                      <ul className="tag-list" aria-label={`${project.name} technology stack`}>
-                        {project.stack.map((item) => <li key={item}>{item}</li>)}
-                      </ul>
-                      <a className="project-link" href={project.href} target="_blank" rel="noreferrer">
-                        View on GitHub <ArrowUpRight aria-hidden="true" />
-                      </a>
-                    </div>
-                  </div>
+                  {project.featured && <span className="project-card-badge">Resume</span>}
                 </div>
-              </article>
-            </div>
+                <p className="project-card-outcome">{project.outcome}</p>
+                <p className="project-card-description">{project.description}</p>
+                <div className="project-card-footer">
+                  <a className="project-link" href={project.href} target="_blank" rel="noreferrer">
+                    View on GitHub <ArrowUpRight aria-hidden="true" />
+                  </a>
+                </div>
+              </div>
+            </article>
           ))}
         </div>
       </div>
@@ -268,91 +303,41 @@ export const WorkPage = () => {
   );
 };
 
-export const ExperiencePage = () => {
-  usePageTitle("Experience", "Data engineering, software engineering, computer vision, and research experience at Spotify, NYU, and RoboMaster Team Ultraviolet.");
+export const ContactPage = () => {
+  usePageTitle("Contact", "Get in touch with Kushal Mamillapalli.");
 
   return (
-    <section className="resume-page" aria-label="Experience">
-      <div className="page-wrap">
-        <ol className="experience-list">
-          {experience.map((item, index) => (
-            <li className="ink-separated-entry" key={`${item.company}-${item.role}`}>
-              {index > 0 && <InkDivider />}
-              <div className="experience-entry">
-                <time>{item.period}</time>
-                <article>
-                  <div className="entry-heading">
-                    <div>
-                      <h2>{item.company}</h2>
-                      <p className="entry-meta">{item.role} / {item.location}</p>
-                    </div>
-                  </div>
-                  <ul className="detail-list">
-                    {item.details.map((detail) => <li key={detail}>{detail}</li>)}
-                  </ul>
-                </article>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </section>
-  );
-};
-
-export const EducationPage = () => {
-  usePageTitle("Education", "Education and academic focus of Kushal Mamillapalli.");
-
-  return (
-    <section className="resume-page education-page" aria-label="Education">
-      <div className="page-wrap">
-        <article className="education-card">
-          <div className="education-mark" aria-hidden="true">NYU</div>
-          <div className="education-content">
-            <div className="entry-heading">
-              <div>
-                <p className="entry-meta">Brooklyn, NY / Sep. 2023 — May 2026</p>
-                <h2>NYU Tandon School of Engineering</h2>
-              </div>
-              <p className="education-gpa">3.9 <span>/ 4.0 GPA</span></p>
-            </div>
-            <p className="education-degree">B.S. Computer Science <span>with a Mathematics minor</span></p>
-            <div className="education-grid">
-              <div>
-                <p className="section-label"><span>Recognition</span></p>
-                <ul className="recognition-list">
-                  <li>NYU IT Distinguished Student Employee Award, 2026</li>
-                  <li>Dean&apos;s List, 2023 — 2026</li>
-                </ul>
-              </div>
-              <div>
-                <p className="section-label"><span>Coursework</span></p>
-                <p>Data Structures, Algorithms, Operating Systems, Databases, Machine Learning, and Data Science.</p>
-              </div>
-            </div>
-          </div>
-        </article>
-        <InkDivider />
-      </div>
-    </section>
-  );
-};
-
-export const TechPage = () => {
-  usePageTitle("Technical Skills", "Technical skills across backend systems, data engineering, machine learning, infrastructure, and frontend development.");
-
-  return (
-    <section className="resume-page" aria-label="Tech">
-      <div className="page-wrap">
-        <div className="skills-grid" aria-label="Technical skills">
-          {skills.map((group, index) => (
-            <section className="skill-card" key={group.label}>
-              <p className="skill-number">0{index + 1}</p>
-              <h2>{group.label}</h2>
-              <p>{group.items.join(" · ")}</p>
-            </section>
-          ))}
+    <section className="resume-page contact-page" aria-labelledby="contact-title">
+      <div className="page-wrap contact-layout">
+        <div className="contact-copy">
+          <h1 id="contact-title">Let&apos;s build something useful.</h1>
         </div>
+        <ul className="contact-list">
+          <li>
+            <a href="mailto:km6238@nyu.edu">
+              <Mail aria-hidden="true" />
+              <span>Email</span>
+              <strong>km6238@nyu.edu</strong>
+              <ArrowUpRight aria-hidden="true" />
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/Techdude01" target="_blank" rel="noreferrer">
+              <Github aria-hidden="true" />
+              <span>GitHub</span>
+              <strong>github.com/Techdude01</strong>
+              <ArrowUpRight aria-hidden="true" />
+            </a>
+          </li>
+          <li>
+            <a href="https://www.linkedin.com/in/kushal-mamillapalli/" target="_blank" rel="noreferrer">
+              <Linkedin aria-hidden="true" />
+              <span>LinkedIn</span>
+              <strong>linkedin.com/in/kushal-mamillapalli</strong>
+              <ArrowUpRight aria-hidden="true" />
+            </a>
+          </li>
+        </ul>
       </div>
     </section>
   );
@@ -366,9 +351,6 @@ export const ResumePage = () => {
       <div className="page-wrap">
         <div className="resume-display">
           <div className="resume-actions">
-            <FileText aria-hidden="true" />
-            <p className="section-label"><span>PDF</span> One page / Printable version</p>
-            <p>A concise, printable resume with direct links to LinkedIn, GitHub, and project work.</p>
             <div>
               <a className="button button-primary" href="/documents/kushal-mamillapalli-resume.pdf" target="_blank" rel="noreferrer">
                 Read resume <ArrowUpRight aria-hidden="true" />

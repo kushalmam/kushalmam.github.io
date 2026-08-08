@@ -2,12 +2,10 @@ import { ThemeProvider } from "next-themes";
 import { HashRouter, Route, Routes } from "react-router-dom";
 import {
   AboutPage,
-  EducationPage,
-  ExperiencePage,
+  ContactPage,
   PortfolioLayout,
+  ProjectsPage,
   ResumePage,
-  TechPage,
-  WorkPage,
 } from "./pages/PortfolioPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -17,11 +15,9 @@ const App = () => (
       <Routes>
         <Route element={<PortfolioLayout />}>
           <Route index element={<AboutPage />} />
-          <Route path="work" element={<WorkPage />} />
-          <Route path="experience" element={<ExperiencePage />} />
-          <Route path="education" element={<EducationPage />} />
-          <Route path="tech" element={<TechPage />} />
+          <Route path="projects" element={<ProjectsPage />} />
           <Route path="resume" element={<ResumePage />} />
+          <Route path="contact" element={<ContactPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
