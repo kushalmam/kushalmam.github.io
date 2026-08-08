@@ -136,12 +136,16 @@ export const PortfolioLayout = () => {
       <a href="#main-content" className="skip-link">Skip to content</a>
 
       <header className="site-header">
-        <div className={`site-header-inner${showHeaderName ? " site-header-inner--identity" : ""}`}>
-          {showHeaderName && (
-            <Link to="/" className="site-name" aria-label="Kushal Mamillapalli, About">
-              Kushal Mamillapalli
-            </Link>
-          )}
+        <div className="site-header-inner site-header-inner--identity">
+          <Link
+            to="/"
+            className={`site-name${showHeaderName ? "" : " site-name--placeholder"}`}
+            aria-label="Kushal Mamillapalli, About"
+            aria-hidden={!showHeaderName}
+            tabIndex={showHeaderName ? undefined : -1}
+          >
+            Kushal Mamillapalli
+          </Link>
 
           <nav className="site-nav" aria-label="Portfolio pages">
             {navItems.map((item) => (

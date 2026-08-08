@@ -162,7 +162,7 @@ button {
 
 .site-header-inner,
 .page-wrap {
-  width: min(100% - 4rem, 1120px);
+  width: min(100% - 4rem, 1360px);
   margin-inline: auto;
 }
 
@@ -188,6 +188,11 @@ button {
   letter-spacing: -0.02em;
   line-height: 1;
   white-space: nowrap;
+}
+
+.site-name--placeholder {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .site-nav {
@@ -432,15 +437,15 @@ main:focus {
 
 .hero-art {
   display: grid;
-  min-height: clamp(20rem, 27vw, 22rem);
-  max-width: 25rem;
+  min-height: clamp(22rem, 31vw, 30rem);
+  max-width: 30rem;
   margin: 0 auto;
   place-items: center;
 }
 
 .profile-portrait {
   position: relative;
-  width: min(80%, 19rem);
+  width: min(100%, 24rem);
   height: auto;
   aspect-ratio: 1;
   margin: 0;
@@ -1051,7 +1056,7 @@ main:focus {
 
 .site-footer {
   display: flex;
-  width: min(100% - 4rem, 1120px);
+  width: min(100% - 4rem, 1360px);
   justify-content: space-between;
   gap: 1rem;
   margin: 0 auto;
@@ -1114,7 +1119,7 @@ main:focus {
   body { font-size: 17px; }
   .site-header-inner,
   .page-wrap,
-  .site-footer { width: min(100% - 2rem, 1120px); }
+  .site-footer { width: min(100% - 2rem, 1360px); }
 
   .site-header-inner {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -1165,8 +1170,8 @@ main:focus {
   .contact-layout,
   .resume-display { gap: 3.2rem; }
   .about-copy h1 { font-size: clamp(4.15rem, 18vw, 6rem); }
-  .hero-art { min-height: 21rem; max-width: 23rem; }
-  .profile-portrait { height: auto; }
+  .hero-art { min-height: 21rem; max-width: 26rem; }
+  .profile-portrait { width: min(100%, 24rem); height: auto; }
   .project-entry,
   .experience-entry { grid-template-columns: 1fr; gap: 0.8rem; }
   .project-index,
@@ -1186,7 +1191,7 @@ main:focus {
 @media (max-width: 460px) {
   .site-header-inner,
   .page-wrap,
-  .site-footer { width: min(100% - 1.5rem, 1120px); }
+  .site-footer { width: min(100% - 1.5rem, 1360px); }
   .site-nav { gap: 0.85rem; }
   .site-nav a { font-size: 0.59rem; }
   .about-copy h1 { font-size: clamp(3.85rem, 17vw, 4.8rem); }
