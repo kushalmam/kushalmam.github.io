@@ -18,7 +18,6 @@
   --green: #708b78;
   --line: rgb(55 48 46 / 16%);
   --line-strong: rgb(55 48 46 / 30%);
-  --wash: rgb(198 161 158 / 21%);
   --shadow: 0 16px 42px rgb(80 61 53 / 8%);
   --font-display: "Fraunces", Georgia, serif;
   --font-body: "Newsreader", Georgia, serif;
@@ -42,7 +41,6 @@
   --green: #a8c3a9;
   --line: rgb(240 232 220 / 16%);
   --line-strong: rgb(240 232 220 / 31%);
-  --wash: rgb(212 173 169 / 14%);
   --shadow: 0 16px 42px rgb(0 0 0 / 23%);
 }
 
@@ -117,31 +115,19 @@ button {
   isolation: isolate;
 }
 
-.resume-app::before,
-.resume-app::after {
+.watercolor-background {
   position: fixed;
   z-index: -1;
-  width: min(52vw, 720px);
-  height: min(52vw, 720px);
-  border-radius: 49% 51% 62% 38% / 45% 45% 55% 55%;
-  content: "";
-  filter: blur(2px);
-  opacity: 0.6;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
 
-.resume-app::before {
-  top: -23rem;
-  left: -22rem;
-  background: var(--wash);
-  transform: rotate(-16deg);
-}
-
-.resume-app::after {
-  right: -30rem;
-  bottom: -31rem;
-  background: rgb(117 135 124 / 9%);
-  transform: rotate(24deg);
+.dark .watercolor-background {
+  filter: brightness(0.66) saturate(0.88);
+  mix-blend-mode: screen;
+  opacity: 0.46;
 }
 
 .skip-link {
@@ -312,118 +298,6 @@ main:focus {
 
 .resume-page:not(.about-page) {
   padding-top: clamp(1.6rem, 3vw, 2.6rem);
-}
-
-.page-variant {
-  position: relative;
-  isolation: isolate;
-  overflow: clip;
-}
-
-.page-variant > .page-wrap {
-  position: relative;
-  z-index: 1;
-}
-
-.page-variant::before,
-.page-variant::after {
-  position: absolute;
-  z-index: 0;
-  width: clamp(16rem, 30vw, 30rem);
-  aspect-ratio: 1;
-  border-radius: 46% 54% 61% 39% / 43% 45% 55% 57%;
-  content: "";
-  filter: blur(1.5px);
-  mix-blend-mode: multiply;
-  opacity: 0.72;
-  pointer-events: none;
-}
-
-.page-variant::before {
-  background: radial-gradient(ellipse at 35% 40%, rgb(198 161 158 / 52%) 0 34%, transparent 66%);
-}
-
-.page-variant::after {
-  background: radial-gradient(ellipse at 58% 50%, rgb(112 139 120 / 44%) 0 33%, transparent 67%);
-}
-
-.page-variant--about::before { top: -4rem; left: -5.5rem; transform: rotate(-18deg) scale(1.25); }
-.page-variant--about::after { right: -7rem; bottom: -8rem; transform: rotate(24deg) scale(1.05); }
-
-.page-variant--work::before {
-  top: -4rem;
-  right: -6rem;
-  background: radial-gradient(ellipse at 36% 48%, rgb(84 127 149 / 53%) 0 31%, transparent 67%), radial-gradient(ellipse at 66% 60%, rgb(112 139 120 / 36%) 0 25%, transparent 63%);
-  transform: rotate(23deg) scale(1.12);
-}
-
-.page-variant--work::after {
-  bottom: -8rem;
-  left: -7rem;
-  background: radial-gradient(ellipse at 60% 42%, rgb(171 123 88 / 31%) 0 30%, transparent 66%);
-  transform: rotate(-20deg) scale(0.9);
-}
-
-.page-variant--experience::before {
-  top: -4rem;
-  left: -6rem;
-  background: radial-gradient(ellipse at 53% 53%, rgb(180 92 96 / 42%) 0 34%, transparent 67%), radial-gradient(ellipse at 30% 70%, rgb(198 161 158 / 38%) 0 23%, transparent 65%);
-  transform: rotate(-15deg) scale(1.1);
-}
-
-.page-variant--experience::after {
-  right: -7rem;
-  bottom: -8rem;
-  background: radial-gradient(ellipse at 42% 48%, rgb(84 127 149 / 34%) 0 30%, transparent 66%);
-  transform: rotate(28deg) scale(0.9);
-}
-
-.page-variant--education::before {
-  top: -4rem;
-  right: -6rem;
-  background: radial-gradient(ellipse at 39% 46%, rgb(171 123 88 / 48%) 0 31%, transparent 66%), radial-gradient(ellipse at 65% 70%, rgb(180 92 96 / 31%) 0 24%, transparent 63%);
-  transform: rotate(37deg) scale(1.04);
-}
-
-.page-variant--education::after {
-  bottom: -8rem;
-  left: -7rem;
-  background: radial-gradient(ellipse at 59% 46%, rgb(117 135 124 / 41%) 0 31%, transparent 66%);
-  transform: rotate(-28deg) scale(0.88);
-}
-
-.page-variant--tech::before {
-  top: -4rem;
-  left: -6rem;
-  background: radial-gradient(ellipse at 58% 47%, rgb(112 139 120 / 50%) 0 33%, transparent 67%), radial-gradient(ellipse at 32% 70%, rgb(84 127 149 / 30%) 0 24%, transparent 65%);
-  transform: rotate(-24deg) scale(1.08);
-}
-
-.page-variant--tech::after {
-  right: -7rem;
-  bottom: -8rem;
-  background: radial-gradient(ellipse at 40% 42%, rgb(84 127 149 / 44%) 0 33%, transparent 67%);
-  transform: rotate(17deg) scale(0.92);
-}
-
-.page-variant--resume::before {
-  top: -4rem;
-  right: -6rem;
-  background: radial-gradient(ellipse at 43% 48%, rgb(198 161 158 / 41%) 0 31%, transparent 66%), radial-gradient(ellipse at 68% 65%, rgb(112 139 120 / 36%) 0 23%, transparent 62%);
-  transform: rotate(29deg) scale(1.08);
-}
-
-.page-variant--resume::after {
-  bottom: -8rem;
-  left: -7rem;
-  background: radial-gradient(ellipse at 60% 44%, rgb(180 92 96 / 35%) 0 28%, transparent 65%), radial-gradient(ellipse at 35% 64%, rgb(84 127 149 / 28%) 0 22%, transparent 63%);
-  transform: rotate(-19deg) scale(0.92);
-}
-
-.dark .page-variant::before,
-.dark .page-variant::after {
-  mix-blend-mode: screen;
-  opacity: 0.48;
 }
 
 @keyframes page-enter {

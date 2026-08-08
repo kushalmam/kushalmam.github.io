@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import WatercolorBackground from "../components/WatercolorBackground.tsx";
 
 const navItems = [
   { to: "/", label: "About", number: "01" },
@@ -130,6 +131,7 @@ export const PortfolioLayout = () => {
 
   return (
     <div className="resume-app">
+      <WatercolorBackground />
       <ScrollToTop />
       <a href="#main-content" className="skip-link">Skip to content</a>
 
@@ -181,7 +183,7 @@ export const AboutPage = () => {
   );
 
   return (
-    <section className="resume-page about-page page-variant page-variant--about" aria-labelledby="about-title">
+    <section className="resume-page about-page" aria-labelledby="about-title">
       <div className="page-wrap about-layout">
         <div className="about-copy">
           <p className="section-label"><span>01</span> About</p>
@@ -217,7 +219,7 @@ export const WorkPage = () => {
   usePageTitle("Selected Work", "Selected engineering projects by Kushal Mamillapalli.");
 
   return (
-    <section className="resume-page page-variant page-variant--work" aria-label="Work">
+    <section className="resume-page" aria-label="Work">
       <div className="page-wrap">
         <div className="project-list">
           {projects.map((project, index) => (
@@ -260,7 +262,7 @@ export const ExperiencePage = () => {
   usePageTitle("Experience", "Data engineering, software engineering, computer vision, and research experience at Spotify, NYU, and RoboMaster Team Ultraviolet.");
 
   return (
-    <section className="resume-page page-variant page-variant--experience" aria-label="Experience">
+    <section className="resume-page" aria-label="Experience">
       <div className="page-wrap">
         <ol className="experience-list">
           {experience.map((item, index) => (
@@ -292,7 +294,7 @@ export const EducationPage = () => {
   usePageTitle("Education", "Education and academic focus of Kushal Mamillapalli.");
 
   return (
-    <section className="resume-page education-page page-variant page-variant--education" aria-label="Education">
+    <section className="resume-page education-page" aria-label="Education">
       <div className="page-wrap">
         <article className="education-card">
           <div className="education-mark" aria-hidden="true">NYU</div>
@@ -330,7 +332,7 @@ export const TechPage = () => {
   usePageTitle("Technical Skills", "Technical skills across backend systems, data engineering, machine learning, infrastructure, and frontend development.");
 
   return (
-    <section className="resume-page page-variant page-variant--tech" aria-label="Tech">
+    <section className="resume-page" aria-label="Tech">
       <div className="page-wrap">
         <div className="skills-grid" aria-label="Technical skills">
           {skills.map((group, index) => (
@@ -350,7 +352,7 @@ export const ResumePage = () => {
   usePageTitle("Resume", "One-page resume for Kushal Mamillapalli.");
 
   return (
-    <section className="resume-page page-variant page-variant--resume" aria-label="Resume">
+    <section className="resume-page" aria-label="Resume">
       <div className="page-wrap">
         <div className="resume-display">
           <div className="resume-actions">
