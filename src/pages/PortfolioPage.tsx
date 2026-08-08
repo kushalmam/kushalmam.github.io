@@ -52,8 +52,8 @@ const experience = [
     location: "New York City, NY",
     role: "Data Engineering Intern",
     details: [
-      "Built a Claude skill using five MCPs to streamline event-deprecation and data-parity checks, cutting migration setup time an estimated 35%.",
-      "Consolidated three legacy events into a canonical Protobuf schema across five repositories and validated 4,560 production records in BigQuery.",
+      "Built a Claude/MCP deprecation skill across 10+ Spotify repositories with reader checks, SQL parity, and PR summaries, cutting manual work 70%.",
+      "Decommissioned two Dataflow pipelines and three Pub/Sub topics, reducing GCP spend by about $15K a year.",
     ],
   },
   {
