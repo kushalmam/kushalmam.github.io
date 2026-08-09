@@ -25,19 +25,24 @@ const WatercolorBackground = () => (
         <feComposite in="SourceGraphic" in2="greyGrain" operator="in" />
       </filter>
       <linearGradient id="watercolor-rose-pool" x1="0" x2="1" y1="0" y2="1">
-        <stop offset="0" stopColor="#bf7f84" stopOpacity="0.58" />
-        <stop offset="0.46" stopColor="#d59b9c" stopOpacity="0.35" />
+        <stop offset="0" stopColor="var(--watercolor-rose-core)" stopOpacity="0.68" />
+        <stop offset="0.46" stopColor="#d59b9c" stopOpacity="0.42" />
         <stop offset="1" stopColor="#d7a38c" stopOpacity="0.02" />
       </linearGradient>
       <linearGradient id="watercolor-blue-pool" x1="0" x2="1" y1="1" y2="0">
-        <stop offset="0" stopColor="#779fb0" stopOpacity="0.46" />
-        <stop offset="0.55" stopColor="#adc6cf" stopOpacity="0.23" />
+        <stop offset="0" stopColor="var(--watercolor-blue-core)" stopOpacity="0.55" />
+        <stop offset="0.55" stopColor="#adc6cf" stopOpacity="0.29" />
         <stop offset="1" stopColor="#d4deda" stopOpacity="0" />
       </linearGradient>
       <linearGradient id="watercolor-sage-pool" x1="0" x2="1" y1="0" y2="1">
-        <stop offset="0" stopColor="#829f87" stopOpacity="0.44" />
-        <stop offset="0.52" stopColor="#b7c6a6" stopOpacity="0.22" />
+        <stop offset="0" stopColor="var(--watercolor-sage-core)" stopOpacity="0.53" />
+        <stop offset="0.52" stopColor="#b7c6a6" stopOpacity="0.28" />
         <stop offset="1" stopColor="#dbe0c7" stopOpacity="0" />
+      </linearGradient>
+      <linearGradient id="watercolor-amber-pool" x1="0" x2="1" y1="1" y2="0">
+        <stop offset="0" stopColor="var(--amber)" stopOpacity="0.42" />
+        <stop offset="0.5" stopColor="var(--amber)" stopOpacity="0.2" />
+        <stop offset="1" stopColor="var(--amber)" stopOpacity="0" />
       </linearGradient>
       <radialGradient id="watercolor-lilac-pool" cx="50%" cy="50%" r="58%">
         <stop offset="0" stopColor="#a896b2" stopOpacity="0.17" />
@@ -47,12 +52,13 @@ const WatercolorBackground = () => (
 
     <g className="watercolor-pool-group" style={{ mixBlendMode: "multiply" }}>
       <path d="M-260 -120 H806 C746 21 830 119 757 202 C684 284 557 360 412 402 C233 453 55 408 -260 312Z" fill="url(#watercolor-blue-pool)" filter="url(#watercolor-blue-edge)" />
-      <path d="M-260 -72 H674 C629 34 712 121 645 184 C570 256 451 311 296 337 C113 367 -71 334 -260 254Z" fill="#72a4ba" fillOpacity="0.12" filter="url(#watercolor-blue-edge)" />
+      <path d="M-260 -72 H674 C629 34 712 121 645 184 C570 256 451 311 296 337 C113 367 -71 334 -260 254Z" fill="var(--watercolor-blue-core)" fillOpacity="0.14" filter="url(#watercolor-blue-edge)" />
       <path d="M835 -150 H1810 V439 C1647 447 1506 401 1376 333 C1261 273 1148 224 1017 213 C914 203 875 139 835 -150Z" fill="url(#watercolor-rose-pool)" filter="url(#watercolor-rose-edge)" />
-      <path d="M1015 -105 H1810 V353 C1654 368 1540 329 1402 266 C1277 210 1184 170 1079 167 C1035 134 1017 57 1015 -105Z" fill="#b96771" fillOpacity="0.13" filter="url(#watercolor-rose-edge)" />
+      <path d="M1015 -105 H1810 V353 C1654 368 1540 329 1402 266 C1277 210 1184 170 1079 167 C1035 134 1017 57 1015 -105Z" fill="var(--watercolor-rose-core)" fillOpacity="0.15" filter="url(#watercolor-rose-edge)" />
       <path d="M537 1150 H1810 V533 C1651 548 1514 612 1370 697 C1246 770 1104 864 937 900 C774 936 633 881 537 796Z" fill="url(#watercolor-sage-pool)" filter="url(#watercolor-sage-edge)" />
-      <path d="M695 1150 H1810 V629 C1648 642 1528 705 1389 780 C1267 845 1155 902 1013 920 C867 938 755 896 695 842Z" fill="#6d9278" fillOpacity="0.12" filter="url(#watercolor-sage-edge)" />
+      <path d="M695 1150 H1810 V629 C1648 642 1528 705 1389 780 C1267 845 1155 902 1013 920 C867 938 755 896 695 842Z" fill="var(--watercolor-sage-core)" fillOpacity="0.14" filter="url(#watercolor-sage-edge)" />
       <path d="M-220 1150 V714 C3 636 168 663 295 762 C411 851 474 957 620 1150Z" fill="url(#watercolor-lilac-pool)" filter="url(#watercolor-rose-edge)" />
+      <path d="M-205 1150 V773 C-18 710 139 739 263 823 C366 893 431 1008 526 1150Z" fill="url(#watercolor-amber-pool)" filter="url(#watercolor-rose-edge)" />
     </g>
 
     <g className="watercolor-ribbon-group" fill="none" strokeLinecap="round" style={{ mixBlendMode: "multiply" }}>
