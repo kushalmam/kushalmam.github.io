@@ -32,7 +32,6 @@ type Project = {
   previewTitle: string;
   previewMetrics: [string, string, string];
   previewImage?: string;
-  featured?: boolean;
 };
 
 const projects: Project[] = [
@@ -83,7 +82,6 @@ const projects: Project[] = [
     previewTitle: "Find the outlier",
     previewMetrics: ["10+ yrs", "78%", "2.5ms"],
     previewImage: "/images/projects/nbanomaly-dashboard.jpg",
-    featured: true,
   },
   {
     name: "AutoCPT",
@@ -96,7 +94,6 @@ const projects: Project[] = [
     previewTitle: "Voice → code",
     previewMetrics: ["Whisper", "<500ms", "CPT"],
     previewImage: "/images/projects/autocpt-dashboard.png",
-    featured: true,
   },
   {
     name: "NYC Airbnb Pricing Lab",
@@ -256,7 +253,7 @@ export const AboutPage = () => {
         <div className="about-visual">
           <div className="hero-art">
             <figure className="profile-portrait">
-              <img src="/images/IMG_3406.jpeg" alt="Portrait of Kushal Mamillapalli" />
+              <img src="/images/IMG_3406.jpeg" alt="Kushal Mamillapalli" />
             </figure>
           </div>
         </div>
@@ -285,7 +282,6 @@ export const ProjectsPage = () => {
                     <p className="entry-meta">{project.category} / {project.period}</p>
                     <h2>{project.name}</h2>
                   </div>
-                  {project.featured && <span className="project-card-badge">Resume</span>}
                 </div>
                 <p className="project-card-outcome">{project.outcome}</p>
                 <p className="project-card-description">{project.description}</p>
@@ -311,6 +307,9 @@ export const ContactPage = () => {
       <div className="page-wrap contact-layout">
         <div className="contact-copy">
           <h1 id="contact-title">Let&apos;s build something useful.</h1>
+          <p className="contact-intro">
+            I&apos;m open to thoughtful work in data infrastructure, backend systems, and applied AI—especially when it makes something complex easier to use.
+          </p>
         </div>
         <ul className="contact-list">
           <li>

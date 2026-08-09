@@ -27,21 +27,21 @@
 
 .dark {
   color-scheme: dark;
-  --paper: #29221e;
-  --paper-deep: #342a25;
-  --paper-dim: #41342d;
-  --ink: #f0e8dc;
-  --ink-muted: #cbbfb3;
-  --ink-faint: #968b82;
-  --rose: #d4ada9;
-  --clay: #d3a077;
-  --sage: #a7b99f;
-  --blue: #86b6cf;
-  --red: #df8b8d;
-  --green: #a8c3a9;
-  --line: rgb(240 232 220 / 16%);
-  --line-strong: rgb(240 232 220 / 31%);
-  --shadow: 0 16px 42px rgb(0 0 0 / 23%);
+  --paper: #202a35;
+  --paper-deep: #2a3744;
+  --paper-dim: #374756;
+  --ink: #f4efe6;
+  --ink-muted: #cbd1d5;
+  --ink-faint: #9da8b0;
+  --rose: #d8a6a8;
+  --clay: #e2ad79;
+  --sage: #a9c8ad;
+  --blue: #91cbe7;
+  --red: #ee969a;
+  --green: #a9d7b2;
+  --line: rgb(235 242 247 / 17%);
+  --line-strong: rgb(235 242 247 / 33%);
+  --shadow: 0 18px 48px rgb(0 0 0 / 31%);
 }
 
 * {
@@ -125,9 +125,34 @@ button {
 }
 
 .dark .watercolor-background {
-  filter: brightness(0.66) saturate(0.88);
+  filter: brightness(0.82) saturate(1.05);
   mix-blend-mode: screen;
-  opacity: 0.46;
+  opacity: 0.56;
+}
+
+@keyframes watercolor-wash-drift {
+  0%,
+  100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(0.55%, -0.4%) scale(1.006); }
+}
+
+@keyframes watercolor-ribbon-drift {
+  0%,
+  100% { transform: translate(0, 0); }
+  50% { transform: translate(-0.45%, 0.35%); }
+}
+
+.watercolor-pool-group,
+.watercolor-grain-group {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: watercolor-wash-drift 32s ease-in-out infinite;
+}
+
+.watercolor-ribbon-group {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: watercolor-ribbon-drift 25s ease-in-out infinite reverse;
 }
 
 .skip-link {
@@ -1248,17 +1273,6 @@ main:focus {
   line-height: 0.92;
 }
 
-.project-card-badge {
-  border: 1px solid var(--line-strong);
-  padding: 0.35rem 0.5rem;
-  color: var(--clay);
-  font-family: var(--font-label);
-  font-size: 0.58rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
 .project-card-outcome {
   margin: 1.1rem 0 0;
   color: var(--preview-accent);
@@ -1286,6 +1300,14 @@ main:focus {
 
 .contact-copy h1 {
   max-width: 34rem;
+}
+
+.contact-intro {
+  max-width: 29rem;
+  margin: 1.35rem 0 0;
+  color: var(--ink-muted);
+  font-size: 1.06rem;
+  line-height: 1.5;
 }
 
 .not-found-page {
