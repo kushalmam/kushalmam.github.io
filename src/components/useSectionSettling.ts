@@ -1,7 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, type RefObject } from "react";
+import type Lenis from "lenis";
 
 /** A small forward nudge after downward scrolling stops near a section boundary. */
-export default function useSectionSettling() {
+export default function useSectionSettling(
+  controller?: RefObject<Pick<Lenis, "scrollTo"> | null>,
+) {
   useEffect(() => {
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
     let lastY = window.scrollY;
@@ -15,6 +18,8 @@ export default function useSectionSettling() {
     const stop = () => {
       clearTimeout(idle);
       cancelAnimationFrame(frame);
+      if (animating)
+        controller?.current?.scrollTo(window.scrollY, { immediate: true });
       animating = false;
     };
     const settle = () => {
@@ -46,6 +51,17 @@ export default function useSectionSettling() {
       if (target === undefined) return;
       userScrolling = false;
       animating = true;
+      if (controller?.current) {
+        controller.current.scrollTo(target, {
+          duration: 0.28,
+          easing: (t) => 1 - Math.pow(1 - t, 3),
+          onComplete: () => {
+            animating = false;
+            lastY = window.scrollY;
+          },
+        });
+        return;
+      }
       const started = performance.now();
       const tick = (now: number) => {
         const progress = Math.min((now - started) / 200, 1);
@@ -123,5 +139,5 @@ export default function useSectionSettling() {
       window.removeEventListener("hashchange", onHash);
       reducedMotion.removeEventListener("change", stop);
     };
-  }, []);
+  }, [controller]);
 }

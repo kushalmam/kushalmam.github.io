@@ -21,7 +21,7 @@ export default function ProjectPreview({ theme, name }: Props) {
       <svg
         viewBox="0 0 520 300"
         role="img"
-        aria-label={`${name}: illustrative ${theme === "basketball" ? "player performance anomaly detection" : theme === "healthcare" ? "audio to suggested CPT medical billing codes workflow" : "comparison of market signals and news sentiment"}`}
+        aria-label={`${name}: illustrative ${theme === "recommender" ? "review history feeds neural, popularity, and collaborative retrieval; their candidates are reranked by LambdaRank into a top ten" : theme === "basketball" ? "player performance anomaly detection" : theme === "healthcare" ? "audio to suggested CPT medical billing codes workflow" : "comparison of market signals and news sentiment"}`}
       >
         <defs>
           <linearGradient id={`fade-${theme}`} x1="0" y1="0" x2="0" y2="1">
@@ -29,7 +29,24 @@ export default function ProjectPreview({ theme, name }: Props) {
             <stop offset="1" stopColor="#76aaff" stopOpacity="0" />
           </linearGradient>
         </defs>
-        {theme === "basketball" ? (
+        {theme === "recommender" ? (
+          <>
+            <text x="35" y="35" className="preview-label">Rekindle / two-stage recommendation</text>
+            <rect x="150" y="55" width="220" height="40" rx="7" className="diagram-panel" />
+            <text x="260" y="80" textAnchor="middle" className="preview-label">Earlier review history</text>
+            <path d="M260 95V110H105V125M260 110V125M260 110H415V125" className="flow-line" />
+            {[{x:35,label:"Neural retrieval"},{x:190,label:"Popularity"},{x:345,label:"Item-item CF"}].map(({x,label}) => (
+              <g key={label}>
+                <rect x={x} y="125" width="140" height="40" rx="7" className="diagram-panel" />
+                <text x={x+70} y="150" textAnchor="middle" className="preview-label">{label}</text>
+              </g>
+            ))}
+            <path d="M105 165V185H415V165M260 165V205" className="flow-line" />
+            <rect x="125" y="205" width="270" height="45" rx="7" className="code-panel" />
+            <text x="260" y="232" textAnchor="middle" className="preview-label">Candidate union → LambdaRank → top 10</text>
+            <text x="35" y="280" className="preview-muted">Offline replay • only earlier events inform each prediction</text>
+          </>
+        ) : theme === "basketball" ? (
           <>
             <text x="35" y="35" className="preview-label">
               Player performance
@@ -119,7 +136,7 @@ export default function ProjectPreview({ theme, name }: Props) {
               Suggested CPT codes
             </text>
             <text x="302" y="245" className="preview-muted">
-              Clinician review
+              Hackathon prototype
             </text>
           </>
         ) : (
@@ -159,6 +176,7 @@ export default function ProjectPreview({ theme, name }: Props) {
           </>
         )}
       </svg>
+      <figcaption>Illustrative workflow · not live application data</figcaption>
     </figure>
   );
 }

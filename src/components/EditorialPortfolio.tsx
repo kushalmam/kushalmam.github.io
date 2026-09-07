@@ -4,43 +4,111 @@ import { ArrowUpRight, ArrowDown, ArrowUp } from "lucide-react";
 import HeroField from "./HeroField";
 import SiteHeader from "./SiteHeader";
 import useSectionSettling from "./useSectionSettling";
+import useSmoothScrolling from "./useSmoothScrolling";
 import ProjectPreview from "./ProjectPreview";
 
 const projects = [
   {
-    name: "NBAnomaly",
-    detail: "Find the players whose performance deserves a closer look.",
-    stack: "FastAPI / PostgreSQL / AWS / Gemini",
-    github: "NBAnomaly",
-    theme: "basketball",
-    approach:
-      "Historical game data feeds an anomaly model, then a generated report explains the result.",
+    name: "Rekindle",
+    detail: "Retrieve and rank products from a history of reviews.",
+    stack: "DuckDB / PyTorch / FAISS / LightGBM",
+    github: "rekindle",
+    theme: "recommender",
+    caseStudy: [
+      {
+        title: "Constraint",
+        text: "An 18 GB M3 Pro shaped the pipeline: prepare data with DuckDB on disk and evaluate chronologically without leaking future events.",
+      },
+      {
+        title: "Decision",
+        text: "Full-catalog evaluation exposed weak neural retrieval, so I combined it with popularity and item-item filtering before reranking. HNSW was faster but retained only 88.7% of exact candidates; exact FAISS stayed the default for the 55.9k-item catalog.",
+      },
+      {
+        title: "Evidence",
+        text: "The project report records NDCG@10 of 0.0104 versus 0.0071 for the strongest baseline on 29,416 eligible warm test events. Models were frozen before chronological replay, with 2,000 paired bootstrap resamples. This measures offline next-review ranking, not online engagement.",
+      },
+    ],
+    sources: [
+      {
+        label: "Read the Rekindle experiment report",
+        href: "https://github.com/Techdude01/rekindle/blob/main/docs/rekindle-report.md",
+      },
+      {
+        label: "View Rekindle on GitHub",
+        href: "https://github.com/Techdude01/rekindle",
+      },
+    ],
   },
   {
     name: "AutoCPT",
     detail:
-      "Turn a clinical conversation into suggested billing codes, with the clinician in control.",
-    stack: "Flask / Whisper / LLaMA-3 / React",
+      "Explore speech-to-code assistance for clinical billing.",
+    stack: "Flask / Groq / React / Expo",
     github: "AutoCPT",
     devpost: "autocpt",
     theme: "healthcare",
-    approach:
-      "Audio transcription flows into code suggestions, with an audit trail for review.",
+    caseStudy: [
+      {
+        title: "Constraint",
+        text: "A HackNYU prototype needed to move from live speech to CPT suggestions and a demo billing flow quickly.",
+      },
+      {
+        title: "Decision",
+        text: "Use Flask and WebSockets for the transcript loop, Groq for CPT extraction, React and Expo clients, and Capital One’s sandbox for demo billing.",
+      },
+      {
+        title: "Evidence",
+        text: "Our team won HackNYU 2025’s Best Use of AI powered by Reach Capital. I worked on fracture detection and the TypeScript frontend. The result was a hackathon demo using a billing sandbox, without a clinical accuracy study.",
+      },
+    ],
+    sources: [
+      {
+        label: "View AutoCPT on GitHub",
+        href: "https://github.com/Techdude01/AutoCPT",
+      },
+      {
+        label: "See AutoCPT’s award and team roles",
+        href: "https://devpost.com/software/autocpt",
+      },
+    ],
   },
   {
     name: "MarketMind",
     detail: "Investigate where the market and the news tell different stories.",
-    stack: "Next.js / Flask / PostgreSQL / NLP",
+    stack: "Next.js / Flask / PostgreSQL / K2 + Tavily",
     github: "MarketMind-yHack26",
     devpost: "marketmind-5iychz",
     theme: "markets",
-    approach:
-      "A shared research view puts news sentiment beside crowd-implied probabilities.",
+    caseStudy: [
+      {
+        title: "Constraint",
+        text: "A hackathon research workflow had to connect live prediction-market context with current external evidence and a usable analysis view.",
+      },
+      {
+        title: "Decision",
+        text: "Use a K2/Tavily research agent behind Flask, persist structured market and thesis data in PostgreSQL, and derive a sentiment-divergence signal for the frontend.",
+      },
+      {
+        title: "Evidence",
+        text: "Our team connected evidence gathering, saved research, and sentiment analysis in one prototype. The repository includes signal tests and an evaluation harness; the six committed example outputs demonstrate the flow, rather than measured trading performance.",
+      },
+    ],
+    sources: [
+      {
+        label: "View MarketMind on GitHub",
+        href: "https://github.com/Techdude01/MarketMind-yHack26",
+      },
+      {
+        label: "Read the MarketMind build plan",
+        href: "https://github.com/Techdude01/MarketMind-yHack26/blob/main/plan.md",
+      },
+    ],
   },
 ];
 
 export default function EditorialPortfolio() {
-  useSectionSettling();
+  const scrollController = useSmoothScrolling();
+  useSectionSettling(scrollController);
   const pageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const elements =
@@ -90,15 +158,16 @@ export default function EditorialPortfolio() {
               <span className="title-line">interface.</span>
             </h1>
             <p className="hero-signature">
-              Data, systems & a little curiosity.
+              I build data pipelines, backend services, and ML systems that
+              turn raw data into useful decisions.
             </p>
           </div>
           <div className="hero-bottom">
-            <a className="scroll-link label" href="#about">
+            <a className="scroll-link label" href="#work">
               <span className="round-arrow">
                 <ArrowDown size={20} />
               </span>
-              Scroll to explore
+              View selected work
             </a>
           </div>
         </section>
@@ -126,9 +195,9 @@ export default function EditorialPortfolio() {
                 I like figuring out what happens behind the interface.
               </p>
               <p>
-                I’m a 2026 Computer Science graduate from NYU Tandon, currently
-                learning how large-scale data systems stay reliable in practice
-                as a Data Engineering Intern at Spotify.
+                I’m a 2026 Computer Science graduate from NYU Tandon and a
+                Data Engineer (Emerging Talent) at Spotify, improving
+                personalization data pipelines.
               </p>
               <p>
                 My work has ranged from university data pipelines to computer
@@ -137,7 +206,7 @@ export default function EditorialPortfolio() {
               </p>
             </div>
           </div>
-          <div className="experience" data-reveal>
+          <div className="experience">
             <h3 className="experience-heading">Experience</h3>
             <div className="experience-rows">
               <article>
@@ -151,13 +220,13 @@ export default function EditorialPortfolio() {
                 />
                 <div>
                   <h4>Spotify</h4>
-                  <p>Data Engineering Intern</p>
+                  <p>Data Engineer (Emerging Talent) · Sep 2026–Present</p>
                   <p className="experience-detail">
-                    Learning how large-scale data systems stay reliable in
-                    production.
+                    Improving personalization data pipelines.
                   </p>
+                  <p>Data Engineering Intern · Jun–Aug 2026</p>
                 </div>
-                <span className="label">PZN</span>
+                <span className="experience-period">Jun 2026–Present</span>
               </article>
               <article>
                 <img
@@ -169,13 +238,13 @@ export default function EditorialPortfolio() {
                   loading="lazy"
                 />
                 <div>
-                  <h4>NYU Enterprise Data Management</h4>
-                  <p>Analytics & data infrastructure</p>
+                  <h4>NYU</h4>
+                  <p>SWE / Technical Intern</p>
                   <p className="experience-detail">
-                    Optimized 100GB+ pipelines. Reduced ETL runtime by 40% and
-                    storage by 73%.
+                    Modernized university student financial reporting ETL.
                   </p>
                 </div>
+                <span className="experience-period">Apr 2025–Aug 2026</span>
               </article>
               <article>
                 <img
@@ -188,12 +257,32 @@ export default function EditorialPortfolio() {
                 />
                 <div>
                   <h4>ARC Robotics: Team Ultraviolet</h4>
-                  <p>Computer vision & robotics</p>
+                  <p>Computer Vision Lead · Jan 2025–Jul 2026</p>
                   <p className="experience-detail">
-                    Brought autonomous-targeting latency from 40ms to 12ms with
-                    YOLOv8 and TensorRT.
+                    Built computer vision pipelines that accelerated inference
+                    with CUDA and DeepStream.
+                  </p>
+                  <p>Computer Vision / DevOps Engineer · Jan–Dec 2024</p>
+                </div>
+                <span className="experience-period">Jan 2024–Jul 2026</span>
+              </article>
+              <article>
+                <img
+                  className="org-logo org-logo--nyu"
+                  src="/images/logos/nyu.svg"
+                  alt=""
+                  width="48"
+                  height="48"
+                  loading="lazy"
+                />
+                <div>
+                  <h4>NYU Tandon</h4>
+                  <p>Computer Vision Research Intern</p>
+                  <p className="experience-detail">
+                    Optimized 3D penguin biological motion tracking.
                   </p>
                 </div>
+                <span className="experience-period">Jun–Aug 2024</span>
               </article>
             </div>
           </div>
@@ -205,29 +294,30 @@ export default function EditorialPortfolio() {
               className={`project project--${project.theme}`}
               key={project.name}
             >
-              <div className="project-info" data-reveal>
+              <div className="project-info">
                 <div className="project-summary">
                   <h2>{project.name}</h2>
                   <p className="project-purpose">{project.detail}</p>
-                  <p className="project-approach">{project.approach}</p>
                   <span className="stack">{project.stack}</span>
+                  <div className="case-study">
+                    {project.caseStudy.map((section) => (
+                      <div key={section.title}>
+                        <h3>{section.title}</h3>
+                        <p>{section.text}</p>
+                      </div>
+                    ))}
+                  </div>
                   <div className="project-links">
-                    <a
-                      href={`https://github.com/Techdude01/${project.github}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View project <ArrowUpRight size={16} />
-                    </a>
-                    {project.devpost && (
+                    {project.sources.map((source) => (
                       <a
-                        href={`https://devpost.com/software/${project.devpost}`}
+                        href={source.href}
                         target="_blank"
                         rel="noreferrer"
+                        key={source.href}
                       >
-                        Devpost <ArrowUpRight size={16} />
+                        {source.label} <ArrowUpRight size={16} />
                       </a>
-                    )}
+                    ))}
                   </div>
                 </div>
               </div>

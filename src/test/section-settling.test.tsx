@@ -58,6 +58,23 @@ describe("downward section settling", () => {
     expect(window.scrollTo).not.toHaveBeenCalled();
     hook.unmount();
   });
+  it("uses the smooth controller for settling and cancels on upward input", () => {
+    const scrollTo = vi.fn();
+    const controller = { current: { scrollTo } };
+    const hook = renderHook(() => useSectionSettling(controller));
+    act(() => scroll(10, 90));
+    act(() => vi.advanceTimersByTime(200));
+    expect(scrollTo).toHaveBeenCalledWith(
+      134,
+      expect.objectContaining({ duration: 0.28 }),
+    );
+    expect(window.scrollTo).not.toHaveBeenCalled();
+    act(() => scroll(-10, 85));
+    expect(scrollTo).toHaveBeenLastCalledWith(90, { immediate: true });
+    act(() => vi.advanceTimersByTime(500));
+    expect(scrollTo).toHaveBeenCalledTimes(2);
+    hook.unmount();
+  });
   it("cancels a pending settle when the user reverses direction", () => {
     const hook = renderHook(() => useSectionSettling());
     act(() => scroll(10, 90));
