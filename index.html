@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#050b16" />
+    <meta name="theme-color" content="#0c0d0f" />
     <script>
       (() => {
         let preference = "system";
@@ -21,7 +21,7 @@
         document.documentElement.dataset.themePreference = preference;
         document.documentElement.style.colorScheme = theme;
         document.querySelector('meta[name="theme-color"]').content =
-          theme === "light" ? "#e4f0fc" : "#050b16";
+          theme === "light" ? "#f8fbfb" : "#0c0d0f";
       })();
     </script>
     <meta name="robots" content="index, follow" />
@@ -109,7 +109,7 @@
       .static-fallback {
         min-height: 100vh;
         margin: 0;
-        background: #050b16;
+        background: #0c0d0f;
         color: #e6e7e5;
         font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
         line-height: 1.55;
@@ -132,7 +132,6 @@
       }
 
       .static-fallback__eyebrow,
-      .static-fallback dt,
       .static-fallback__stack,
       .static-fallback__period {
         color: #a3adaa;
@@ -173,31 +172,10 @@
         font-size: 1.1rem;
       }
 
-      .static-fallback__facts {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 1rem;
-        margin: 3rem 0 4rem;
-      }
-
-      .static-fallback__facts div,
       .static-fallback section,
       .static-fallback article,
       .static-fallback li {
         border-top: 1px solid #d5d5c9;
-      }
-
-      .static-fallback__facts div {
-        padding-top: 1rem;
-      }
-
-      .static-fallback dt,
-      .static-fallback dd {
-        margin: 0;
-      }
-
-      .static-fallback dd {
-        margin-top: 0.35rem;
       }
 
       .static-fallback section {
@@ -242,7 +220,6 @@
       }
 
       @media (max-width: 720px) {
-        .static-fallback__facts,
         .static-fallback article {
           grid-template-columns: 1fr;
         }
@@ -255,111 +232,28 @@
       <main class="static-fallback" aria-labelledby="static-title">
         <div class="static-fallback__wrap">
           <p class="static-fallback__eyebrow">
-            NYU Tandon CS '26 / data + ML systems
+            Backend &amp; data systems engineer
           </p>
-          <h1 id="static-title">Kushal Mamillapalli</h1>
+          <h1 id="static-title">Behind the interface.</h1>
           <p class="static-fallback__lede">
-            Data engineer focused on personalization pipelines, backend
-            systems, and applied ML infrastructure.
+            I build data pipelines, backend services, and ML systems that turn
+            raw data into useful decisions.
           </p>
           <p><a href="#static-projects">View selected work</a></p>
 
-          <dl class="static-fallback__facts" aria-label="Portfolio highlights">
-            <div>
-              <dt>Education</dt>
-              <dd>NYU Tandon CS '26</dd>
-            </div>
-            <div>
-              <dt>Experience</dt>
-              <dd>Spotify Data Engineer (Emerging Talent)</dd>
-            </div>
-            <div>
-              <dt>Base</dt>
-              <dd>Secaucus / New York</dd>
-            </div>
-          </dl>
-
-          <section aria-labelledby="static-profile">
-            <h2 id="static-profile">Profile</h2>
+          <section aria-labelledby="static-about">
+            <h2 id="static-about">About me</h2>
+            <p>I like figuring out what happens behind the interface.</p>
             <p>
-              NYU Tandon Computer Science graduate building production data
-              systems, backend APIs, and applied ML infrastructure across
-              personalization, university data, robotics, and research.
+              I’m a 2026 Computer Science graduate from NYU Tandon and a Data
+              Engineer (Emerging Talent) at Spotify, improving personalization
+              data pipelines.
             </p>
-          </section>
-
-          <section aria-labelledby="static-projects">
-            <h2 id="static-projects">Selected Projects</h2>
-            <article>
-              <div>
-                <h3>Rekindle</h3>
-                <p class="static-fallback__period">Information retrieval research prototype</p>
-                <p>Offline NDCG@10: 0.0104 vs. 0.0071 baseline</p>
-              </div>
-              <div>
-                <p>
-                  A disk-backed recommendation retrieval pipeline evaluated on
-                  29,416 eligible test events, with model selection and index
-                  design decisions documented in the project report.
-                </p>
-                <p class="static-fallback__stack">
-                  Python / DuckDB / FAISS / neural retrieval
-                </p>
-                <p>
-                  <a href="https://github.com/Techdude01/rekindle/blob/main/docs/rekindle-report.md"
-                    >View Rekindle report</a
-                  >
-                </p>
-              </div>
-            </article>
-            <article>
-              <div>
-                <h3>AutoCPT</h3>
-                <p class="static-fallback__period">Feb. 2025</p>
-                <p>HackNYU 2025 — Best Use of AI powered by Reach Capital</p>
-              </div>
-              <div>
-                <p>
-                  A clinical documentation prototype that combines browser
-                  speech recognition, Groq-powered CPT extraction, and a demo
-                  billing sandbox. My contribution focused on fracture
-                  detection and the TypeScript frontend.
-                </p>
-                <p class="static-fallback__stack">
-                  Flask / Groq / React / TypeScript / browser speech
-                </p>
-                <p>
-                  <a href="https://github.com/Techdude01/AutoCPT"
-                    >View AutoCPT on GitHub</a
-                  >
-                </p>
-              </div>
-            </article>
-            <article>
-              <div>
-                <h3>MarketMind</h3>
-                <p class="static-fallback__period">March 2026</p>
-                <p>
-                  Research prototype for market evidence and signal exploration
-                </p>
-              </div>
-              <div>
-                <p>
-                  A team research prototype comparing live news sentiment with
-                  crowd-implied probabilities using agent tooling and a small
-                  signal model. It does not establish trading effectiveness.
-                </p>
-                <p class="static-fallback__stack">
-                  Python / FinBERT / Cardiff RoBERTa / PostgreSQL / REST /
-                  Recharts
-                </p>
-                <p>
-                  <a href="https://github.com/Techdude01/MarketMind-yHack26"
-                    >View MarketMind on GitHub</a
-                  >
-                </p>
-              </div>
-            </article>
+            <p>
+              My work has ranged from university data pipelines to computer
+              vision for competition robots. I enjoy getting a system working,
+              understanding where it breaks, and making it more reliable.
+            </p>
           </section>
 
           <section aria-labelledby="static-experience">
@@ -367,66 +261,184 @@
             <ul>
               <li>
                 <strong>Spotify</strong>
-                <p class="static-fallback__period">Jun. 2026 to Present</p>
-                <p>
-                  Data Engineer (Emerging Talent), Sep. 2026 to Present —
-                  improving personalization data pipelines for a large-scale
-                  music product.
-                </p>
-                <p>Data Engineering Intern, Jun. to Aug. 2026</p>
+                <p class="static-fallback__period">Jun 2026–Present</p>
+                <p>Data Engineer (Emerging Talent) · Sep 2026–Present</p>
+                <p>Improving personalization data pipelines.</p>
+                <p>Data Engineering Intern · Jun–Aug 2026</p>
               </li>
               <li>
-                <strong>NYU Software Engineering / Technical Intern</strong>
-                <p class="static-fallback__period">Apr. 2025 to Aug. 2026</p>
-                <p>
-                  Modernized university student financial reporting ETL.
-                </p>
+                <strong>NYU</strong>
+                <p class="static-fallback__period">Apr 2025–Aug 2026</p>
+                <p>SWE / Technical Intern</p>
+                <p>Modernized university student financial reporting ETL.</p>
               </li>
               <li>
                 <strong>ARC Robotics: Team Ultraviolet</strong>
-                <p class="static-fallback__period">Jan. 2024 to Jul. 2026</p>
+                <p class="static-fallback__period">Jan 2024–Jul 2026</p>
+                <p>Computer Vision Lead · Jan 2025–Jul 2026</p>
                 <p>
-                  Computer Vision Lead, Jan. 2025 to Jul. 2026 — built
-                  computer-vision pipelines and accelerated inference with CUDA
-                  and DeepStream.
+                  Built computer vision pipelines that accelerated inference
+                  with CUDA and DeepStream.
                 </p>
-                <p>Computer Vision / DevOps Engineer, Jan. to Dec. 2024</p>
+                <p>Computer Vision / DevOps Engineer · Jan–Dec 2024</p>
               </li>
               <li>
-                <strong>NYU Tandon Computer Vision Research</strong>
-                <p class="static-fallback__period">Research Intern, Jun. to Aug. 2024</p>
+                <strong>NYU Tandon</strong>
+                <p class="static-fallback__period">Jun–Aug 2024</p>
+                <p>Computer Vision Research Intern</p>
                 <p>Optimized 3D penguin biological motion tracking.</p>
               </li>
             </ul>
           </section>
 
-          <section aria-labelledby="static-skills">
-            <h2 id="static-skills">Technical Skills</h2>
-            <p>
-              Python, SQL, C++, TypeScript, FastAPI, Flask, REST APIs,
-              PostgreSQL, Snowflake, Parquet, scikit-learn, Prophet, Optuna,
-              XGBoost, CUDA, DeepStream, AWS EC2, Docker, GitLab CI, Linux,
-              React, and Recharts.
-            </p>
+          <section aria-labelledby="static-projects">
+            <h2 id="static-projects">Selected Projects</h2>
+            <article>
+              <div>
+                <h3>Rekindle</h3>
+                <p class="static-fallback__stack">
+                  DuckDB / PyTorch / FAISS / LightGBM
+                </p>
+              </div>
+              <div>
+                <p>Retrieve and rank products from a history of reviews.</p>
+                <p>
+                  <strong>Constraint.</strong> An 18 GB M3 Pro shaped the
+                  pipeline: prepare data with DuckDB on disk and evaluate
+                  chronologically without leaking future events.
+                </p>
+                <p>
+                  <strong>Decision.</strong> Full-catalog evaluation exposed
+                  weak neural retrieval, so I combined it with popularity and
+                  item-item filtering before reranking. HNSW was faster but
+                  retained only 88.7% of exact candidates; exact FAISS stayed
+                  the default for the 55.9k-item catalog.
+                </p>
+                <p>
+                  <strong>Evidence.</strong> The project report records NDCG@10
+                  of 0.0104 versus 0.0071 for the strongest baseline on 29,416
+                  eligible warm test events. Models were frozen before
+                  chronological replay, with 2,000 paired bootstrap resamples.
+                  This measures offline next-review ranking, not online
+                  engagement.
+                </p>
+                <p>
+                  <a
+                    href="https://github.com/Techdude01/rekindle/blob/main/docs/rekindle-report.md"
+                    >Read the Rekindle experiment report</a
+                  >
+                </p>
+                <p>
+                  <a href="https://github.com/Techdude01/rekindle"
+                    >View Rekindle on GitHub</a
+                  >
+                </p>
+              </div>
+            </article>
+            <article>
+              <div>
+                <h3>AutoCPT</h3>
+                <p class="static-fallback__stack">
+                  Flask / Groq / React / Expo
+                </p>
+              </div>
+              <div>
+                <p>
+                  Explore speech-to-CPT assistance for clinical billing.
+                </p>
+                <p>
+                  <strong>Constraint.</strong> A HackNYU prototype needed to
+                  move from live speech to CPT suggestions and a demo billing
+                  flow quickly.
+                </p>
+                <p>
+                  <strong>Decision.</strong> Use Flask and WebSockets for the
+                  transcript loop, Groq for CPT extraction, React and Expo
+                  clients, and Capital One’s sandbox for demo billing.
+                </p>
+                <p>
+                  <strong>Evidence.</strong> Our team won HackNYU 2025’s Best
+                  Use of AI powered by Reach Capital. I worked on fracture
+                  detection and the TypeScript frontend. The result was a
+                  hackathon demo using a billing sandbox, without a clinical
+                  accuracy study.
+                </p>
+                <p>
+                  <a href="https://github.com/Techdude01/AutoCPT"
+                    >View AutoCPT on GitHub</a
+                  >
+                </p>
+                <p>
+                  <a href="https://devpost.com/software/autocpt"
+                    >See AutoCPT’s award and team roles</a
+                  >
+                </p>
+              </div>
+            </article>
+            <article>
+              <div>
+                <h3>MarketMind</h3>
+                <p class="static-fallback__stack">
+                  Next.js / Flask / PostgreSQL / K2 + Tavily
+                </p>
+              </div>
+              <div>
+                <p>
+                  Investigate where the market and the news tell different
+                  stories.
+                </p>
+                <p>
+                  <strong>Constraint.</strong> A hackathon research workflow had
+                  to connect live prediction-market context with current
+                  external evidence and a usable analysis view.
+                </p>
+                <p>
+                  <strong>Decision.</strong> Use a K2/Tavily research agent
+                  behind Flask, persist structured market and thesis data in
+                  PostgreSQL, and derive a sentiment-divergence signal for the
+                  frontend.
+                </p>
+                <p>
+                  <strong>Evidence.</strong> Our team connected evidence
+                  gathering, saved research, and sentiment analysis in one
+                  prototype. The repository includes signal tests and an
+                  evaluation harness; the six committed example outputs
+                  demonstrate the flow, rather than measured trading
+                  performance.
+                </p>
+                <p>
+                  <a href="https://github.com/Techdude01/MarketMind-yHack26"
+                    >View MarketMind on GitHub</a
+                  >
+                </p>
+                <p>
+                  <a
+                    href="https://github.com/Techdude01/MarketMind-yHack26/blob/main/plan.md"
+                    >Read the MarketMind build plan</a
+                  >
+                </p>
+              </div>
+            </article>
           </section>
 
           <section aria-labelledby="static-contact">
-            <h2 id="static-contact">Contact</h2>
+            <h2 id="static-contact">Get in touch.</h2>
+            <p>For work or a conversation, email me.</p>
             <ul class="static-fallback__contact">
+              <li>
+                <a href="mailto:kushalmam06@gmail.com">kushalmam06@gmail.com</a>
+              </li>
               <li>
                 <a href="/documents/kushal-mamillapalli-resume.pdf"
                   >Résumé (PDF)</a
                 >
               </li>
               <li>
-                <a href="mailto:kushalmam06@gmail.com">kushalmam06@gmail.com</a>
-              </li>
-              <li><a href="https://github.com/Techdude01">GitHub</a></li>
-              <li>
                 <a href="https://linkedin.com/in/kushal-mamillapalli"
                   >LinkedIn</a
                 >
               </li>
+              <li><a href="https://github.com/Techdude01">GitHub</a></li>
             </ul>
           </section>
         </div>

@@ -22,7 +22,7 @@ export default function HeroField() {
           return;
         }
         renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-        renderer.setClearColor(0x050b16);
+        renderer.setClearColor(0x0c0d0f);
         host.appendChild(renderer.domElement);
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(43, 1, 0.1, 100);
@@ -81,20 +81,22 @@ export default function HeroField() {
             vec3 viewDir=normalize(vec3(0,0,15)-vPosition);
             float spec=pow(max(dot(normal,normalize(light+viewDir)),0.0),28.0);
             float edge=pow(1.0-max(dot(normal,viewDir),0.0),2.0);
-            vec3 base=mix(vec3(.009,.023,.055),vec3(.024,.079,.17),smoothstep(.28,.7,vFold));
-            vec3 color=base*(.4+diffuse*.9)+vec3(.075,.19,.37)*spec*.8+vec3(.015,.05,.12)*edge;
+            // Obsidian folds lit by a single chartreuse source.
+            vec3 base=mix(vec3(.031,.035,.043),vec3(.075,.082,.09),smoothstep(.28,.7,vFold));
+            vec3 color=base*(.4+diffuse*.9)+vec3(.30,.42,.09)*spec*.30+vec3(.045,.062,.016)*edge;
             float vignette=1.0-smoothstep(5.0,17.0,length(vPosition.xy));
             color*=.65+vignette*.35;
-            vec3 pearl=mix(vec3(.57,.73,.89),vec3(.84,.92,.98),diffuse*.65+.25);
-            pearl+=vec3(.11,.1,.07)*spec;
-            pearl-=vec3(.06,.035,.015)*edge;
+            // Light mode inverts to pale teal stone lit by the petrol accent.
+            vec3 pearl=mix(vec3(.55,.74,.78),vec3(.82,.92,.93),diffuse*.65+.25);
+            pearl+=vec3(.06,.32,.36)*spec;
+            pearl-=vec3(.10,.05,.03)*edge;
             gl_FragColor=vec4(mix(color,pearl,lightMode),1.0);
           }`,
         });
         const themeObserver = new MutationObserver(() => {
           const light = document.documentElement.dataset.theme === "light";
           material.uniforms.lightMode.value = light ? 1 : 0;
-          renderer.setClearColor(light ? 0xe4f0fc : 0x050b16);
+          renderer.setClearColor(light ? 0xf8fbfb : 0x0c0d0f);
           renderer.render(scene, camera);
         });
         themeObserver.observe(document.documentElement, {
@@ -103,8 +105,8 @@ export default function HeroField() {
         });
         renderer.setClearColor(
           document.documentElement.dataset.theme === "light"
-            ? 0xe4f0fc
-            : 0x050b16,
+            ? 0xf8fbfb
+            : 0x0c0d0f,
         );
         const surface = new THREE.Mesh(geometry, material);
         scene.add(surface);
@@ -192,7 +194,7 @@ export default function HeroField() {
         };
       })
       .catch(() => {
-        /* The navy background and readable headline remain without WebGL. */
+        /* The obsidian background and readable headline remain without WebGL. */
       });
     return () => {
       disposed = true;

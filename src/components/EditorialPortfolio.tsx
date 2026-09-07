@@ -41,8 +41,7 @@ const projects = [
   },
   {
     name: "AutoCPT",
-    detail:
-      "Explore speech-to-code assistance for clinical billing.",
+    detail: "Explore speech-to-CPT assistance for clinical billing.",
     stack: "Flask / Groq / React / Expo",
     github: "AutoCPT",
     devpost: "autocpt",
@@ -142,7 +141,9 @@ export default function EditorialPortfolio() {
         Skip to content
       </a>
       <SiteHeader />
-      <main id="main">
+      {/* tabindex makes the skip link actually move focus past the header
+          controls; <main> is not focusable on its own. */}
+      <main id="main" tabIndex={-1}>
         <section
           className="hero page-gutter"
           id="top"
@@ -154,7 +155,9 @@ export default function EditorialPortfolio() {
           </div>
           <div className="hero-display">
             <h1 id="hero-title">
-              <span className="title-line">Behind the</span>
+              {/* The space keeps textContent readable for consumers that
+                  ignore the line break, such as SEO and share-preview tools. */}
+              <span className="title-line">Behind the</span>{" "}
               <span className="title-line">interface.</span>
             </h1>
             <p className="hero-signature">
@@ -312,7 +315,7 @@ export default function EditorialPortfolio() {
                       <a
                         href={source.href}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         key={source.href}
                       >
                         {source.label} <ArrowUpRight size={16} />
@@ -343,7 +346,7 @@ export default function EditorialPortfolio() {
               <a
                 href="/documents/kushal-mamillapalli-resume.pdf"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
               >
                 Résumé{" "}
                 <span>
@@ -353,14 +356,14 @@ export default function EditorialPortfolio() {
               <a
                 href="https://linkedin.com/in/kushal-mamillapalli"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
               >
                 LinkedIn <ArrowUpRight size={17} />
               </a>
               <a
                 href="https://github.com/Techdude01"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
               >
                 GitHub <ArrowUpRight size={17} />
               </a>

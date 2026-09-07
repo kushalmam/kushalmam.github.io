@@ -4,14 +4,14 @@
 
 :root {
   font-family: "IBM Plex Sans", sans-serif;
-  color: #e6e7e5;
+  color: #e5e6e7;
   background: #070707;
   font-synthesis: none;
   font-weight: 400;
   --paper: #070707;
-  --ink: #e6e7e5;
-  --accent: #b7d8d3;
-  --muted: #a3adaa;
+  --ink: #e5e6e7;
+  --accent: #c5c7ca;
+  --muted: #a4a7ac;
   --line: #ffffff26;
 }
 * {
@@ -19,7 +19,6 @@
 }
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 94px;
 }
 body {
   margin: 0;
@@ -37,7 +36,7 @@ a:focus-visible {
   outline-offset: 6px;
 }
 ::selection {
-  background: #b7d8d3;
+  background: #c5c7ca;
   color: var(--paper);
 }
 h1,
@@ -199,10 +198,10 @@ nav a:hover {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #548267;
+  background: #666a70;
 }
 .current > span {
-  color: #b8b9aa;
+  color: #aeb1b5;
 }
 .hero-foot {
   display: flex;
@@ -239,7 +238,7 @@ nav a:hover {
   display: block;
   overflow: hidden;
   height: clamp(350px, 48vw, 760px);
-  background: #0e1c2e;
+  background: #1c1e20;
   isolation: isolate;
 }
 .art-word {
@@ -251,7 +250,7 @@ nav a:hover {
   font-family: "IBM Plex Sans", sans-serif;
   letter-spacing: -0.035em;
   text-align: center;
-  color: #c3cdd7;
+  color: #cbcdd0;
 }
 .screenshot-frame {
   position: absolute;
@@ -260,7 +259,7 @@ nav a:hover {
   top: 30%;
   border: 1px solid #ffffff60;
   border-radius: 7px 7px 0 0;
-  box-shadow: 0 25px 50px #152a3426;
+  box-shadow: 0 25px 50px #23242626;
   transform: rotate(-3deg);
   transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -272,7 +271,7 @@ nav a:hover {
 }
 .window-bar {
   height: 24px;
-  background: #10171e;
+  background: #161718;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -282,7 +281,7 @@ nav a:hover {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #b8bdbd;
+  background: #b8babd;
 }
 .window-name {
   font-size: 8px;
@@ -290,7 +289,7 @@ nav a:hover {
   left: 0;
   right: 0;
   text-align: center;
-  color: #a8b4bc;
+  color: #aeb1b6;
   letter-spacing: 0.04em;
 }
 .project-art:hover .screenshot-frame {
@@ -301,7 +300,7 @@ nav a:hover {
   bottom: 23px;
   left: 26px;
   background: inherit;
-  color: #c3cdd7;
+  color: #cbcdd0;
   z-index: 2;
 }
 .project-open {
@@ -323,10 +322,10 @@ nav a:hover {
   color: var(--paper);
 }
 .project--healthcare .project-art {
-  background: #102331;
+  background: #1f2022;
 }
 .project--healthcare .art-word {
-  color: #c3cdd7;
+  color: #cbcdd0;
 }
 .project--healthcare .screenshot-frame {
   transform: rotate(3deg);
@@ -335,10 +334,10 @@ nav a:hover {
   transform: rotate(0) translateY(-10px);
 }
 .project--markets .project-art {
-  background: #112a30;
+  background: #1f2022;
 }
 .project--markets .art-word {
-  color: #c3cdd7;
+  color: #cbcdd0;
 }
 .project-info {
   display: grid;
@@ -404,7 +403,7 @@ nav a:hover {
   margin-top: 8px;
 }
 .about {
-  background: #0b201a;
+  background: #141517;
   padding-top: 80px;
   padding-bottom: 95px;
 }
@@ -462,7 +461,7 @@ nav a:hover {
 .about-copy p {
   font-size: 15px;
   line-height: 1.85;
-  color: #aabbb3;
+  color: #afb2b6;
   margin-bottom: 18px;
 }
 .expertise {
@@ -518,7 +517,7 @@ nav a:hover {
 }
 .experience-rows .experience-detail {
   font-size: 12px;
-  color: #aabbb3;
+  color: #afb2b6;
   line-height: 1.7;
   max-width: 48ch;
   margin-top: 12px;
@@ -526,7 +525,7 @@ nav a:hover {
 .contact {
   padding-top: 40px;
   padding-bottom: 70px;
-  background: #252728;
+  background: #252628;
 }
 .contact-top {
   display: flex;
@@ -730,7 +729,7 @@ nav {
   align-items: center;
   justify-content: space-between;
   margin: 35px 0 0;
-  color: #bfc4c2;
+  color: #bfc1c4;
 }
 .hero-markers b {
   font-size: 18px;
@@ -759,7 +758,7 @@ nav {
   border-color: #ffffff15;
 }
 .work {
-  background: linear-gradient(#070707, #081321 180px, #091a2b 80%, #0b201a);
+  background: linear-gradient(#070707, #131416 180px, #191a1b 80%, #141517);
   padding-top: 120px;
 }
 .section-heading h2,
@@ -790,7 +789,7 @@ nav {
 .project--healthcare .art-word,
 .project--markets .art-word,
 .art-word {
-  color: #e0e7eb;
+  color: #e4e5e7;
 }
 .screenshot-frame,
 .project--healthcare .screenshot-frame {
@@ -807,20 +806,20 @@ nav {
   filter: saturate(1) brightness(1);
 }
 .project-open {
-  background: #dfe5e3;
-  color: #101b22;
+  background: #e1e2e3;
+  color: #18191a;
   border-radius: 0;
 }
 .project-art:hover .project-open {
-  background: #b7d8d3;
-  color: #101b22;
+  background: #c5c7ca;
+  color: #18191a;
 }
 .project-metric strong {
   font-family: var(--display);
   font-size: 38px;
 }
 .art-caption {
-  background: #0c1c27e8;
+  background: #18191be8;
   padding: 5px 8px;
 }
 .about-heading h2 {
@@ -828,7 +827,7 @@ nav {
   line-height: 1.12;
 }
 .about-heading h2 em {
-  color: #99b6a7;
+  color: #a3a7ac;
 }
 .expertise span {
   border-radius: 0;
@@ -838,10 +837,10 @@ nav {
 }
 .about {
   padding-top: 95px;
-  background: linear-gradient(#0b201a 75%, #15221e);
+  background: linear-gradient(#141517 75%, #1a1b1d);
 }
 .contact {
-  background: linear-gradient(#15221e, #252728 180px);
+  background: linear-gradient(#1a1b1d, #252628 180px);
   padding-top: 90px;
 }
 .contact h2 {
@@ -850,18 +849,18 @@ nav {
 }
 .contact h2 em {
   letter-spacing: -0.015em;
-  color: #bfc3c2;
+  color: #bfc1c3;
 }
 .contact-star {
   width: 65px;
   height: 65px;
 }
 footer {
-  background: #252728;
+  background: #252628;
   border-top: 1px solid #ffffff15;
 }
 .skip-link {
-  background: #e6e7e5;
+  background: #e5e6e7;
   color: #070707;
 }
 @media (min-width: 1700px) {
@@ -937,9 +936,6 @@ footer {
   }
 }
 @media (max-width: 600px) {
-  html {
-    scroll-padding-top: 20px;
-  }
   .page-gutter {
     padding-left: 6%;
     padding-right: 6%;
@@ -1309,7 +1305,7 @@ footer {
 .hero-intro {
   font-size: 17px;
   max-width: 49ch;
-  color: #bcc4c0;
+  color: #bdbfc3;
 }
 .hero-bottom {
   padding-bottom: 85px;
@@ -1466,7 +1462,7 @@ footer {
 
 /* Broad typography over the original atmospheric data field. */
 .hero {
-  background: radial-gradient(ellipse at 55% 48%, #0d1922, #070707 68%);
+  background: radial-gradient(ellipse at 55% 48%, #161719, #070707 68%);
 }
 .hero-field {
   inset: 0;
@@ -1568,19 +1564,19 @@ footer {
 
 /* Midnight blue art direction. */
 :root {
-  --paper: #050b16;
-  --ink: #e7ebf3;
-  --accent: #8fbbff;
-  --muted: #a0afc5;
-  --line: #92b9ee26;
+  --paper: #0d0d0e;
+  --ink: #ecedee;
+  --accent: #c4c7ca;
+  --muted: #afb2b6;
+  --line: #bdbfc326;
   --display: "Syne", sans-serif;
   --technical: "IBM Plex Sans", sans-serif;
-  background: #050b16;
+  background: #0d0d0e;
   color: var(--ink);
 }
 body,
 .site-header {
-  background: #050b16;
+  background: #0d0d0e;
 }
 .site-header {
   position: absolute;
@@ -1590,7 +1586,7 @@ body,
 }
 .hero {
   padding-top: 135px;
-  background: #050b16;
+  background: #0d0d0e;
   min-height: 100svh;
 }
 .hero-field {
@@ -1601,12 +1597,12 @@ body,
   opacity: 0.95;
 }
 .hero::after {
-  background: linear-gradient(90deg, #02081566, transparent 65%);
+  background: linear-gradient(90deg, #0b0b0c66, transparent 65%);
   opacity: 1;
   z-index: 0;
 }
 .hero-kicker {
-  color: #b9c9de;
+  color: #c9cbce;
 }
 .hero-display {
   margin: 100px 0 55px;
@@ -1619,7 +1615,7 @@ body,
   letter-spacing: -0.065em;
   line-height: 0.95;
   text-align: left;
-  text-shadow: 0 8px 35px #02061240;
+  text-shadow: 0 8px 35px #0a0a0b40;
   transform: perspective(1200px) rotateX(var(--type-x, 0deg))
     rotateY(var(--type-y, 0deg));
 }
@@ -1630,7 +1626,7 @@ body,
 .hero-signature {
   font-family: "Newsreader", Georgia, serif;
   font-style: italic;
-  color: #91bfff;
+  color: #c5c8cb;
   font-size: clamp(26px, 3.7vw, 60px);
   line-height: 1.1;
   margin-top: 35px;
@@ -1640,37 +1636,37 @@ body,
   padding-bottom: 40px;
 }
 .hero-intro {
-  color: #bbc9db;
+  color: #c8cbce;
 }
 .about {
-  background: #091426;
+  background: #161719;
   padding-top: 85px;
 }
 .work {
-  background: #07101e;
+  background: #121213;
   padding-top: 85px;
 }
 .contact,
 footer {
-  background: #0b1729;
+  background: #191a1b;
 }
 .about-copy p,
 .experience-rows .experience-detail {
-  color: #aabbd2;
+  color: #bbbdc1;
 }
 .about-copy .about-lead {
-  color: #e7ebf3;
+  color: #ecedee;
 }
 .project-art,
 .project--healthcare .project-art,
 .project--markets .project-art {
-  background: #0e2038;
+  background: #212325;
 }
 .project--healthcare .project-art {
-  background: #11263e;
+  background: #262729;
 }
 .project--markets .project-art {
-  background: #101c32;
+  background: #1f2123;
 }
 .wordmark,
 .project-info h2,
@@ -1696,10 +1692,10 @@ nav {
   letter-spacing: 0.04em;
 }
 .project-open {
-  background: #c6d8ef;
+  background: #d9dadc;
 }
 .project-art:hover .project-open {
-  background: #92baff;
+  background: #c6c8cb;
 }
 @media (max-width: 900px) {
   .hero {
@@ -1773,17 +1769,17 @@ nav {
   padding: 0 5%;
   height: 86px;
   z-index: 50;
-  background: #050b165e;
+  background: #0d0d0e5e;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid #a0bfff14;
+  border-bottom: 1px solid #cdcfd214;
   transition:
     height 0.3s,
     background 0.3s;
 }
 .site-header.is-compact {
   height: 66px;
-  background: #050b16dc;
+  background: #0d0d0edc;
 }
 .wordmark {
   position: relative;
@@ -1845,7 +1841,7 @@ nav {
   transform: rotate(45deg);
 }
 .header-menu summary:focus-visible {
-  outline: 2px solid #91bfff;
+  outline: 2px solid #c5c8cb;
   outline-offset: 5px;
 }
 .menu-panel {
@@ -1858,8 +1854,8 @@ nav {
   gap: 0;
   margin: 0;
   padding: 12px 25px;
-  background: #0b1729f5;
-  border: 1px solid #91bfff30;
+  background: #191a1bf5;
+  border: 1px solid #c5c8cb30;
   box-shadow: 0 22px 70px #0007;
 }
 .menu-panel a {
@@ -1871,7 +1867,7 @@ nav {
   font-weight: 600;
   text-transform: none;
   letter-spacing: -0.03em;
-  border-bottom: 1px solid #91bfff20;
+  border-bottom: 1px solid #c5c8cb20;
 }
 .menu-panel a:last-child {
   border-bottom: 0;
@@ -1909,19 +1905,19 @@ nav {
 .project-purpose {
   font-size: 19px;
   line-height: 1.4;
-  color: #e1e9f6;
+  color: #ebebec;
   max-width: 32ch;
   margin-bottom: 14px;
 }
 .project-approach {
   font-size: 14px;
   line-height: 1.75;
-  color: #a0b2cb;
+  color: #b2b5b9;
   max-width: 48ch;
 }
 .project-summary .stack {
   margin-top: 20px;
-  color: #8299b9;
+  color: #999da2;
   font-size: 11px;
   line-height: 1.6;
 }
@@ -1932,10 +1928,10 @@ nav {
   min-width: 0;
   margin: 0;
   padding: 8px;
-  border: 1px solid #8bb9ff1c;
+  border: 1px solid #c2c5c81c;
   border-radius: 12px;
   background:
-    radial-gradient(ellipse at 70% 20%, #17345b55, transparent 70%), #091629;
+    radial-gradient(ellipse at 70% 20%, #36393c55, transparent 70%), #18191a;
 }
 .project-preview svg {
   display: block;
@@ -1944,28 +1940,28 @@ nav {
 }
 .project-preview figcaption {
   font-size: 9px;
-  color: #8ca0ba;
+  color: #9ea2a8;
   padding: 0 25px 12px;
 }
 .preview-label {
-  fill: #c5d8f4;
+  fill: #dbdcde;
   font:
     12px "IBM Plex Sans",
     sans-serif;
 }
 .preview-muted {
-  fill: #8da7c8;
+  fill: #a6aaaf;
   font:
     11px "IBM Plex Sans",
     sans-serif;
 }
 .chart-grid {
-  stroke: #a1c5ff14;
+  stroke: #ced0d214;
   stroke-width: 1;
 }
 .signal-line {
   fill: none;
-  stroke: #88b8ff;
+  stroke: #c1c3c6;
   stroke-width: 2.5;
   stroke-linejoin: round;
   stroke-linecap: round;
@@ -1973,36 +1969,36 @@ nav {
   animation: trace-signal 6s ease-in-out infinite;
 }
 .baseline {
-  stroke: #6883a6;
+  stroke: #81868d;
   stroke-width: 1;
   stroke-dasharray: 4 6;
   fill: none;
 }
 .data-dot {
-  fill: #a7caff;
+  fill: #d1d3d5;
 }
 .anomaly-ring {
-  fill: #8cbcff0a;
-  stroke: #8cbcff;
+  fill: #c3c5c80a;
+  stroke: #c3c5c8;
   stroke-width: 1;
   transform-origin: 347px 114px;
   animation: signal-pulse 3s ease-in-out infinite;
 }
 .callout-line {
-  stroke: #8cadd6;
+  stroke: #adb0b5;
   fill: none;
   stroke-width: 1;
 }
 .diagram-panel {
-  fill: #0c1e35;
-  stroke: #86b3f02b;
+  fill: #1f2022;
+  stroke: #b8babe2b;
 }
 .code-panel {
-  fill: #163054;
-  stroke: #8abaff5c;
+  fill: #323538;
+  stroke: #c2c4c75c;
 }
 .wave-bar {
-  stroke: #8cbaff;
+  stroke: #c3c5c8;
   stroke-width: 3;
   stroke-linecap: round;
   transform-origin: center 105px;
@@ -2018,26 +2014,26 @@ nav {
   animation-delay: -1.5s;
 }
 .flow-line {
-  stroke: #9cc5ff;
+  stroke: #cbcdd0;
   fill: none;
   stroke-dasharray: 4 4;
   animation: flow-travel 1.6s linear infinite;
 }
 .transcript-line {
-  stroke: #557495;
+  stroke: #6f747b;
   stroke-width: 3;
   stroke-linecap: round;
 }
 .sentiment-line {
   fill: none;
-  stroke: #b1a4f5;
+  stroke: #cacccf;
   stroke-width: 2;
   stroke-dasharray: 1;
   animation: trace-signal 6s ease-in-out -0.8s infinite;
 }
 .divergence-band {
-  fill: #95b7f00a;
-  stroke: #91b6ed30;
+  fill: #bfc2c60a;
+  stroke: #bcbec230;
   stroke-dasharray: 3 5;
 }
 .project-preview:not(.preview-active) * {
@@ -2140,11 +2136,6 @@ nav {
   }
 }
 
-/* Leave room for the persistent header when following section links. */
-html {
-  scroll-padding-top: 86px;
-}
-
 /* A small lighting dial, with an explicit browser-following mode. */
 .theme-picker {
   position: relative;
@@ -2176,8 +2167,8 @@ html {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  border: 1px solid #93baff70;
-  box-shadow: 0 0 14px #508df22b;
+  border: 1px solid #c6c9cc70;
+  box-shadow: 0 0 14px #9ca0a62b;
 }
 .theme-orb > span {
   width: 22px;
@@ -2185,11 +2176,11 @@ html {
   border-radius: 50%;
   background: radial-gradient(
     circle at 28% 25%,
-    #bedfff,
-    #5084bd 26%,
-    #102241 62%
+    #dddee0,
+    #80858d 26%,
+    #26282b 62%
   );
-  box-shadow: inset -3px -2px 6px #020714;
+  box-shadow: inset -3px -2px 6px #0a0b0c;
   transition: transform 0.45s;
 }
 .theme-picker[open] .theme-orb > span {
@@ -2205,8 +2196,8 @@ html {
   width: 278px;
   padding: 21px;
   border-radius: 18px;
-  background: #0c1a2f;
-  border: 1px solid #8eb9f13d;
+  background: #1c1d1f;
+  border: 1px solid #bcbfc33d;
   box-shadow: 0 18px 60px #0006;
 }
 .theme-popover fieldset {
@@ -2227,8 +2218,8 @@ html {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   padding: 4px;
-  background: #050d1c;
-  border: 1px solid #8eb9f126;
+  background: #101011;
+  border: 1px solid #bcbfc326;
   border-radius: 13px;
 }
 .theme-thumb {
@@ -2236,9 +2227,9 @@ html {
   inset: 4px auto 4px 4px;
   width: calc((100% - 8px) / 3);
   border-radius: 9px;
-  background: #264874;
+  background: #494c51;
   box-shadow:
-    inset 0 1px #cbe4ff33,
+    inset 0 1px #e4e5e633,
     0 3px 8px #0003;
   transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -2266,187 +2257,187 @@ html {
   gap: 7px;
   padding: 12px 0;
   font-size: 11px;
-  color: #afc2dc;
+  color: #c3c5c8;
   border-radius: 9px;
 }
 .theme-track input:checked + span {
-  color: #f0f7ff;
+  color: #f7f7f8;
 }
 .theme-track input:focus-visible + span {
-  outline: 2px solid #a7ceff;
+  outline: 2px solid #d1d3d5;
   outline-offset: 2px;
 }
 .theme-popover p {
   font-size: 11px;
   line-height: 1.5;
-  color: #a5bbd6;
+  color: #babdc1;
   margin-top: 14px;
 }
 
 /* Light blue surfaces, ink-blue text, and pearlescent shader lighting. */
 :root[data-theme="light"] {
   color-scheme: light;
-  --paper: #e4f0fc;
-  --ink: #142c4b;
-  --accent: #275fb0;
-  --muted: #4f6785;
-  --line: #294f7d30;
-  background: #e4f0fc;
-  color: #142c4b;
+  --paper: #eff0f1;
+  --ink: #2d2f32;
+  --accent: #666b71;
+  --muted: #65696f;
+  --line: #4f525730;
+  background: #eff0f1;
+  color: #2d2f32;
 }
 [data-theme="light"] body,
 [data-theme="light"] .hero {
-  background: #e4f0fc;
+  background: #eff0f1;
 }
 [data-theme="light"] .site-header {
-  background: #e7f2fdad;
-  border-color: #335b8120;
+  background: #f1f2f3ad;
+  border-color: #56595e20;
 }
 [data-theme="light"] .site-header.is-compact {
-  background: #e7f2fdeb;
+  background: #f1f2f3eb;
 }
 [data-theme="light"] .hero::after {
-  background: linear-gradient(90deg, #e7f3ff33, transparent 65%);
+  background: linear-gradient(90deg, #f2f3f433, transparent 65%);
 }
 [data-theme="light"] .hero h1 {
-  text-shadow: 0 6px 30px #cbe3fa55;
+  text-shadow: 0 6px 30px #e1e2e455;
 }
 [data-theme="light"] .hero-signature {
-  color: #235798;
+  color: #595d62;
 }
 [data-theme="light"] .hero-kicker,
 [data-theme="light"] .hero-kicker > .label + span {
-  color: #365372;
+  color: #505358;
 }
 [data-theme="light"] .about {
-  background: #dceaf8;
+  background: #e9eaeb;
 }
 [data-theme="light"] .work {
-  background: #edf5fd;
+  background: #f5f5f5;
 }
 [data-theme="light"] .contact,
 [data-theme="light"] footer {
-  background: #d3e5f7;
+  background: #e4e5e6;
 }
 [data-theme="light"] .about-copy p,
 [data-theme="light"] .experience-rows .experience-detail,
 [data-theme="light"] .project-approach {
-  color: #49617e;
+  color: #5f6368;
 }
 [data-theme="light"] .about-copy .about-lead,
 [data-theme="light"] .project-purpose {
-  color: #163557;
+  color: #343639;
 }
 [data-theme="light"] .project-summary .stack {
-  color: #4e6787;
+  color: #656a70;
 }
 [data-theme="light"] .menu-panel {
-  background: #eaf4fff7;
-  border-color: #4e739b3b;
-  box-shadow: 0 22px 70px #21426a26;
+  background: #f4f4f5f7;
+  border-color: #6f747a3b;
+  box-shadow: 0 22px 70px #42454926;
 }
 [data-theme="light"] .menu-panel a {
-  border-color: #335b8126;
+  border-color: #56595e26;
 }
 [data-theme="light"] .round-arrow {
-  border-color: #335b8159;
+  border-color: #56595e59;
 }
 [data-theme="light"] .scroll-link:hover .round-arrow {
-  background: #bbd6ef;
+  background: #d3d5d7;
 }
 [data-theme="light"] .project-preview {
   background:
-    radial-gradient(ellipse at 70% 20%, #b6d7fa66, transparent 70%), #e0edfa;
-  border-color: #38669730;
+    radial-gradient(ellipse at 70% 20%, #d6d8da66, transparent 70%), #ecedee;
+  border-color: #62676d30;
 }
 [data-theme="light"] .project-preview figcaption {
-  color: #506b8c;
+  color: #696d74;
 }
 [data-theme="light"] .preview-label {
-  fill: #26466c;
+  fill: #45484d;
 }
 [data-theme="light"] .preview-muted {
-  fill: #4b688b;
+  fill: #666a70;
 }
 [data-theme="light"] .chart-grid {
-  stroke: #3b6d9b24;
+  stroke: #666a7024;
 }
 [data-theme="light"] .signal-line,
 [data-theme="light"] .wave-bar,
 [data-theme="light"] .flow-line {
-  stroke: #3066af;
+  stroke: #6a6f75;
 }
 [data-theme="light"] .data-dot {
-  fill: #245ba6;
+  fill: #60646a;
 }
 [data-theme="light"] .baseline {
-  stroke: #5b799c;
+  stroke: #757a82;
 }
 [data-theme="light"] .anomaly-ring {
-  stroke: #2c65b5;
-  fill: #2c65b510;
+  stroke: #6b7076;
+  fill: #6b707610;
 }
 [data-theme="light"] .callout-line {
-  stroke: #4e739b;
+  stroke: #6f747a;
 }
 [data-theme="light"] .diagram-panel {
-  fill: #d9e9fa;
-  stroke: #729bca66;
+  fill: #e8e9eb;
+  stroke: #999da366;
 }
 [data-theme="light"] .code-panel {
-  fill: #c7ddf5;
-  stroke: #618ac477;
+  fill: #dcdee0;
+  stroke: #8d929877;
 }
 [data-theme="light"] .transcript-line {
-  stroke: #7797bc;
+  stroke: #94999f;
 }
 [data-theme="light"] .sentiment-line {
-  stroke: #6953a7;
+  stroke: #777c83;
 }
 [data-theme="light"] .divergence-band {
-  fill: #4d79b015;
-  stroke: #5c7fa94d;
+  fill: #787d8515;
+  stroke: #7c81894d;
 }
 [data-theme="light"] .theme-orb {
-  border-color: #3268a45c;
-  box-shadow: 0 0 14px #6cabe633;
+  border-color: #666a705c;
+  box-shadow: 0 0 14px #a5a8ad33;
 }
 [data-theme="light"] .theme-orb > span {
   background: radial-gradient(
     circle at 30% 25%,
     #fff,
-    #d7efff 30%,
-    #84b7e5 65%,
-    #3e77ae
+    #eaebec 30%,
+    #b1b4b8 65%,
+    #70757c
   );
-  box-shadow: inset -2px -2px 5px #5387c266;
+  box-shadow: inset -2px -2px 5px #858a9066;
 }
 [data-theme="light"] .theme-popover {
-  background: #edf6ff;
-  border-color: #7196be55;
-  box-shadow: 0 18px 60px #173b6329;
+  background: #f6f6f6;
+  border-color: #92979d55;
+  box-shadow: 0 18px 60px #3a3c4029;
 }
 [data-theme="light"] .theme-track {
-  background: #d8e8f8;
-  border-color: #658cb333;
+  background: #e7e8e9;
+  border-color: #868b9233;
 }
 [data-theme="light"] .theme-thumb {
-  background: #f5faff;
+  background: #fafafa;
   box-shadow:
     inset 0 1px white,
-    0 3px 8px #496f9629;
+    0 3px 8px #6a6f7529;
 }
 [data-theme="light"] .theme-track label > span {
-  color: #456487;
+  color: #61656b;
 }
 [data-theme="light"] .theme-track input:checked + span {
-  color: #163c69;
+  color: #3c3f43;
 }
 [data-theme="light"] .theme-track input:focus-visible + span {
-  outline-color: #3269b0;
+  outline-color: #6b7077;
 }
 [data-theme="light"] .theme-popover p {
-  color: #506b8c;
+  color: #696d74;
 }
 @media (max-width: 600px) {
   .site-header {
@@ -2472,7 +2463,10 @@ html {
   }
 }
 
-/* Anchor landings use the compact header height, without stacking a second gap. */
+/* Anchor landings use the compact header height, without stacking a second gap.
+   Compact is the right basis rather than the 86px expanded height: any anchor
+   jump scrolls past the 70px compact threshold before it lands. This is the
+   only scroll-padding-top in the file; keep it that way. */
 :root { --compact-header-height: 66px; }
 html { scroll-padding-top: var(--compact-header-height); }
 .site-header.is-compact { height: var(--compact-header-height); }
@@ -2495,16 +2489,16 @@ html.lenis { scroll-behavior: auto; }
 
 /* Carry each blue into the next section instead of cutting between flat panels. */
 :root {
-  --section-hero: #050b16;
-  --section-about: #091426;
-  --section-work: #07101e;
-  --section-contact: #0b1729;
+  --section-hero: #0d0d0e;
+  --section-about: #161719;
+  --section-work: #121213;
+  --section-contact: #191a1b;
 }
 [data-theme="light"] {
-  --section-hero: #e4f0fc;
-  --section-about: #dceaf8;
-  --section-work: #edf5fd;
-  --section-contact: #d3e5f7;
+  --section-hero: #eff0f1;
+  --section-about: #e9eaeb;
+  --section-work: #f5f5f5;
+  --section-contact: #e4e5e6;
 }
 main > .about {
   background: linear-gradient(to bottom, var(--section-hero), var(--section-about) 160px);
@@ -2619,40 +2613,155 @@ main > .contact {
   }
 }
 
-/* Indexed spot color: one hue per project, one per company, brass for contact.
-   This layer is last so it resolves after the light-theme palette above. */
+/* Obsidian & Chartreuse. Every layer above this one is hue-free, so the colors
+   defined here are the only ones on the page apart from external brand logos.
+   The site accent carries navigation, the hero and contact; each project owns a
+   separate indexed hue for its own heading, labels and diagram. Light mode
+   moves the accent to petrol so it stays cool against the pale stone surface. */
 :root {
-  --preview-surface: #091629;
-  --diagram-base: #88b8ff;
+  --paper: #0c0d0f;
+  --surface: #16181b;
+  --ink: #ebedf0;
+  --muted: #99a0a8;
+  --accent: #b4e33d;
   --signal-alt: #e0b878;
-  --brass: #d6ad68;
+  --line: #ebedf01c;
+  --preview-surface: #14161a;
+  --section-hero: #0c0d0f;
+  --section-work: #101215;
+  --section-about: #14171a;
+  --section-contact: #181b1f;
+  background: var(--paper);
+  color: var(--ink);
 }
-[data-theme="light"] {
-  --preview-surface: #e0edfa;
-  --diagram-base: #3066af;
-  --signal-alt: #8a5a12;
-  --brass: #77520f;
+:root[data-theme="light"] {
+  --paper: #f8fbfb;
+  --surface: #f0f5f5;
+  --ink: #0f1618;
+  --muted: #4e6265;
+  --accent: #0e5a66;
+  --signal-alt: #9c4f28;
+  --line: #0f161826;
+  --preview-surface: #f3f9f8;
+  --section-hero: #f8fbfb;
+  --section-work: #f4f9f8;
+  --section-about: #f0f6f5;
+  --section-contact: #ecf3f2;
+  background: var(--paper);
+  color: var(--ink);
+}
+body,
+.site-header,
+.hero {
+  background: var(--section-hero);
+}
+.about {
+  background: var(--section-about);
+}
+.work {
+  background: var(--section-work);
+}
+.contact,
+footer {
+  background: var(--section-contact);
+}
+:root[data-theme="light"] body,
+:root[data-theme="light"] .hero {
+  background: var(--section-hero);
+}
+:root[data-theme="light"] .about {
+  background: var(--section-about);
+}
+:root[data-theme="light"] .work {
+  background: var(--section-work);
+}
+:root[data-theme="light"] .contact,
+:root[data-theme="light"] footer {
+  background: var(--section-contact);
+}
+::selection {
+  background: var(--accent);
+  color: var(--paper);
 }
 
+/* The hero canvas now carries real color, so its lower edge is dissolved into
+   the page. The section gradients cannot do this themselves because the tint
+   comes from the WebGL canvas rather than the section background. */
+.hero-field {
+  mask-image: linear-gradient(to bottom, #000 58%, transparent 96%);
+}
+
+/* Body copy and diagram furniture derive from the tokens so each theme stays
+   within its own surface family instead of falling back to a neutral grey. */
+.about-copy p,
+.experience-rows .experience-detail,
+.project-approach,
+.project-summary .stack,
+:root[data-theme="light"] .about-copy p,
+:root[data-theme="light"] .experience-rows .experience-detail,
+:root[data-theme="light"] .project-approach,
+:root[data-theme="light"] .project-summary .stack {
+  color: var(--muted);
+}
+.about-copy .about-lead,
+.project-purpose,
+:root[data-theme="light"] .about-copy .about-lead,
+:root[data-theme="light"] .project-purpose {
+  color: var(--ink);
+}
+.preview-label,
+:root[data-theme="light"] .preview-label {
+  fill: var(--ink);
+}
+.preview-muted,
+:root[data-theme="light"] .preview-muted {
+  fill: var(--muted);
+}
+.project-preview .diagram-panel {
+  fill: color-mix(in srgb, var(--ink) 6%, var(--preview-surface));
+  stroke: color-mix(in srgb, var(--ink) 14%, transparent);
+}
+.project-preview .chart-grid {
+  stroke: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.project-preview .transcript-line,
+.project-preview .baseline,
+.project-preview .callout-line {
+  stroke: var(--muted);
+}
+
+/* The serif signature is the hero's single point of color. The light-mode
+   selector matches the theme layer's specificity so the accent still wins. */
+.hero-signature,
+:root[data-theme="light"] .hero-signature {
+  color: var(--accent);
+}
+.scroll-link:hover .round-arrow,
+:root[data-theme="light"] .scroll-link:hover .round-arrow {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--paper);
+}
+
+/* One indexed hue per project, muted enough to sit on obsidian. */
 .project--recommender {
-  --project-accent: #65c7c2;
+  --project-accent: #5fc9c2;
 }
 .project--healthcare {
-  --project-accent: #d49aa8;
+  --project-accent: #dfa0a8;
 }
 .project--markets {
-  --project-accent: #a99ae8;
+  --project-accent: #a9a2ec;
 }
-[data-theme="light"] .project--recommender {
-  --project-accent: #176d6c;
+:root[data-theme="light"] .project--recommender {
+  --project-accent: #146b62;
 }
-[data-theme="light"] .project--healthcare {
-  --project-accent: #8a4056;
+:root[data-theme="light"] .project--healthcare {
+  --project-accent: #8e3b4c;
 }
-[data-theme="light"] .project--markets {
-  --project-accent: #59479b;
+:root[data-theme="light"] .project--markets {
+  --project-accent: #4d4699;
 }
-
 .project-info h2::before {
   content: "";
   display: block;
@@ -2662,8 +2771,9 @@ main > .contact {
   border-radius: 2px;
   background: var(--project-accent, var(--accent));
 }
+/* Labels carry their project's hue; every value clears 4.5:1 at 13px. */
 .case-study h3 {
-  color: var(--project-accent, var(--ink));
+  color: var(--project-accent, var(--accent));
 }
 .project-links a {
   transition:
@@ -2680,66 +2790,63 @@ main > .contact {
   background:
     radial-gradient(
       ellipse at 70% 20%,
-      color-mix(in srgb, var(--project-accent, var(--diagram-base)) 20%, transparent),
+      color-mix(in srgb, var(--project-accent, var(--accent)) 16%, transparent),
       transparent 70%
     ),
     var(--preview-surface);
   border-color: color-mix(
     in srgb,
-    var(--project-accent, var(--diagram-base)) 28%,
+    var(--project-accent, var(--accent)) 26%,
     transparent
   );
 }
 .project-preview .signal-line,
 .project-preview .wave-bar,
 .project-preview .flow-line {
-  stroke: var(--project-accent, var(--diagram-base));
+  stroke: var(--project-accent, var(--accent));
 }
 .project-preview .data-dot {
-  fill: var(--project-accent, var(--diagram-base));
+  fill: var(--project-accent, var(--accent));
 }
 .project-preview .code-panel {
   fill: color-mix(
     in srgb,
-    var(--project-accent, var(--diagram-base)) 18%,
+    var(--project-accent, var(--accent)) 15%,
     var(--preview-surface)
   );
   stroke: color-mix(
     in srgb,
-    var(--project-accent, var(--diagram-base)) 45%,
+    var(--project-accent, var(--accent)) 42%,
     transparent
   );
+}
+/* The 9px caption needs the full muted value to clear 4.5:1 on the panel. */
+.project-preview figcaption,
+:root[data-theme="light"] .project-preview figcaption {
+  color: var(--muted);
 }
 /* The news line reads warm so it stays separable from the market line. */
 .project-preview .sentiment-line {
   stroke: var(--signal-alt);
 }
 .project-preview .divergence-band {
-  fill: color-mix(in srgb, var(--project-accent, var(--diagram-base)) 7%, transparent);
+  fill: color-mix(in srgb, var(--project-accent, var(--accent)) 6%, transparent);
   stroke: color-mix(
     in srgb,
-    var(--project-accent, var(--diagram-base)) 30%,
+    var(--project-accent, var(--accent)) 26%,
     transparent
   );
 }
 
+/* Company rails read as a timeline spine in descending accent strength. */
 .experience--spotify {
-  --company-accent: #1ed760;
+  --company-accent: var(--accent);
 }
 .experience--nyu {
-  --company-accent: #a069c8;
+  --company-accent: color-mix(in srgb, var(--accent) 62%, var(--muted));
 }
 .experience--arc {
-  --company-accent: #7d9ed1;
-}
-[data-theme="light"] .experience--spotify {
-  --company-accent: #12813c;
-}
-[data-theme="light"] .experience--nyu {
-  --company-accent: #57068c;
-}
-[data-theme="light"] .experience--arc {
-  --company-accent: #3e6396;
+  --company-accent: color-mix(in srgb, var(--accent) 38%, var(--muted));
 }
 .experience-rows article {
   position: relative;
@@ -2763,12 +2870,43 @@ main > .contact {
 }
 .email-link:hover,
 .email-link:focus-visible {
-  color: var(--brass);
-  border-color: var(--brass);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 .social-links a:hover {
-  border-color: var(--brass);
+  border-color: var(--accent);
 }
 footer a:hover {
-  color: var(--brass);
+  color: var(--accent);
+}
+/* The sliding thumb is the selection indicator, so the accent belongs there
+   rather than as a second fill on the label. --paper inverts against the accent
+   in each theme, so one value keeps the checked label legible on both the
+   chartreuse and the petrol thumb. */
+.theme-thumb,
+:root[data-theme="light"] .theme-thumb {
+  background: var(--accent);
+}
+.theme-track input:checked + span,
+:root[data-theme="light"] .theme-track input:checked + span {
+  color: var(--paper);
+}
+:root[data-theme="light"] .theme-thumb {
+  box-shadow:
+    inset 0 1px #ffffff33,
+    0 3px 8px #0f161826;
+}
+
+/* Both panels set an author `display`, which beats the UA rule that hides the
+   contents of a closed <details>. Without these guards the controls stay in
+   the accessibility tree while the disclosure is shut. */
+.header-menu:not([open]) .menu-panel,
+.theme-picker:not([open]) .theme-popover {
+  display: none;
+}
+
+/* <main> is only focusable to receive the skip link, so it should not paint a
+   focus ring of its own. */
+main[tabindex="-1"]:focus {
+  outline: none;
 }

@@ -33,9 +33,16 @@ export default function ThemeDial() {
       document.documentElement.dataset.theme = theme;
       document.documentElement.dataset.themePreference = preference;
       document.documentElement.style.colorScheme = theme;
-      document
-        .querySelector('meta[name="theme-color"]')
-        ?.setAttribute("content", theme === "light" ? "#e4f0fc" : "#050b16");
+      // Read the surface from the stylesheet so the browser chrome cannot
+      // drift out of the palette the way a second hardcoded pair would.
+      const surface = getComputedStyle(document.documentElement)
+        .getPropertyValue("--section-hero")
+        .trim();
+      if (surface) {
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute("content", surface);
+      }
       setResolved(theme);
     };
     apply();
