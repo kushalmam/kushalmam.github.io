@@ -31,6 +31,9 @@ export default function HeroField() {
         const material = new THREE.ShaderMaterial({
           uniforms: {
             time: { value: 0 },
+            lightMode: {
+              value: document.documentElement.dataset.theme === "light" ? 1 : 0,
+            },
             pointer: { value: new THREE.Vector2() },
           },
           vertexShader: `
@@ -67,6 +70,7 @@ export default function HeroField() {
           }`,
           fragmentShader: `
           uniform vec2 pointer;
+          uniform float lightMode;
           varying vec3 vPosition;
           varying float vFold;
           varying vec3 vNormal;
@@ -81,9 +85,27 @@ export default function HeroField() {
             vec3 color=base*(.4+diffuse*.9)+vec3(.075,.19,.37)*spec*.8+vec3(.015,.05,.12)*edge;
             float vignette=1.0-smoothstep(5.0,17.0,length(vPosition.xy));
             color*=.65+vignette*.35;
-            gl_FragColor=vec4(color,1.0);
+            vec3 pearl=mix(vec3(.57,.73,.89),vec3(.84,.92,.98),diffuse*.65+.25);
+            pearl+=vec3(.11,.1,.07)*spec;
+            pearl-=vec3(.06,.035,.015)*edge;
+            gl_FragColor=vec4(mix(color,pearl,lightMode),1.0);
           }`,
         });
+        const themeObserver = new MutationObserver(() => {
+          const light = document.documentElement.dataset.theme === "light";
+          material.uniforms.lightMode.value = light ? 1 : 0;
+          renderer.setClearColor(light ? 0xe4f0fc : 0x050b16);
+          renderer.render(scene, camera);
+        });
+        themeObserver.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
+        });
+        renderer.setClearColor(
+          document.documentElement.dataset.theme === "light"
+            ? 0xe4f0fc
+            : 0x050b16,
+        );
         const surface = new THREE.Mesh(geometry, material);
         scene.add(surface);
         const pointer = new THREE.Vector2();
@@ -155,6 +177,7 @@ export default function HeroField() {
         cleanup = () => {
           cancelAnimationFrame(frame);
           resize.disconnect();
+          themeObserver.disconnect();
           observer.disconnect();
           document.removeEventListener("visibilitychange", sync);
           motion.removeEventListener("change", sync);

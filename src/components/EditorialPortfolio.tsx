@@ -3,6 +3,7 @@ import { ArrowUpRight, ArrowDown, ArrowUp } from "lucide-react";
 
 import HeroField from "./HeroField";
 import SiteHeader from "./SiteHeader";
+import useSectionSettling from "./useSectionSettling";
 import ProjectPreview from "./ProjectPreview";
 
 const projects = [
@@ -39,6 +40,7 @@ const projects = [
 ];
 
 export default function EditorialPortfolio() {
+  useSectionSettling();
   const pageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const elements =

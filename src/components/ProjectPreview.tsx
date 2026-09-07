@@ -21,7 +21,7 @@ export default function ProjectPreview({ theme, name }: Props) {
       <svg
         viewBox="0 0 520 300"
         role="img"
-        aria-label={`${name}: illustrative ${theme === "basketball" ? "player performance anomaly detection" : theme === "healthcare" ? "audio to suggested coding workflow" : "comparison of market signals and news sentiment"}`}
+        aria-label={`${name}: illustrative ${theme === "basketball" ? "player performance anomaly detection" : theme === "healthcare" ? "audio to suggested CPT medical billing codes workflow" : "comparison of market signals and news sentiment"}`}
       >
         <defs>
           <linearGradient id={`fade-${theme}`} x1="0" y1="0" x2="0" y2="1">
@@ -71,7 +71,7 @@ export default function ProjectPreview({ theme, name }: Props) {
         ) : theme === "healthcare" ? (
           <>
             <text x="35" y="35" className="preview-label">
-              From conversation to suggested codes
+              Conversation to suggested CPT codes
             </text>
             <rect
               x="35"
@@ -116,10 +116,10 @@ export default function ProjectPreview({ theme, name }: Props) {
               className="code-panel"
             />
             <text x="302" y="222" className="preview-label">
-              Suggested coding
+              Suggested CPT codes
             </text>
             <text x="302" y="245" className="preview-muted">
-              Ready for review
+              Clinician review
             </text>
           </>
         ) : (
@@ -159,7 +159,6 @@ export default function ProjectPreview({ theme, name }: Props) {
           </>
         )}
       </svg>
-      <figcaption>Workflow illustration</figcaption>
     </figure>
   );
 }

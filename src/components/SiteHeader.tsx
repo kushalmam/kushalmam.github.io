@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Plus } from "lucide-react";
+import ThemeDial from "./ThemeDial";
 
 export default function SiteHeader() {
   const [compact, setCompact] = useState(false);
@@ -49,6 +50,7 @@ export default function SiteHeader() {
           KM*
         </span>
       </a>
+      <ThemeDial />
       <details className="header-menu" ref={menuRef}>
         <summary ref={toggleRef}>
           Menu <Plus size={19} aria-hidden="true" />

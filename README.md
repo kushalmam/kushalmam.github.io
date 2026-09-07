@@ -73,3 +73,10 @@ Organization logo sources: Spotify via Simple Icons, NYU Tandon's official site
 a keyboard-accessible disclosure menu. `ProjectPreview.tsx` contains illustrative
 SVG workflows, not live project data. Animations pause off screen and respect
 reduced-motion preferences.
+
+## Appearance
+
+The header’s theme dial offers Light, Auto, and Dark. Auto follows the browser
+preference and is the default; explicit choices persist locally. A pre-paint
+script sets the theme before styles load. `ThemeDial.tsx` handles changes, and
+`HeroField.tsx` updates its shader palette without rebuilding the scene.

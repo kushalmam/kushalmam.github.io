@@ -2141,4 +2141,340 @@ nav {
 }
 
 /* Leave room for the persistent header when following section links. */
-html { scroll-padding-top: 86px; }
+html {
+  scroll-padding-top: 86px;
+}
+
+/* A small lighting dial, with an explicit browser-following mode. */
+.theme-picker {
+  position: relative;
+  margin-left: auto;
+}
+.theme-picker + .header-menu {
+  margin-left: 0;
+}
+.theme-picker summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  list-style: none;
+  min-height: 44px;
+  font-size: 11px;
+}
+.theme-picker summary::-webkit-details-marker {
+  display: none;
+}
+.theme-picker summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 5px;
+  border-radius: 30px;
+}
+.theme-orb {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid #93baff70;
+  box-shadow: 0 0 14px #508df22b;
+}
+.theme-orb > span {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 28% 25%,
+    #bedfff,
+    #5084bd 26%,
+    #102241 62%
+  );
+  box-shadow: inset -3px -2px 6px #020714;
+  transition: transform 0.45s;
+}
+.theme-picker[open] .theme-orb > span {
+  transform: rotate(80deg);
+}
+.theme-current {
+  min-width: 25px;
+}
+.theme-popover {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: -20px;
+  width: 278px;
+  padding: 21px;
+  border-radius: 18px;
+  background: #0c1a2f;
+  border: 1px solid #8eb9f13d;
+  box-shadow: 0 18px 60px #0006;
+}
+.theme-popover fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.theme-popover legend {
+  padding: 0;
+  margin-bottom: 17px;
+  font-family: "Syne", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+}
+.theme-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 4px;
+  background: #050d1c;
+  border: 1px solid #8eb9f126;
+  border-radius: 13px;
+}
+.theme-thumb {
+  position: absolute;
+  inset: 4px auto 4px 4px;
+  width: calc((100% - 8px) / 3);
+  border-radius: 9px;
+  background: #264874;
+  box-shadow:
+    inset 0 1px #cbe4ff33,
+    0 3px 8px #0003;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.selected-system .theme-thumb {
+  transform: translateX(100%);
+}
+.selected-dark .theme-thumb {
+  transform: translateX(200%);
+}
+.theme-track label {
+  position: relative;
+  cursor: pointer;
+}
+.theme-track input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.theme-track label > span {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 0;
+  font-size: 11px;
+  color: #afc2dc;
+  border-radius: 9px;
+}
+.theme-track input:checked + span {
+  color: #f0f7ff;
+}
+.theme-track input:focus-visible + span {
+  outline: 2px solid #a7ceff;
+  outline-offset: 2px;
+}
+.theme-popover p {
+  font-size: 11px;
+  line-height: 1.5;
+  color: #a5bbd6;
+  margin-top: 14px;
+}
+
+/* Light blue surfaces, ink-blue text, and pearlescent shader lighting. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --paper: #e4f0fc;
+  --ink: #142c4b;
+  --accent: #275fb0;
+  --muted: #4f6785;
+  --line: #294f7d30;
+  background: #e4f0fc;
+  color: #142c4b;
+}
+[data-theme="light"] body,
+[data-theme="light"] .hero {
+  background: #e4f0fc;
+}
+[data-theme="light"] .site-header {
+  background: #e7f2fdad;
+  border-color: #335b8120;
+}
+[data-theme="light"] .site-header.is-compact {
+  background: #e7f2fdeb;
+}
+[data-theme="light"] .hero::after {
+  background: linear-gradient(90deg, #e7f3ff33, transparent 65%);
+}
+[data-theme="light"] .hero h1 {
+  text-shadow: 0 6px 30px #cbe3fa55;
+}
+[data-theme="light"] .hero-signature {
+  color: #235798;
+}
+[data-theme="light"] .hero-kicker,
+[data-theme="light"] .hero-kicker > .label + span {
+  color: #365372;
+}
+[data-theme="light"] .about {
+  background: #dceaf8;
+}
+[data-theme="light"] .work {
+  background: #edf5fd;
+}
+[data-theme="light"] .contact,
+[data-theme="light"] footer {
+  background: #d3e5f7;
+}
+[data-theme="light"] .about-copy p,
+[data-theme="light"] .experience-rows .experience-detail,
+[data-theme="light"] .project-approach {
+  color: #49617e;
+}
+[data-theme="light"] .about-copy .about-lead,
+[data-theme="light"] .project-purpose {
+  color: #163557;
+}
+[data-theme="light"] .project-summary .stack {
+  color: #4e6787;
+}
+[data-theme="light"] .menu-panel {
+  background: #eaf4fff7;
+  border-color: #4e739b3b;
+  box-shadow: 0 22px 70px #21426a26;
+}
+[data-theme="light"] .menu-panel a {
+  border-color: #335b8126;
+}
+[data-theme="light"] .round-arrow {
+  border-color: #335b8159;
+}
+[data-theme="light"] .scroll-link:hover .round-arrow {
+  background: #bbd6ef;
+}
+[data-theme="light"] .project-preview {
+  background:
+    radial-gradient(ellipse at 70% 20%, #b6d7fa66, transparent 70%), #e0edfa;
+  border-color: #38669730;
+}
+[data-theme="light"] .project-preview figcaption {
+  color: #506b8c;
+}
+[data-theme="light"] .preview-label {
+  fill: #26466c;
+}
+[data-theme="light"] .preview-muted {
+  fill: #4b688b;
+}
+[data-theme="light"] .chart-grid {
+  stroke: #3b6d9b24;
+}
+[data-theme="light"] .signal-line,
+[data-theme="light"] .wave-bar,
+[data-theme="light"] .flow-line {
+  stroke: #3066af;
+}
+[data-theme="light"] .data-dot {
+  fill: #245ba6;
+}
+[data-theme="light"] .baseline {
+  stroke: #5b799c;
+}
+[data-theme="light"] .anomaly-ring {
+  stroke: #2c65b5;
+  fill: #2c65b510;
+}
+[data-theme="light"] .callout-line {
+  stroke: #4e739b;
+}
+[data-theme="light"] .diagram-panel {
+  fill: #d9e9fa;
+  stroke: #729bca66;
+}
+[data-theme="light"] .code-panel {
+  fill: #c7ddf5;
+  stroke: #618ac477;
+}
+[data-theme="light"] .transcript-line {
+  stroke: #7797bc;
+}
+[data-theme="light"] .sentiment-line {
+  stroke: #6953a7;
+}
+[data-theme="light"] .divergence-band {
+  fill: #4d79b015;
+  stroke: #5c7fa94d;
+}
+[data-theme="light"] .theme-orb {
+  border-color: #3268a45c;
+  box-shadow: 0 0 14px #6cabe633;
+}
+[data-theme="light"] .theme-orb > span {
+  background: radial-gradient(
+    circle at 30% 25%,
+    #fff,
+    #d7efff 30%,
+    #84b7e5 65%,
+    #3e77ae
+  );
+  box-shadow: inset -2px -2px 5px #5387c266;
+}
+[data-theme="light"] .theme-popover {
+  background: #edf6ff;
+  border-color: #7196be55;
+  box-shadow: 0 18px 60px #173b6329;
+}
+[data-theme="light"] .theme-track {
+  background: #d8e8f8;
+  border-color: #658cb333;
+}
+[data-theme="light"] .theme-thumb {
+  background: #f5faff;
+  box-shadow:
+    inset 0 1px white,
+    0 3px 8px #496f9629;
+}
+[data-theme="light"] .theme-track label > span {
+  color: #456487;
+}
+[data-theme="light"] .theme-track input:checked + span {
+  color: #163c69;
+}
+[data-theme="light"] .theme-track input:focus-visible + span {
+  outline-color: #3269b0;
+}
+[data-theme="light"] .theme-popover p {
+  color: #506b8c;
+}
+@media (max-width: 600px) {
+  .site-header {
+    gap: 14px;
+  }
+  .wordmark {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+  }
+  .wordmark .brand-full {
+    font-size: clamp(12px, 3.5vw, 15px);
+  }
+  .theme-current {
+    display: none;
+  }
+  .theme-picker summary {
+    min-width: 32px;
+  }
+  .theme-popover {
+    right: -75px;
+    width: min(278px, 88vw);
+  }
+}
+
+/* Anchor landings use the compact header height, without stacking a second gap. */
+:root { --compact-header-height: 66px; }
+html { scroll-padding-top: var(--compact-header-height); }
+.site-header.is-compact { height: var(--compact-header-height); }
+main > .about, main > .work, main > .contact { padding-top: 32px; }
+@media(max-width:600px) { main > .about, main > .work, main > .contact { padding-top: 28px; } }
