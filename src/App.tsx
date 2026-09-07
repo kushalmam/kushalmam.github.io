@@ -1,5 +1,5 @@
-import WatercolorPortfolio from "./components/WatercolorPortfolio.tsx";
+import EditorialPortfolio from "./components/EditorialPortfolio";
 
-const App = () => <WatercolorPortfolio />;
+const App = () => <EditorialPortfolio />;
 
 export default App;

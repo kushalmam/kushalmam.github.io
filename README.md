@@ -5,18 +5,15 @@ graduate focused on backend systems, data engineering, and ML infrastructure.
 
 ## Overview
 
-The site uses dedicated routed views for About, Work, Experience, Education,
-Tech, Resume, and Contact—each with its own focused reading surface rather than
-a long scroll through every resume section. The visual system is an editorial
-warm-paper resume with responsive layouts, light/dark theming, and search/social
-metadata.
+A single-page, dark typographic portfolio with natural vertical scrolling:
+intro, about and experience, selected projects, then contact with a résumé link.
+The design uses midnight blue sections, Syne display typography, and a Newsreader italic accent, compact project narratives and animated workflow diagrams,
+and selective entrance and hover motion. Reduced-motion preferences are respected.
 
 ## Tech Stack
 
 - Vite + React + TypeScript
-- React Router
-- Tailwind CSS
-- next-themes
+- Tailwind CSS and custom responsive CSS
 - lucide-react icons
 - Vitest + Testing Library
 
@@ -49,21 +46,30 @@ bun run test:watch   # run Vitest in watch mode
 
 ## Project Structure
 
-```text
-src/
-  App.tsx                 # route setup and theme provider
-  main.tsx                # React entrypoint
-  pages/PortfolioPage.tsx # layout, page routes, and resume content
-  pages/NotFound.tsx      # fallback route
-  components/legacy/      # archived experimental UI, including smoke background
-  components/sections/    # reusable experimental UI pieces
-public/documents/         # downloadable one-page resume PDF
-  lib/utils.ts            # shared utility helpers
-  test/                   # Vitest setup and example tests
-```
+- `src/App.tsx`: portfolio entry point
+- `src/components/EditorialPortfolio.tsx`: content, project data, and scroll reveals
+- `src/index.css`: responsive layout, typography, and motion
+- `public/images/`: portrait and project screenshots
+- `public/documents/`: résumé PDF
+- `index.html`: metadata and static fallback content
 
 ## Content
 
-Portfolio copy, project details, experience, skills, and contact links live in
-`src/pages/PortfolioPage.tsx`. Update the arrays near the top of that file to
-change the displayed content.
+Update project data and portfolio copy in `src/components/EditorialPortfolio.tsx`.
+Keep the static fallback in `index.html` consistent with content changes.
+
+## Hero animation
+
+`src/components/HeroField.tsx` renders an illuminated, displaced Three.js surface behind the
+headline. The shader controls the flowing folds, sapphire lighting, and motion. Animation pauses off
+screen and in hidden tabs; reduced-motion users get a static render.
+
+Organization logo sources: Spotify via Simple Icons, NYU Tandon's official site
+(torch extracted from its wordmark), and the NYU ARC team website.
+
+## Navigation and project previews
+
+`SiteHeader.tsx` keeps the header visible, shortens the name on scroll, and provides
+a keyboard-accessible disclosure menu. `ProjectPreview.tsx` contains illustrative
+SVG workflows, not live project data. Animations pause off screen and respect
+reduced-motion preferences.
