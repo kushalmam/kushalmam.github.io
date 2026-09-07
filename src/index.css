@@ -2618,3 +2618,157 @@ main > .contact {
     gap: 30px;
   }
 }
+
+/* Indexed spot color: one hue per project, one per company, brass for contact.
+   This layer is last so it resolves after the light-theme palette above. */
+:root {
+  --preview-surface: #091629;
+  --diagram-base: #88b8ff;
+  --signal-alt: #e0b878;
+  --brass: #d6ad68;
+}
+[data-theme="light"] {
+  --preview-surface: #e0edfa;
+  --diagram-base: #3066af;
+  --signal-alt: #8a5a12;
+  --brass: #77520f;
+}
+
+.project--recommender {
+  --project-accent: #65c7c2;
+}
+.project--healthcare {
+  --project-accent: #d49aa8;
+}
+.project--markets {
+  --project-accent: #a99ae8;
+}
+[data-theme="light"] .project--recommender {
+  --project-accent: #176d6c;
+}
+[data-theme="light"] .project--healthcare {
+  --project-accent: #8a4056;
+}
+[data-theme="light"] .project--markets {
+  --project-accent: #59479b;
+}
+
+.project-info h2::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 3px;
+  margin-bottom: 16px;
+  border-radius: 2px;
+  background: var(--project-accent, var(--accent));
+}
+.case-study h3 {
+  color: var(--project-accent, var(--ink));
+}
+.project-links a {
+  transition:
+    color 0.3s,
+    border-color 0.3s;
+}
+.project-links a:hover,
+.project-links a:focus-visible {
+  color: var(--project-accent, var(--accent));
+  border-color: var(--project-accent, var(--accent));
+}
+
+.project .project-preview {
+  background:
+    radial-gradient(
+      ellipse at 70% 20%,
+      color-mix(in srgb, var(--project-accent, var(--diagram-base)) 20%, transparent),
+      transparent 70%
+    ),
+    var(--preview-surface);
+  border-color: color-mix(
+    in srgb,
+    var(--project-accent, var(--diagram-base)) 28%,
+    transparent
+  );
+}
+.project-preview .signal-line,
+.project-preview .wave-bar,
+.project-preview .flow-line {
+  stroke: var(--project-accent, var(--diagram-base));
+}
+.project-preview .data-dot {
+  fill: var(--project-accent, var(--diagram-base));
+}
+.project-preview .code-panel {
+  fill: color-mix(
+    in srgb,
+    var(--project-accent, var(--diagram-base)) 18%,
+    var(--preview-surface)
+  );
+  stroke: color-mix(
+    in srgb,
+    var(--project-accent, var(--diagram-base)) 45%,
+    transparent
+  );
+}
+/* The news line reads warm so it stays separable from the market line. */
+.project-preview .sentiment-line {
+  stroke: var(--signal-alt);
+}
+.project-preview .divergence-band {
+  fill: color-mix(in srgb, var(--project-accent, var(--diagram-base)) 7%, transparent);
+  stroke: color-mix(
+    in srgb,
+    var(--project-accent, var(--diagram-base)) 30%,
+    transparent
+  );
+}
+
+.experience--spotify {
+  --company-accent: #1ed760;
+}
+.experience--nyu {
+  --company-accent: #a069c8;
+}
+.experience--arc {
+  --company-accent: #7d9ed1;
+}
+[data-theme="light"] .experience--spotify {
+  --company-accent: #12813c;
+}
+[data-theme="light"] .experience--nyu {
+  --company-accent: #57068c;
+}
+[data-theme="light"] .experience--arc {
+  --company-accent: #3e6396;
+}
+.experience-rows article {
+  position: relative;
+  padding-left: 18px;
+}
+.experience-rows article::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--company-accent, var(--line));
+}
+
+.email-link {
+  transition:
+    color 0.3s,
+    border-color 0.3s;
+}
+.email-link:hover,
+.email-link:focus-visible {
+  color: var(--brass);
+  border-color: var(--brass);
+}
+.social-links a:hover {
+  border-color: var(--brass);
+}
+footer a:hover {
+  color: var(--brass);
+}

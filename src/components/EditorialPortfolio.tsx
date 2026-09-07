@@ -209,7 +209,7 @@ export default function EditorialPortfolio() {
           <div className="experience">
             <h3 className="experience-heading">Experience</h3>
             <div className="experience-rows">
-              <article>
+              <article className="experience--spotify">
                 <img
                   className="org-logo org-logo--spotify"
                   src="/images/logos/spotify.svg"
@@ -228,7 +228,7 @@ export default function EditorialPortfolio() {
                 </div>
                 <span className="experience-period">Jun 2026–Present</span>
               </article>
-              <article>
+              <article className="experience--nyu">
                 <img
                   className="org-logo org-logo--nyu"
                   src="/images/logos/nyu.svg"
@@ -246,7 +246,7 @@ export default function EditorialPortfolio() {
                 </div>
                 <span className="experience-period">Apr 2025–Aug 2026</span>
               </article>
-              <article>
+              <article className="experience--arc">
                 <img
                   className="org-logo org-logo--arc"
                   src="/images/logos/arc.webp"
@@ -266,7 +266,7 @@ export default function EditorialPortfolio() {
                 </div>
                 <span className="experience-period">Jan 2024–Jul 2026</span>
               </article>
-              <article>
+              <article className="experience--nyu">
                 <img
                   className="org-logo org-logo--nyu"
                   src="/images/logos/nyu.svg"

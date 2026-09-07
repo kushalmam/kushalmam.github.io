@@ -25,8 +25,12 @@ export default function ProjectPreview({ theme, name }: Props) {
       >
         <defs>
           <linearGradient id={`fade-${theme}`} x1="0" y1="0" x2="0" y2="1">
-            <stop stopColor="#76aaff" stopOpacity=".2" />
-            <stop offset="1" stopColor="#76aaff" stopOpacity="0" />
+            <stop stopColor="var(--project-accent, #76aaff)" stopOpacity=".2" />
+            <stop
+              offset="1"
+              stopColor="var(--project-accent, #76aaff)"
+              stopOpacity="0"
+            />
           </linearGradient>
         </defs>
         {theme === "recommender" ? (
