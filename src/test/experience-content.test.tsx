@@ -1,12 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../components/HeroField", () => ({ default: () => null }));
-vi.mock("../components/ProjectPreview", () => ({ default: () => null }));
-vi.mock("../components/useSmoothScrolling", () => ({
-  default: () => ({ current: null }),
-}));
-vi.mock("../components/useSectionSettling", () => ({ default: () => {} }));
+vi.mock("../components/SystemsScene", () => ({ default: () => null }));
 
 import EditorialPortfolio from "../components/EditorialPortfolio";
 
@@ -35,7 +30,9 @@ describe("EditorialPortfolio experience content", () => {
     expect(
       screen.getByText("Data Engineer (Emerging Talent) · Sep 2026–Present"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Data Engineering Intern · Jun–Aug 2026")).toBeInTheDocument();
+    expect(
+      screen.getByText("Data Engineering Intern · Jun–Aug 2026"),
+    ).toBeInTheDocument();
     expect(
       screen.getByText("Computer Vision Lead · Jan 2025–Jul 2026"),
     ).toBeInTheDocument();

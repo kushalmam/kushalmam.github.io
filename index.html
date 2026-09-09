@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0c0d0f" />
+    <meta name="theme-color" content="#090d0a" />
     <script>
       (() => {
         let preference = "system";
@@ -19,19 +19,12 @@
             : preference;
         document.documentElement.dataset.theme = theme;
         document.documentElement.dataset.themePreference = preference;
-        document.documentElement.style.colorScheme = theme;
         document.querySelector('meta[name="theme-color"]').content =
-          theme === "light" ? "#f8fbfb" : "#0c0d0f";
+          theme === "light" ? "#f0f1eb" : "#090d0a";
       })();
     </script>
     <meta name="robots" content="index, follow" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Newsreader:ital,wght@1,400&family=IBM+Plex+Sans:wght@400;450;500;600&display=swap"
-    />
     <link rel="canonical" href="https://kushalmam.github.io/" />
 
     <title>Kushal Mamillapalli — Data Engineer</title>
@@ -44,17 +37,14 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://kushalmam.github.io/" />
     <meta property="og:site_name" content="Kushal Mamillapalli" />
-    <meta
-      property="og:title"
-      content="Kushal Mamillapalli — Data Engineer"
-    />
+    <meta property="og:title" content="Kushal Mamillapalli — Data Engineer" />
     <meta
       property="og:description"
       content="Data engineering, backend systems, and applied ML infrastructure across personalization, robotics, and research prototypes."
     />
     <meta
       property="og:image"
-      content="https://kushalmam.github.io/videos/fluid-motion-poster.jpg"
+      content="https://kushalmam.github.io/images/portrait.jpg"
     />
     <meta
       property="og:image:alt"
@@ -62,17 +52,14 @@
     />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="Kushal Mamillapalli — Data Engineer"
-    />
+    <meta name="twitter:title" content="Kushal Mamillapalli — Data Engineer" />
     <meta
       name="twitter:description"
       content="Data engineering, backend systems, and applied ML infrastructure across personalization, robotics, and research prototypes."
     />
     <meta
       name="twitter:image"
-      content="https://kushalmam.github.io/videos/fluid-motion-poster.jpg"
+      content="https://kushalmam.github.io/images/portrait.jpg"
     />
     <meta
       name="twitter:image:alt"
@@ -107,343 +94,46 @@
     </script>
     <style>
       .static-fallback {
-        min-height: 100vh;
-        margin: 0;
-        background: #0c0d0f;
-        color: #e6e7e5;
-        font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
-        line-height: 1.55;
-        padding: clamp(2rem, 6vw, 5rem) 1.25rem;
+        max-width: 60rem;
+        margin: auto;
+        padding: 4rem 1.5rem;
+        color: #101712;
+        background: #f0f1eb;
+        font:
+          1rem/1.7 system-ui,
+          sans-serif;
       }
-
-      .static-fallback * {
-        box-sizing: border-box;
+      [data-theme="dark"] .static-fallback {
+        color: #f1f1e8;
+        background: #090d0a;
       }
-
+      .static-fallback h1 {
+        font:
+          400 clamp(3.5rem, 9vw, 7rem)/1 Georgia,
+          serif;
+        max-width: 10ch;
+      }
+      .static-fallback h2 {
+        font:
+          400 2rem/1.2 Georgia,
+          serif;
+      }
+      .static-fallback section {
+        margin-top: 4rem;
+      }
+      .static-fallback article {
+        border-top: 1px solid #626960;
+        padding-block: 1.5rem;
+      }
       .static-fallback a {
         color: inherit;
-        text-decoration-color: rgba(241, 238, 232, 0.35);
-        text-underline-offset: 0.25rem;
-      }
-
-      .static-fallback__wrap {
-        width: min(100%, 68rem);
-        margin: 0 auto;
-      }
-
-      .static-fallback__eyebrow,
-      .static-fallback__stack,
-      .static-fallback__period {
-        color: #a3adaa;
-        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-        font-size: 0.75rem;
-        letter-spacing: 0;
-        text-transform: uppercase;
-      }
-
-      .static-fallback h1,
-      .static-fallback h2,
-      .static-fallback h3 {
-        font-family: "IBM Plex Sans", sans-serif;
-        font-weight: 400;
-        letter-spacing: 0;
-      }
-
-      .static-fallback h1 {
-        max-width: 10ch;
-        margin: 1rem 0;
-        font-size: clamp(3.2rem, 9vw, 7rem);
-        line-height: 0.9;
-      }
-
-      .static-fallback h2 {
-        margin: 0 0 1rem;
-        font-size: clamp(1.5rem, 3vw, 2rem);
-      }
-
-      .static-fallback h3 {
-        margin: 0;
-        font-size: 1.35rem;
-      }
-
-      .static-fallback__lede {
-        max-width: 42rem;
-        color: #aabbb3;
-        font-size: 1.1rem;
-      }
-
-      .static-fallback section,
-      .static-fallback article,
-      .static-fallback li {
-        border-top: 1px solid #d5d5c9;
-      }
-
-      .static-fallback section {
-        padding: 2.2rem 0;
-      }
-
-      .static-fallback article {
-        display: grid;
-        grid-template-columns: minmax(10rem, 0.85fr) minmax(0, 1.5fr);
-        gap: 1rem 2rem;
-        padding: 1.15rem 0;
-      }
-
-      .static-fallback ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
-
-      .static-fallback li {
-        padding: 0.9rem 0;
-      }
-
-      .static-fallback p {
-        margin: 0.35rem 0 0;
-        color: #aabbb3;
-      }
-
-      .static-fallback__stack {
-        margin-top: 0.65rem;
-      }
-
-      .static-fallback__contact {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem 1.5rem;
-      }
-
-      .static-fallback__contact li {
-        border: 0;
-        padding: 0;
-      }
-
-      @media (max-width: 720px) {
-        .static-fallback article {
-          grid-template-columns: 1fr;
-        }
+        text-underline-offset: 0.25em;
       }
     </style>
   </head>
 
   <body>
-    <div id="root">
-      <main class="static-fallback" aria-labelledby="static-title">
-        <div class="static-fallback__wrap">
-          <p class="static-fallback__eyebrow">
-            Backend &amp; data systems engineer
-          </p>
-          <h1 id="static-title">Behind the interface.</h1>
-          <p class="static-fallback__lede">
-            I build data pipelines, backend services, and ML systems that turn
-            raw data into useful decisions.
-          </p>
-          <p><a href="#static-projects">View selected work</a></p>
-
-          <section aria-labelledby="static-about">
-            <h2 id="static-about">About me</h2>
-            <p>I like figuring out what happens behind the interface.</p>
-            <p>
-              I’m a 2026 Computer Science graduate from NYU Tandon and a Data
-              Engineer (Emerging Talent) at Spotify, improving personalization
-              data pipelines.
-            </p>
-            <p>
-              My work has ranged from university data pipelines to computer
-              vision for competition robots. I enjoy getting a system working,
-              understanding where it breaks, and making it more reliable.
-            </p>
-          </section>
-
-          <section aria-labelledby="static-experience">
-            <h2 id="static-experience">Experience</h2>
-            <ul>
-              <li>
-                <strong>Spotify</strong>
-                <p class="static-fallback__period">Jun 2026–Present</p>
-                <p>Data Engineer (Emerging Talent) · Sep 2026–Present</p>
-                <p>Improving personalization data pipelines.</p>
-                <p>Data Engineering Intern · Jun–Aug 2026</p>
-              </li>
-              <li>
-                <strong>NYU</strong>
-                <p class="static-fallback__period">Apr 2025–Aug 2026</p>
-                <p>SWE / Technical Intern</p>
-                <p>Modernized university student financial reporting ETL.</p>
-              </li>
-              <li>
-                <strong>ARC Robotics: Team Ultraviolet</strong>
-                <p class="static-fallback__period">Jan 2024–Jul 2026</p>
-                <p>Computer Vision Lead · Jan 2025–Jul 2026</p>
-                <p>
-                  Built computer vision pipelines that accelerated inference
-                  with CUDA and DeepStream.
-                </p>
-                <p>Computer Vision / DevOps Engineer · Jan–Dec 2024</p>
-              </li>
-              <li>
-                <strong>NYU Tandon</strong>
-                <p class="static-fallback__period">Jun–Aug 2024</p>
-                <p>Computer Vision Research Intern</p>
-                <p>Optimized 3D penguin biological motion tracking.</p>
-              </li>
-            </ul>
-          </section>
-
-          <section aria-labelledby="static-projects">
-            <h2 id="static-projects">Selected Projects</h2>
-            <article>
-              <div>
-                <h3>Rekindle</h3>
-                <p class="static-fallback__stack">
-                  DuckDB / PyTorch / FAISS / LightGBM
-                </p>
-              </div>
-              <div>
-                <p>Retrieve and rank products from a history of reviews.</p>
-                <p>
-                  <strong>Constraint.</strong> An 18 GB M3 Pro shaped the
-                  pipeline: prepare data with DuckDB on disk and evaluate
-                  chronologically without leaking future events.
-                </p>
-                <p>
-                  <strong>Decision.</strong> Full-catalog evaluation exposed
-                  weak neural retrieval, so I combined it with popularity and
-                  item-item filtering before reranking. HNSW was faster but
-                  retained only 88.7% of exact candidates; exact FAISS stayed
-                  the default for the 55.9k-item catalog.
-                </p>
-                <p>
-                  <strong>Evidence.</strong> The project report records NDCG@10
-                  of 0.0104 versus 0.0071 for the strongest baseline on 29,416
-                  eligible warm test events. Models were frozen before
-                  chronological replay, with 2,000 paired bootstrap resamples.
-                  This measures offline next-review ranking, not online
-                  engagement.
-                </p>
-                <p>
-                  <a
-                    href="https://github.com/Techdude01/rekindle/blob/main/docs/rekindle-report.md"
-                    >Read the Rekindle experiment report</a
-                  >
-                </p>
-                <p>
-                  <a href="https://github.com/Techdude01/rekindle"
-                    >View Rekindle on GitHub</a
-                  >
-                </p>
-              </div>
-            </article>
-            <article>
-              <div>
-                <h3>AutoCPT</h3>
-                <p class="static-fallback__stack">
-                  Flask / Groq / React / Expo
-                </p>
-              </div>
-              <div>
-                <p>
-                  Explore speech-to-CPT assistance for clinical billing.
-                </p>
-                <p>
-                  <strong>Constraint.</strong> A HackNYU prototype needed to
-                  move from live speech to CPT suggestions and a demo billing
-                  flow quickly.
-                </p>
-                <p>
-                  <strong>Decision.</strong> Use Flask and WebSockets for the
-                  transcript loop, Groq for CPT extraction, React and Expo
-                  clients, and Capital One’s sandbox for demo billing.
-                </p>
-                <p>
-                  <strong>Evidence.</strong> Our team won HackNYU 2025’s Best
-                  Use of AI powered by Reach Capital. I worked on fracture
-                  detection and the TypeScript frontend. The result was a
-                  hackathon demo using a billing sandbox, without a clinical
-                  accuracy study.
-                </p>
-                <p>
-                  <a href="https://github.com/Techdude01/AutoCPT"
-                    >View AutoCPT on GitHub</a
-                  >
-                </p>
-                <p>
-                  <a href="https://devpost.com/software/autocpt"
-                    >See AutoCPT’s award and team roles</a
-                  >
-                </p>
-              </div>
-            </article>
-            <article>
-              <div>
-                <h3>MarketMind</h3>
-                <p class="static-fallback__stack">
-                  Next.js / Flask / PostgreSQL / K2 + Tavily
-                </p>
-              </div>
-              <div>
-                <p>
-                  Investigate where the market and the news tell different
-                  stories.
-                </p>
-                <p>
-                  <strong>Constraint.</strong> A hackathon research workflow had
-                  to connect live prediction-market context with current
-                  external evidence and a usable analysis view.
-                </p>
-                <p>
-                  <strong>Decision.</strong> Use a K2/Tavily research agent
-                  behind Flask, persist structured market and thesis data in
-                  PostgreSQL, and derive a sentiment-divergence signal for the
-                  frontend.
-                </p>
-                <p>
-                  <strong>Evidence.</strong> Our team connected evidence
-                  gathering, saved research, and sentiment analysis in one
-                  prototype. The repository includes signal tests and an
-                  evaluation harness; the six committed example outputs
-                  demonstrate the flow, rather than measured trading
-                  performance.
-                </p>
-                <p>
-                  <a href="https://github.com/Techdude01/MarketMind-yHack26"
-                    >View MarketMind on GitHub</a
-                  >
-                </p>
-                <p>
-                  <a
-                    href="https://github.com/Techdude01/MarketMind-yHack26/blob/main/plan.md"
-                    >Read the MarketMind build plan</a
-                  >
-                </p>
-              </div>
-            </article>
-          </section>
-
-          <section aria-labelledby="static-contact">
-            <h2 id="static-contact">Get in touch.</h2>
-            <p>For work or a conversation, email me.</p>
-            <ul class="static-fallback__contact">
-              <li>
-                <a href="mailto:kushalmam06@gmail.com">kushalmam06@gmail.com</a>
-              </li>
-              <li>
-                <a href="/documents/kushal-mamillapalli-resume.pdf"
-                  >Résumé (PDF)</a
-                >
-              </li>
-              <li>
-                <a href="https://linkedin.com/in/kushal-mamillapalli"
-                  >LinkedIn</a
-                >
-              </li>
-              <li><a href="https://github.com/Techdude01">GitHub</a></li>
-            </ul>
-          </section>
-        </div>
-      </main>
-    </div>
+    <div id="root"><!--portfolio-fallback--></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

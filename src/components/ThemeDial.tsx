@@ -1,12 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type Preference = "light" | "system" | "dark";
-const choices = [
-  { value: "light", label: "Light", Icon: Sun },
-  { value: "system", label: "Auto", Icon: Monitor },
-  { value: "dark", label: "Dark", Icon: Moon },
-] as const;
 const isPreference = (value: string | null | undefined): value is Preference =>
   value === "light" || value === "dark" || value === "system";
 
@@ -15,12 +9,6 @@ export default function ThemeDial() {
     const initial = document.documentElement.dataset.themePreference;
     return isPreference(initial) ? initial : "system";
   });
-  const [resolved, setResolved] = useState(
-    document.documentElement.dataset.theme || "dark",
-  );
-  const pickerRef = useRef<HTMLDetailsElement>(null);
-  const summaryRef = useRef<HTMLElement>(null);
-
   useEffect(() => {
     const query = matchMedia("(prefers-color-scheme: dark)");
     const apply = () => {
@@ -32,108 +20,49 @@ export default function ThemeDial() {
           : preference;
       document.documentElement.dataset.theme = theme;
       document.documentElement.dataset.themePreference = preference;
-      document.documentElement.style.colorScheme = theme;
-      // Read the surface from the stylesheet so the browser chrome cannot
-      // drift out of the palette the way a second hardcoded pair would.
-      const surface = getComputedStyle(document.documentElement)
-        .getPropertyValue("--section-hero")
-        .trim();
-      if (surface) {
-        document
-          .querySelector('meta[name="theme-color"]')
-          ?.setAttribute("content", surface);
-      }
-      setResolved(theme);
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute(
+          "content",
+          getComputedStyle(document.documentElement)
+            .getPropertyValue("--paper")
+            .trim(),
+        );
     };
-    apply();
-    query.addEventListener("change", apply);
-    return () => query.removeEventListener("change", apply);
-  }, [preference]);
-
-  useEffect(() => {
-    const closeOutside = (event: PointerEvent) => {
-      if (
-        pickerRef.current &&
-        event.target instanceof Node &&
-        !pickerRef.current.contains(event.target)
-      )
-        pickerRef.current.open = false;
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && pickerRef.current?.open) {
-        pickerRef.current.open = false;
-        summaryRef.current?.focus();
-      }
-    };
-    const onStorage = (event: StorageEvent) => {
+    const storage = (event: StorageEvent) => {
       if (event.key === "portfolio-theme" || event.key === null)
         setPreference(isPreference(event.newValue) ? event.newValue : "system");
     };
-    document.addEventListener("pointerdown", closeOutside);
-    document.addEventListener("keydown", onKey);
-    window.addEventListener("storage", onStorage);
+    apply();
+    query.addEventListener("change", apply);
+    window.addEventListener("storage", storage);
     return () => {
-      document.removeEventListener("pointerdown", closeOutside);
-      document.removeEventListener("keydown", onKey);
-      window.removeEventListener("storage", onStorage);
+      query.removeEventListener("change", apply);
+      window.removeEventListener("storage", storage);
     };
-  }, []);
-
-  const select = (value: Preference) => {
-    setPreference(value);
-    try {
-      if (value === "system") localStorage.removeItem("portfolio-theme");
-      else localStorage.setItem("portfolio-theme", value);
-    } catch {
-      /* The choice still works for this visit if storage is unavailable. */
-    }
-  };
+  }, [preference]);
   return (
-    <details className="theme-picker" ref={pickerRef}>
-      <summary
-        ref={summaryRef}
-        aria-label={`Appearance: ${preference === "system" ? `Auto, ${resolved}` : preference}`}
+    <label className="appearance">
+      <span className="sr-only">Appearance</span>
+      <select
+        aria-label="Appearance"
+        value={preference}
+        onChange={(event) => {
+          const value = event.target.value;
+          if (!isPreference(value)) return;
+          setPreference(value);
+          try {
+            if (value === "system") localStorage.removeItem("portfolio-theme");
+            else localStorage.setItem("portfolio-theme", value);
+          } catch {
+            /* Choice still works without storage. */
+          }
+        }}
       >
-        <span className="theme-orb" aria-hidden="true">
-          <span />
-        </span>
-        <span className="theme-current">
-          {preference === "system"
-            ? "Auto"
-            : preference === "light"
-              ? "Light"
-              : "Dark"}
-        </span>
-      </summary>
-      <div className="theme-popover">
-        <fieldset>
-          <legend>Appearance</legend>
-          <div className={`theme-track selected-${preference}`}>
-            <span className="theme-thumb" aria-hidden="true" />
-            {choices.map(({ value, label, Icon }) => (
-              <label key={value}>
-                <input
-                  type="radio"
-                  aria-label={label}
-                  name="appearance"
-                  value={value}
-                  checked={preference === value}
-                  onChange={() => select(value)}
-                />
-                <span>
-                  <Icon size={18} aria-hidden="true" />
-                  {label}
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <p aria-live="polite">
-          {preference === "system"
-            ? `Following your browser · ${resolved}`
-            : `${preference === "light" ? "Light" : "Dark"} for this site`}
-        </p>
-      </div>
-    </details>
+        <option value="system">Auto</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </label>
   );
 }

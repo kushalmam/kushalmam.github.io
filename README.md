@@ -1,82 +1,88 @@
-# Kushal Fol
+# Kushal Mamillapalli — Behind the interface
 
-Personal portfolio and resume site for Kushal Mamillapalli, a NYU Tandon CS
-graduate focused on backend systems, data engineering, and ML infrastructure.
+An editorial portfolio about data infrastructure, backend systems, and applied ML.
+Built with React 18, TypeScript, Vite, plain CSS, and a progressively enhanced raw
+Three.js drawing. No router or animation framework is needed for this single page.
 
-## Overview
-
-A single-page, dark typographic portfolio with natural vertical scrolling:
-intro, about and experience, selected projects, then contact with a résumé link.
-The design uses midnight blue sections, Syne display typography, and a Newsreader italic accent, compact project narratives and animated workflow diagrams,
-and selective entrance and hover motion. Reduced-motion preferences are respected.
-
-## Tech Stack
-
-- Vite + React + TypeScript
-- Tailwind CSS and custom responsive CSS
-- lucide-react icons
-- Vitest + Testing Library
-
-## Getting Started
-
-Install dependencies:
-
-```bash
+```sh
 bun install
+bun run dev          # localhost:8080
+bun run typecheck    # strict application and build configuration checks
+bun run lint
+bun run test
+bun run build
+bun run preview
 ```
 
-Start the local dev server:
+## Where to make changes
 
-```bash
-bun run dev
-```
+- `src/content.ts`: project evidence, source links, and experience history.
+- `src/components/EditorialPortfolio.tsx`: page composition, introduction, and project selection.
+- `src/index.css`: the design protocol, component styles, and responsive layouts.
+- `src/components/SiteHeader.tsx`: native anchor navigation.
+- `src/components/ThemeDial.tsx`: accessible Light / Auto / Dark selector and persistence.
+- `src/components/SystemsScene.tsx`: page observation, scene loading, and static fallback.
+- `src/scene/createSystemScene.ts`: scene objects, animation, renderer lifecycle, and disposal.
+- `scripts/staticFallback.ts`: build-time HTML from the same project and experience data.
+- `index.html`: metadata, pre-paint theme initialization, and fallback insertion point.
+- `public/documents/`: résumé PDF; `public/images/`: optimized portrait.
 
-The Vite server runs at `http://localhost:8080`.
+The build inserts readable content into the root before React mounts. Project and
+experience edits therefore reach the JavaScript and no-JavaScript versions together.
+The résumé and portrait use Vite's configured base path, including `/portfolio/`.
 
-## Scripts
+## Design protocol
 
-```bash
-bun run dev          # start Vite locally
-bun run build        # create a production build
-bun run preview      # preview the production build
-bun run lint         # run ESLint
-bun run test         # run Vitest once
-bun run test:watch   # run Vitest in watch mode
-```
+The visual identity is **System Strata**: five sampled terrain surfaces represent
+visible surface, interface, services, data, and evidence. A full-viewport visual
+field is independent of the constrained content grid. There is no drawing rail or
+outer page frame. Rules only divide experience entries and disclosure controls.
 
-## Project Structure
+Archivo's variable width and weight provide the expanded architectural display.
+Newsreader italic is used selectively in the hero, award, and contact; IBM Plex
+Sans remains the reading face, with Plex Mono reserved for dates, stacks, and the
+Rekindle metric. All five font faces use self-hosted Latin WOFF2 and font-display
+swap. The Archivo font includes both width and weight axes.
 
-- `src/App.tsx`: portfolio entry point
-- `src/components/EditorialPortfolio.tsx`: content, project data, and scroll reveals
-- `src/index.css`: responsive layout, typography, and motion
-- `public/images/`: portrait and project screenshots
-- `public/documents/`: résumé PDF
-- `index.html`: metadata and static fallback content
+The dark palette uses almost-black `#090D0A`, warm white `#F1F1E8`, and acid lime
+`#B9F542`. Emerald is concentrated in the scene. Light appearance keeps dark text
+and a darker green accent for contrast. Appearance persistence and Auto remain.
 
-## Content
+The original ten-step spacing scale, fluid gutters, reading measures, and focus
+styles remain. Expanded hero typography can escape the reading grid. About is a
+quieter, personal section. Projects share one component with data-driven `metric`,
+`award`, and `research` compositions. Evidence text is stored once as value/unit;
+the static fallback combines those fields.
 
-Update project data and portfolio copy in `src/components/EditorialPortfolio.tsx`.
-Keep the static fallback in `index.html` consistent with content changes.
+Four authored scene poses change separation, front-layer exposure, lateral offsets,
+perspective, and transparency. Opening a project illuminates its surface route.
+There is no continuous scroll sampling, scroll hijacking, pointer chase, or animation
+library. CSS opacity changes quiet the field under prose. The 480ms focus token
+drives time-based damping; rendering stops after the pose settles. Reduced motion
+uses a single settled frame. Hover timing remains 160ms.
 
-## Hero animation
+## Performance and maintenance
 
-`src/components/HeroField.tsx` renders an illuminated, displaced Three.js surface behind the
-headline. The shader controls the flowing folds, sapphire lighting, and motion. Animation pauses off
-screen and in hidden tabs; reduced-motion users get a static render.
+The optional scene loads when its host is visible. Five strata share one terrain
+geometry and one contour geometry; three small tube geometries follow the surface.
+Desktop uses about 12,864 mesh triangles across 13 draw calls. Phones initialize
+with lower resolution, showing three layers and about 3,168 mesh triangles across
+nine draw calls. No textures, shadows, post-processing, bloom, or custom shaders
+are required. DPR remains capped at 1.5.
 
-Organization logo sources: Spotify via Simple Icons, NYU Tandon's official site
-(torch extracted from its wordmark), and the NYU ARC team website.
+The field is persistent, but idle frames stop completely. Hidden documents and
+non-visible hosts do not render. Resize and theme changes invalidate a single frame.
+All geometry, materials, listeners, observers, and the renderer are disposed. Context
+loss restores a static SVG strata composition; HTML content never needs WebGL.
 
-## Navigation and project previews
+Production output after the identity pass: main JavaScript ~156 KB (~51 KB gzip),
+optional scene ~531 KB (~134 KB gzip), CSS ~14 KB (~3.8 KB gzip). The richer scene
+adds about 5 KB gzip over the first pass. Vite retains its standard scene chunk
+size advisory. Five WOFF2 faces total about 176 KB, including the 90 KB Archivo
+variable font. The portrait remains ~132 KB. Monitor these budgets when extending
+the scene; no physical integrated-GPU benchmark has been recorded.
 
-`SiteHeader.tsx` keeps the header visible, shortens the name on scroll, and provides
-a keyboard-accessible disclosure menu. `ProjectPreview.tsx` contains illustrative
-SVG workflows, not live project data. Animations pause off screen and respect
-reduced-motion preferences.
+The existing GitHub Pages workflow deploys pushes to main. This redesign does not
+change that workflow or publish anything itself.
 
-## Appearance
-
-The header’s theme dial offers Light, Auto, and Dark. Auto follows the browser
-preference and is the default; explicit choices persist locally. A pre-paint
-script sets the theme before styles load. `ThemeDial.tsx` handles changes, and
-`HeroField.tsx` updates its shader palette without rebuilding the scene.
+See `docs/redesign-audit.md` for the cleanup inventory and verification record.
