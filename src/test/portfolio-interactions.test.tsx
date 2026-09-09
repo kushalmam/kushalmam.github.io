@@ -12,7 +12,7 @@ vi.mock("../components/SystemsScene", () => ({ default: () => null }));
 afterEach(() => {
   cleanup();
   localStorage.clear();
-  delete document.documentElement.dataset.themePreference;
+  delete document.documentElement.dataset.theme;
 });
 
 describe("portfolio interactions without WebGL", () => {
@@ -40,20 +40,26 @@ describe("portfolio interactions without WebGL", () => {
     );
   });
 
-  it("resolves, persists, and resets appearance while respecting system changes", () => {
+  it("starts from the system theme, then toggles, persists, and follows other tabs", () => {
     render(<EditorialPortfolio />);
-    const appearance = screen.getByRole("combobox", { name: "Appearance" });
-    fireEvent.change(appearance, { target: { value: "dark" } });
+    const toggle = screen.getByRole("switch", { name: "Dark theme" });
+    expect(toggle).toHaveAttribute("aria-checked", "false");
+    expect(document.documentElement.dataset.theme).toBe("light");
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-checked", "true");
     expect(document.documentElement.dataset.theme).toBe("dark");
     expect(localStorage.getItem("portfolio-theme")).toBe("dark");
-    fireEvent.change(appearance, { target: { value: "system" } });
+
+    fireEvent.click(toggle);
     expect(document.documentElement.dataset.theme).toBe("light");
-    expect(localStorage.getItem("portfolio-theme")).toBeNull();
+    expect(localStorage.getItem("portfolio-theme")).toBe("light");
+
     fireEvent(
       window,
       new StorageEvent("storage", { key: "portfolio-theme", newValue: "dark" }),
     );
-    expect(appearance).toHaveValue("dark");
+    expect(toggle).toHaveAttribute("aria-checked", "true");
   });
 
   it("keeps all navigation targets and the résumé available", () => {

@@ -103,15 +103,13 @@ a {
 a:hover {
   color: var(--accent);
 }
-button,
-select,
-input {
+button {
   font: inherit;
   color: inherit;
 }
 a:focus-visible,
 summary:focus-visible,
-select:focus-visible {
+button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 5px;
 }
@@ -206,13 +204,52 @@ main:focus {
 .site-header nav a:hover {
   text-decoration-color: currentColor;
 }
-.appearance select {
-  background: transparent;
-  border: 0;
-  border-radius: 0;
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
   min-height: 44px;
-  font-size: var(--meta-size);
+  padding: 0;
+  border: 0;
+  background: none;
   cursor: pointer;
+}
+.theme-toggle-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  place-items: center;
+  width: 3.5rem;
+  height: 1.625rem;
+  border: 1px solid var(--line);
+  transition: border-color var(--hover-time) var(--ease);
+}
+.theme-toggle:hover .theme-toggle-track {
+  border-color: var(--accent);
+}
+.theme-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 3px);
+  height: calc(100% - 4px);
+  background: var(--accent);
+  transition: transform var(--focus-time) var(--ease);
+}
+.theme-toggle[aria-checked="true"] .theme-toggle-knob {
+  transform: translateX(calc(100% + 2px));
+}
+.theme-toggle svg {
+  position: relative;
+  width: 13px;
+  height: 13px;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  color: var(--muted);
+  transition: color var(--focus-time) var(--ease);
+}
+.theme-toggle[aria-checked="false"] svg:first-of-type,
+.theme-toggle[aria-checked="true"] svg:last-of-type {
+  color: var(--paper);
 }
 .strata-field {
   position: fixed;
@@ -395,7 +432,20 @@ main:focus {
   border-top: 1px solid var(--line);
 }
 .experience-row h4 {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
   margin-bottom: var(--s2);
+}
+.org-mark {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  color: var(--muted);
+  transition: color var(--hover-time) var(--ease);
+}
+.experience-row:hover .org-mark {
+  color: var(--accent);
 }
 .experience-row .muted {
   margin-top: var(--s2);
@@ -699,7 +749,7 @@ footer a {
     width: calc(100% - 5rem);
     font-size: 1rem;
   }
-  .appearance {
+  .theme-toggle {
     order: 1;
     margin-left: auto;
   }
@@ -829,6 +879,48 @@ footer a {
   footer {
     flex-direction: column;
     gap: var(--s3);
+  }
+}
+/* Wide, shallow screens (16:9 laptops and monitors) get the whole canvas: the
+   column widens with the viewport and display type keeps growing with it, so
+   the page extends instead of stranding the layout in a fixed centre band. */
+@media (min-width: 1400px) and (min-aspect-ratio: 3 / 2) {
+  :root {
+    --page-width: clamp(82rem, 43vw + 43rem, 110rem);
+    --heading-size: min(6vw, 8rem);
+    --section-space: clamp(10rem, 13vh, 14rem);
+  }
+  .hero {
+    min-height: calc(100svh - var(--header-height));
+    padding-block: clamp(3rem, 9vh, 8rem);
+  }
+  .hero h1 {
+    font-size: min(10.8vw, 15rem);
+  }
+  .hero-intro {
+    font-size: min(1.7vw, 1.875rem);
+  }
+  .about-copy .lead {
+    font-size: min(2.6vw, 2.5rem);
+  }
+  .project h3 {
+    font-size: min(5vw, 6.5rem);
+  }
+  .project-evidence strong,
+  .project--metric .project-evidence strong {
+    font-size: min(7.5vw, 10rem);
+  }
+  .project--award .project-evidence strong {
+    font-size: min(6vw, 8rem);
+  }
+  .project--research .project-thesis {
+    font-size: min(3.3vw, 4.5rem);
+  }
+  .project--research .project-evidence strong {
+    font-size: min(4.5vw, 6rem);
+  }
+  .contact h2 {
+    font-size: min(7.5vw, 9.5rem);
   }
 }
 @media (prefers-reduced-motion: reduce) {

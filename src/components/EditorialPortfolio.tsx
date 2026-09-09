@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { projects, experiences } from "../content";
+import OrgMark from "./OrgMark";
 import SiteHeader from "./SiteHeader";
 import SystemsScene from "./SystemsScene";
 
@@ -83,7 +84,10 @@ export default function EditorialPortfolio() {
             {experiences.map((experience) => (
               <article className="experience-row" key={experience.name}>
                 <div>
-                  <h4>{experience.name}</h4>
+                  <h4>
+                    <OrgMark name={experience.mark} />
+                    {experience.name}
+                  </h4>
                   <p className="meta">{experience.period}</p>
                 </div>
                 <div>

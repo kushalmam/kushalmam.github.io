@@ -106,6 +106,7 @@ export const projects = [
 export const experiences = [
   {
     name: "Spotify",
+    mark: "spotify",
     role: "Data Engineer (Emerging Talent) · Sep 2026–Present",
     detail: "Improving personalization data pipelines.",
     previous: "Data Engineering Intern · Jun–Aug 2026",
@@ -113,6 +114,7 @@ export const experiences = [
   },
   {
     name: "NYU",
+    mark: "nyu",
     role: "SWE / Technical Intern",
     detail: "Modernized university student financial reporting ETL.",
     previous: null,
@@ -120,6 +122,7 @@ export const experiences = [
   },
   {
     name: "ARC Robotics: Team Ultraviolet",
+    mark: "arc",
     role: "Computer Vision Lead · Jan 2025–Jul 2026",
     detail:
       "Built computer vision pipelines that accelerated inference with CUDA and DeepStream.",
@@ -128,9 +131,10 @@ export const experiences = [
   },
   {
     name: "NYU Tandon",
+    mark: "nyu",
     role: "Computer Vision Research Intern",
     detail: "Optimized 3D penguin biological motion tracking.",
     previous: null,
     period: "Jun–Aug 2024",
   },
-];
+] as const;

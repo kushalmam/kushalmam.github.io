@@ -1,4 +1,4 @@
-import ThemeDial from "./ThemeDial";
+import ThemeToggle from "./ThemeToggle";
 
 export default function SiteHeader() {
   return (
@@ -12,7 +12,7 @@ export default function SiteHeader() {
           <a href="#work">Work</a>
           <a href="#contact">Contact</a>
         </nav>
-        <ThemeDial />
+        <ThemeToggle />
       </div>
     </header>
   );

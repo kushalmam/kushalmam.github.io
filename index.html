@@ -6,19 +6,15 @@
     <meta name="theme-color" content="#090d0a" />
     <script>
       (() => {
-        let preference = "system";
+        let theme = null;
         try {
-          const saved = localStorage.getItem("portfolio-theme");
-          if (["light", "dark", "system"].includes(saved)) preference = saved;
+          theme = localStorage.getItem("portfolio-theme");
         } catch {}
-        const theme =
-          preference === "system"
-            ? matchMedia("(prefers-color-scheme: dark)").matches
-              ? "dark"
-              : "light"
-            : preference;
+        if (theme !== "light" && theme !== "dark")
+          theme = matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
         document.documentElement.dataset.theme = theme;
-        document.documentElement.dataset.themePreference = preference;
         document.querySelector('meta[name="theme-color"]').content =
           theme === "light" ? "#f0f1eb" : "#090d0a";
       })();

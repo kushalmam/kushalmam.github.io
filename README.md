@@ -20,7 +20,8 @@ bun run preview
 - `src/components/EditorialPortfolio.tsx`: page composition, introduction, and project selection.
 - `src/index.css`: the design protocol, component styles, and responsive layouts.
 - `src/components/SiteHeader.tsx`: native anchor navigation.
-- `src/components/ThemeDial.tsx`: accessible Light / Auto / Dark selector and persistence.
+- `src/components/ThemeToggle.tsx`: accessible light/dark switch and persistence.
+- `src/components/OrgMark.tsx`: single-colour org logos for the experience rows.
 - `src/components/SystemsScene.tsx`: page observation, scene loading, and static fallback.
 - `src/scene/createSystemScene.ts`: scene objects, animation, renderer lifecycle, and disposal.
 - `scripts/staticFallback.ts`: build-time HTML from the same project and experience data.
@@ -46,10 +47,15 @@ swap. The Archivo font includes both width and weight axes.
 
 The dark palette uses almost-black `#090D0A`, warm white `#F1F1E8`, and acid lime
 `#B9F542`. Emerald is concentrated in the scene. Light appearance keeps dark text
-and a darker green accent for contrast. Appearance persistence and Auto remain.
+and a darker green accent for contrast. The header switch flips between the two and
+stores the choice; the OS preference only decides the first visit. Org logos are drawn
+in `currentColor` so they take the active theme's ink.
 
 The original ten-step spacing scale, fluid gutters, reading measures, and focus
-styles remain. Expanded hero typography can escape the reading grid. About is a
+styles remain. Above 1400px on screens at least 3:2 wide, the content grid grows
+from 82rem toward 110rem, the hero takes the full viewport height, and display type
+keeps scaling, so 16:9 monitors extend the layout instead of stranding it in a fixed
+centre band. Expanded hero typography can escape the reading grid. About is a
 quieter, personal section. Projects share one component with data-driven `metric`,
 `award`, and `research` compositions. Evidence text is stored once as value/unit;
 the static fallback combines those fields.
