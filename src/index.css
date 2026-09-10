@@ -251,6 +251,23 @@ main:focus {
 .theme-toggle[aria-checked="true"] svg:last-of-type {
   color: var(--paper);
 }
+/* The switch knob slides for --focus-time, so cross-fade the page's colours over
+   the same window instead of letting the new theme land a frame after the click.
+   Only set while a change is in flight, to keep hover timing at its own pace. */
+:root[data-theme-shift],
+:root[data-theme-shift] *,
+:root[data-theme-shift] *::before,
+:root[data-theme-shift] *::after {
+  transition:
+    background-color var(--focus-time) var(--ease),
+    border-color var(--focus-time) var(--ease),
+    color var(--focus-time) var(--ease),
+    fill var(--focus-time) var(--ease),
+    opacity var(--focus-time) var(--ease),
+    outline-color var(--focus-time) var(--ease),
+    text-decoration-color var(--focus-time) var(--ease),
+    transform var(--focus-time) var(--ease);
+}
 .strata-field {
   position: fixed;
   inset: 0;
@@ -635,6 +652,26 @@ main:focus {
 }
 .project details:not([open]) .case-study {
   display: none;
+}
+/* Browsers that can interpolate to auto open the panel at the same pace as the
+   disclosure mark; the rest keep today's instant reveal. */
+@supports (interpolate-size: allow-keywords) {
+  :root {
+    interpolate-size: allow-keywords;
+  }
+  .project details:not([open]) .case-study {
+    display: block;
+  }
+  .project details::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size var(--focus-time) var(--ease),
+      content-visibility var(--focus-time) allow-discrete;
+  }
+  .project details[open]::details-content {
+    block-size: auto;
+  }
 }
 .project-links {
   grid-column: 1 / -1;

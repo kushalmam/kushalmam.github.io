@@ -67,6 +67,7 @@ beforeEach(() => {
       disconnect() {}
     },
   );
+  document.documentElement.style.removeProperty("--focus-time");
   document.documentElement.style.setProperty("--accent", "#b9f542");
   document.documentElement.style.setProperty("--muted", "#a4ada6");
 });
@@ -76,6 +77,18 @@ afterEach(() => {
 });
 
 describe("systems drawing lifecycle", () => {
+  it.each(["480ms", ".48s"])("animates section changes with a %s CSS duration", (duration) => {
+    document.documentElement.style.setProperty("--focus-time", duration);
+    const scene = createSystemScene(document.createElement("div"));
+    visibility([{ isIntersecting: true }]);
+    flush();
+    calls.render.mockClear();
+    scene.focus(2);
+    flush();
+    expect(calls.render.mock.calls.length).toBeGreaterThan(10);
+    expect(calls.render.mock.calls.length).toBeLessThan(100);
+    scene.dispose();
+  });
   it("settles to idle and does no rendering while offscreen", () => {
     const host = document.createElement("div");
     const scene = createSystemScene(host);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Theme = "light" | "dark";
 const isTheme = (value: string | null | undefined): value is Theme =>
@@ -21,16 +21,25 @@ export default function ThemeToggle() {
       : "light";
   });
 
+  const painted = useRef(false);
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    const style = getComputedStyle(root);
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute(
-        "content",
-        getComputedStyle(document.documentElement)
-          .getPropertyValue("--paper")
-          .trim(),
-      );
+      ?.setAttribute("content", style.getPropertyValue("--paper").trim());
+    // The very first pass only records the theme the boot script already painted.
+    if (!painted.current) {
+      painted.current = true;
+      return;
+    }
+    root.dataset.themeShift = "";
+    const settled = setTimeout(
+      () => delete root.dataset.themeShift,
+      parseFloat(style.getPropertyValue("--focus-time")) || 480,
+    );
+    return () => clearTimeout(settled);
   }, [theme]);
 
   useEffect(() => {

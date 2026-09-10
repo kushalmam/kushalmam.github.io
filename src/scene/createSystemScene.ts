@@ -146,15 +146,30 @@ export function createSystemScene(host: HTMLElement) {
     previous = 0;
   let target = { ...poses[0] };
   const current = { ...target };
-  let lightMode = false;
   const accent = new THREE.Color(),
     emerald = new THREE.Color();
+  // Dark and light scene palettes. `tone` cross-fades between them so the field
+  // follows the theme switch instead of snapping a frame ahead of the page.
+  const tones = {
+    ambient: [new THREE.Color(0xa9c6b1), new THREE.Color(0xffffff)],
+    ground: [new THREE.Color(0x06110b), new THREE.Color(0x999999)],
+    key: [new THREE.Color(0xe2f5ce), new THREE.Color(0xffffff)],
+    emerald: [new THREE.Color(0x258b61), new THREE.Color(0x53876d)],
+    fog: [new THREE.Color(0x090d0a), new THREE.Color(0xf0f1eb)],
+    surface: [new THREE.Color(0x081b12), new THREE.Color(0xbfc4c0)],
+    emissive: [new THREE.Color(0x04130b), new THREE.Color(0x000000)],
+    accent: [new THREE.Color(0xb9f542), new THREE.Color(0x38670b)],
+  };
+  const fog = new THREE.Fog(0x090d0a, 19, 48);
+  scene.fog = fog;
+  let tone = 0,
+    toneTarget = 0;
+  // Production CSS minification can rewrite 480ms as .48s.
+  const focusTime = getComputedStyle(document.documentElement)
+    .getPropertyValue("--focus-time")
+    .trim();
   const duration =
-    parseFloat(
-      getComputedStyle(document.documentElement).getPropertyValue(
-        "--focus-time",
-      ),
-    ) || 480;
+    parseFloat(focusTime) * (focusTime.endsWith("ms") ? 1 : 1000) || 480;
 
   function draw(now: number) {
     frame = 0;
@@ -170,6 +185,10 @@ export function createSystemScene(host: HTMLElement) {
         current[key] = target[key];
       else moving = true;
     }
+    tone = THREE.MathUtils.lerp(tone, toneTarget, blend);
+    if (Math.abs(tone - toneTarget) < 0.002) tone = toneTarget;
+    else moving = true;
+    tint(tone);
     layers.forEach((layer, index) => {
       layer.position.y =
         -index * current.gap + (index === 0 ? current.peel : 0);
@@ -206,24 +225,30 @@ export function createSystemScene(host: HTMLElement) {
       frame = requestAnimationFrame(draw);
     }
   }
-  function palette() {
-    const css = getComputedStyle(document.documentElement);
-    lightMode = document.documentElement.dataset.theme === "light";
-    accent.set(css.getPropertyValue("--accent").trim() || "#b9f542");
-    ambient.color.set(lightMode ? 0xffffff : 0xa9c6b1);
-    ambient.groundColor.set(lightMode ? 0x999999 : 0x06110b);
-    light.color.set(lightMode ? 0xffffff : 0xe2f5ce);
-    emerald.set(lightMode ? "#53876d" : "#258b61");
-    scene.fog = new THREE.Fog(lightMode ? 0xf0f1eb : 0x090d0a, 19, 48);
-    surfaces.forEach((surface, index) => {
-      surface.color.set(lightMode ? 0xbfc4c0 : 0x081b12);
-      surface.emissive.set(lightMode ? 0x000000 : 0x04130b);
-      surface.opacity = index === 0 ? 0.82 : 0.94;
-    });
+  function tint(value: number) {
+    accent.lerpColors(tones.accent[0], tones.accent[1], value);
+    emerald.lerpColors(tones.emerald[0], tones.emerald[1], value);
+    ambient.color.lerpColors(tones.ambient[0], tones.ambient[1], value);
+    ambient.groundColor.lerpColors(tones.ground[0], tones.ground[1], value);
+    light.color.lerpColors(tones.key[0], tones.key[1], value);
+    fog.color.lerpColors(tones.fog[0], tones.fog[1], value);
+    for (const surface of surfaces) {
+      surface.color.lerpColors(tones.surface[0], tones.surface[1], value);
+      surface.emissive.lerpColors(tones.emissive[0], tones.emissive[1], value);
+    }
     contours.forEach((contour, index) => {
       contour.color.copy(index === 0 ? emerald : accent);
-      contour.opacity = lightMode ? 0.25 : 0.22;
+      contour.opacity = 0.22 + value * 0.03;
     });
+  }
+  function palette(immediate = false) {
+    const isLight = document.documentElement.dataset.theme === "light";
+    const css = getComputedStyle(document.documentElement)
+      .getPropertyValue("--accent")
+      .trim();
+    if (css) tones.accent[isLight ? 1 : 0].set(css);
+    toneTarget = isLight ? 1 : 0;
+    if (immediate) tone = toneTarget;
     invalidate();
   }
   function contextLost(event: Event) {
@@ -252,14 +277,14 @@ export function createSystemScene(host: HTMLElement) {
     visible = entry.isIntersecting;
     invalidate();
   });
-  const theme = new MutationObserver(palette);
+  const theme = new MutationObserver(() => palette());
   theme.observe(document.documentElement, {
     attributes: true,
     attributeFilter: ["data-theme"],
   });
   resize.observe(host);
   visibility.observe(host);
-  palette();
+  palette(true);
   document.addEventListener("visibilitychange", invalidate);
   motion.addEventListener("change", invalidate);
   narrow.addEventListener("change", invalidate);
