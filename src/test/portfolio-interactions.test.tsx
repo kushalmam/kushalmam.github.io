@@ -73,9 +73,10 @@ describe("portfolio interactions without WebGL", () => {
       if (link.getAttribute("target") === "_blank")
         expect(link).toHaveAttribute("rel", "noopener noreferrer");
     }
-    expect(screen.getByRole("link", { name: /Résumé/ })).toHaveAttribute(
-      "href",
-      "/documents/kushal-mamillapalli-resume.pdf",
-    );
+    for (const resume of screen.getAllByRole("link", { name: /Résumé/ }))
+      expect(resume).toHaveAttribute(
+        "href",
+        "/documents/kushal-mamillapalli-resume.pdf",
+      );
   });
 });

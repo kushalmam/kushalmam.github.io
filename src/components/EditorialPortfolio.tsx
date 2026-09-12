@@ -38,7 +38,7 @@ export default function EditorialPortfolio() {
               <span className="status-dot" />
               Data Engineer (Emerging Talent) at Spotify
             </p>
-            <p className="strata-key"><span>Surface</span><span>Interface</span><span>Services</span><span>Data</span><span>Evidence</span></p>
+            <p className="strata-key">surface → systems → evidence</p>
             <a className="text-link hero-link" href="#work">
               Explore selected work <span aria-hidden="true">↓</span>
             </a>

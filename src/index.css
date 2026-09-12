@@ -14,8 +14,10 @@
   --paper: #090d0a;
   --ink: #f1f1e8;
   --muted: #a4ada6;
-  --accent: #b9f542;
-  --accent-display: #b9f542;
+  --accent-text: #b9f542;
+  --accent-visual: #b9f542;
+  --accent: var(--accent-text);
+  --accent-display: var(--accent-visual);
   --accent-hot: #b9f542;
   --accent-scene: #b9f542;
   --toggle-ink: #090d0a;
@@ -54,8 +56,10 @@
   --paper: #fafbf6;
   --ink: #111712;
   --muted: #58615a;
-  --accent: #76b637;
-  --accent-display: #76b637;
+  --accent-text: #527f1f;
+  --accent-visual: #98d746;
+  --accent: var(--accent-text);
+  --accent-display: var(--accent-visual);
   --accent-hot: #a7f25a;
   --accent-scene: #98d746;
   --toggle-ink: #111712;
@@ -64,16 +68,6 @@
   --strata-line: #bddc98;
 }
 
-/* Keep compact navigation and project metadata quiet against the brighter
-   decorative lime used throughout the light palette. */
-:root[data-theme="light"] .site-header nav a[aria-current="location"],
-:root[data-theme="light"] .project-index > :first-child,
-:root[data-theme="light"] .visual-heading > .loop-status {
-  color: var(--ink);
-}
-:root[data-theme="light"] .visual-heading > .loop-status i {
-  background: var(--accent);
-}
 * {
   box-sizing: border-box;
 }
@@ -221,6 +215,9 @@ main:focus {
   text-decoration-color: transparent;
   transition: text-decoration-color var(--hover-time);
 }
+.site-header nav a > span {
+  margin-left: 0.25rem;
+}
 .site-header nav a:hover {
   text-decoration-color: currentColor;
 }
@@ -341,7 +338,7 @@ main:focus {
 }
 .hero h1 {
   margin-block: var(--s7) var(--s6);
-  font-size: clamp(3rem, 10.8vw, 10.5rem);
+  font-size: clamp(3rem, 9.8vw, 9.5rem);
   font-weight: 800;
   font-stretch: 112%;
   line-height: 0.88;
@@ -356,7 +353,7 @@ main:focus {
   display: block;
   width: fit-content;
   color: var(--accent-display);
-  font-size: 1.53em;
+  font-size: 1.48em;
   line-height: 0.92;
   letter-spacing: -0.065em;
   margin-left: 18%;
@@ -561,13 +558,22 @@ main:focus {
   max-width: 32ch;
 }
 .project--metric .project-evidence strong {
-  font-family: var(--technical);
-  font-size: clamp(3rem, 7.4vw, 7rem);
-  letter-spacing: -0.07em;
+  max-width: 9ch;
+  color: var(--accent-text);
+  font-family: var(--display);
+  font-size: clamp(3rem, 6.2vw, 6.25rem);
+  letter-spacing: -0.06em;
 }
 .project--metric .project-evidence small {
   font-size: 1rem;
   letter-spacing: 0;
+  line-height: 1.4;
+  max-width: 25ch;
+}
+.project--metric .project-evidence > span {
+  max-width: none;
+  font-family: var(--technical);
+  font-size: 0.75rem;
 }
 .project--award {
   padding-left: 9%;
@@ -1078,19 +1084,15 @@ footer a {
 }
 .sentiment-axis { display: flex; justify-content: space-between; color: var(--muted); font: 0.625rem var(--technical); margin-top: calc(-1 * var(--s5)); margin-bottom: var(--s5); }
 
-.strata-key { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin-top: var(--s5); font: 0.625rem/1.6 var(--technical); color: var(--muted); }
-.strata-key span { display: inline-flex; align-items: center; gap: 0.5rem; }
-.strata-key span::before { content: ''; width: 12px; height: 3px; background: var(--strata-line); }
-.strata-key span:last-child::before { background: var(--accent); }
+.strata-key { margin-top: var(--s5); font: 0.625rem/1.6 var(--technical); color: var(--muted); opacity: 0.72; }
 .project-index { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: var(--s4); border-top: 1px solid var(--line); padding-top: var(--s4); margin-bottom: var(--s7); color: var(--muted); font: 0.6875rem/1.5 var(--technical); }
 .project-index > :first-child { color: var(--accent); }
 .project-evidence { grid-row: 2 / 5; }
 .project--research .project-evidence { grid-row: 3 / 5; }
 :root[data-theme="light"] .project-visual { background: color-mix(in srgb, var(--strata-fill) 72%, white); border-color: var(--strata-line); }
 :root[data-theme="light"] .retrieval-sources span { background: #fafbf6; }
-:root[data-theme="light"] .strata-key span::before { background: var(--accent-display); }
 @media (max-width: 700px) {
-  .strata-key { max-width: 31rem; gap: 0.5rem 0.75rem; font-size: 0.5625rem; }
+  .strata-key { max-width: 31rem; font-size: 0.5625rem; }
   .project-index { margin-bottom: var(--s5); font-size: 0.625rem; }
   .project-evidence { border-left: 2px solid var(--accent); padding-left: var(--s5); margin-top: var(--s5); }
   .project + .project { margin-top: var(--s7); }

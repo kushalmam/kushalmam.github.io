@@ -32,11 +32,21 @@ export default function SiteHeader() {
           Kushal Mamillapalli<span className="brand-dot">.</span>
         </a>
         <nav aria-label="Main navigation">
-          {["about", "work", "contact"].map((id) => (
+          {["about", "work"].map((id) => (
             <a key={id} href={`#${id}`} aria-current={active === id ? "location" : undefined}>
               {id[0].toUpperCase() + id.slice(1)}
             </a>
           ))}
+          <a
+            href={`${import.meta.env.BASE_URL}documents/kushal-mamillapalli-resume.pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Résumé <span aria-hidden="true">↗</span>
+          </a>
+          <a href="#contact" aria-current={active === "contact" ? "location" : undefined}>
+            Contact
+          </a>
         </nav>
         <ThemeToggle />
       </div>

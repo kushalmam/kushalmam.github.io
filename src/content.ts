@@ -11,12 +11,12 @@ export const projects = [
       ],
       caption: "Offline next-review ranking · 29,416 eligible warm test events. Higher is better.",
     },
-    evidenceValue: "0.0104",
-    evidenceUnit: " NDCG@10",
+    evidenceValue: "~46% better",
+    evidenceUnit: "than the strongest baseline on NDCG@10",
     detail: "Retrieve and rank products from a history of reviews.",
     stack: "DuckDB / PyTorch / FAISS / LightGBM",
     category: "Recommendation systems",
-    context: "vs. 0.0071 baseline · offline replay",
+    context: "0.0104 vs. 0.0071 · 29,416 test events",
     caseStudy: [
       {
         title: "Constraint",
@@ -137,7 +137,8 @@ export const experiences = [
     name: "Spotify",
     mark: "spotify",
     role: "Data Engineer (Emerging Talent) · Sep 2026–Present",
-    detail: "Improving personalization data pipelines.",
+    detail:
+      "Personalization infrastructure across production data pipelines and recommendation workflows.",
     previous: "Data Engineering Intern · Jun–Aug 2026",
     period: "Jun 2026–Present",
   },
