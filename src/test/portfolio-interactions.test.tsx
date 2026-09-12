@@ -18,7 +18,9 @@ afterEach(() => {
 describe("portfolio interactions without WebGL", () => {
   it("keeps evidence visible and allows opening, switching, and closing case studies", async () => {
     render(<EditorialPortfolio />);
-    expect(screen.getByText("0.0104")).toBeVisible();
+    screen.getAllByText("0.0104").forEach((value) => {
+      expect(value).toBeVisible();
+    });
     const first = screen.getByText("Inside Rekindle").closest("details")!;
     const second = screen.getByText("Inside AutoCPT").closest("details")!;
     expect(first.open).toBe(false);

@@ -151,14 +151,14 @@ export function createSystemScene(host: HTMLElement) {
   // Dark and light scene palettes. `tone` cross-fades between them so the field
   // follows the theme switch instead of snapping a frame ahead of the page.
   const tones = {
-    ambient: [new THREE.Color(0xa9c6b1), new THREE.Color(0xffffff)],
-    ground: [new THREE.Color(0x06110b), new THREE.Color(0x999999)],
+    ambient: [new THREE.Color(0xa9c6b1), new THREE.Color(0xf4faef)],
+    ground: [new THREE.Color(0x06110b), new THREE.Color(0xc8d7c2)],
     key: [new THREE.Color(0xe2f5ce), new THREE.Color(0xffffff)],
-    emerald: [new THREE.Color(0x258b61), new THREE.Color(0x53876d)],
-    fog: [new THREE.Color(0x090d0a), new THREE.Color(0xf0f1eb)],
-    surface: [new THREE.Color(0x081b12), new THREE.Color(0xbfc4c0)],
+    emerald: [new THREE.Color(0x258b61), new THREE.Color(0x6eae61)],
+    fog: [new THREE.Color(0x090d0a), new THREE.Color(0xfafbf6)],
+    surface: [new THREE.Color(0x081b12), new THREE.Color(0xe4efdf)],
     emissive: [new THREE.Color(0x04130b), new THREE.Color(0x000000)],
-    accent: [new THREE.Color(0xb9f542), new THREE.Color(0x38670b)],
+    accent: [new THREE.Color(0xb9f542), new THREE.Color(0x8dce40)],
   };
   const fog = new THREE.Fog(0x090d0a, 19, 48);
   scene.fog = fog;
@@ -200,7 +200,8 @@ export function createSystemScene(host: HTMLElement) {
     });
     const exposure = THREE.MathUtils.clamp((current.gap - 0.72) / 0.93, 0, 1);
     surfaces.forEach((surface, index) => {
-      surface.opacity = index < 3 ? 0.8 - exposure * 0.5 : 0.9;
+      const baseOpacity = index < 3 ? 0.8 - exposure * 0.5 : 0.9;
+      surface.opacity = baseOpacity - tone * 0.42;
     });
     system.position.set(
       narrow.matches ? current.x * 0.2 : current.x,
@@ -244,7 +245,7 @@ export function createSystemScene(host: HTMLElement) {
   function palette(immediate = false) {
     const isLight = document.documentElement.dataset.theme === "light";
     const css = getComputedStyle(document.documentElement)
-      .getPropertyValue("--accent")
+      .getPropertyValue("--accent-scene")
       .trim();
     if (css) tones.accent[isLight ? 1 : 0].set(css);
     toneTarget = isLight ? 1 : 0;

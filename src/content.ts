@@ -2,6 +2,15 @@ export const projects = [
   {
     name: "Rekindle",
     composition: "metric",
+    visual: {
+      kind: "comparison" as const,
+      label: "The ranking experiment",
+      rows: [
+        { label: "Strongest baseline", value: "0.0071" },
+        { label: "Rekindle", value: "0.0104" },
+      ],
+      caption: "Offline next-review ranking · 29,416 eligible warm test events. Higher is better.",
+    },
     evidenceValue: "0.0104",
     evidenceUnit: " NDCG@10",
     detail: "Retrieve and rank products from a history of reviews.",
@@ -36,6 +45,16 @@ export const projects = [
   {
     name: "AutoCPT",
     composition: "award",
+    visual: {
+      kind: "workflow" as const,
+      label: "From final speech to CPT history",
+      steps: [
+        { title: "Speech", detail: "Browser transcription" },
+        { title: "Suggestions", detail: "Groq CPT extraction" },
+        { title: "Demo bill", detail: "Capital One sandbox" },
+      ],
+      caption: "Prototype workflow · HackNYU 2025. No clinical accuracy study.",
+    },
     evidenceValue: "Best Use",
     evidenceUnit: " of AI",
     detail: "Explore speech-to-CPT assistance for clinical billing.",
@@ -70,6 +89,16 @@ export const projects = [
   {
     name: "MarketMind",
     composition: "research",
+    visual: {
+      kind: "workflow" as const,
+      label: "How a thesis takes shape",
+      steps: [
+        { title: "Market context", detail: "Prediction-market data" },
+        { title: "External evidence", detail: "K2 + Tavily research" },
+        { title: "Saved thesis", detail: "Research + sentiment signal" },
+      ],
+      caption: "Research workflow · Six committed example outputs, not measured trading performance.",
+    },
     evidenceValue: "Evidence",
     evidenceUnit: " → thesis",
     detail: "Investigate where the market and the news tell different stories.",

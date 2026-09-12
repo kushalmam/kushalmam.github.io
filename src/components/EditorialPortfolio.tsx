@@ -3,6 +3,7 @@ import { projects, experiences } from "../content";
 import OrgMark from "./OrgMark";
 import SiteHeader from "./SiteHeader";
 import SystemsScene from "./SystemsScene";
+import ProjectVisual from "./ProjectVisual";
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 
@@ -37,6 +38,7 @@ export default function EditorialPortfolio() {
               <span className="status-dot" />
               Data Engineer (Emerging Talent) at Spotify
             </p>
+            <p className="strata-key"><span>Surface</span><span>Interface</span><span>Services</span><span>Data</span><span>Evidence</span></p>
             <a className="text-link hero-link" href="#work">
               Explore selected work <span aria-hidden="true">↓</span>
             </a>
@@ -118,6 +120,7 @@ export default function EditorialPortfolio() {
               key={project.name}
               data-selected={selectedProject === index || undefined}
             >
+              <div className="project-index"><span>0{index + 1} / 03</span><span>{["Data → ranking", "Speech → suggestions", "Evidence → thesis"][index]}</span></div>
               <div className="project-heading">
                 <div>
                   <p className="eyebrow">{project.category}</p>
@@ -133,6 +136,7 @@ export default function EditorialPortfolio() {
                 </strong>
                 <span>{project.context}</span>
               </div>
+              <ProjectVisual project={project} />
               <details
                 open={selectedProject === index}
                 onToggle={(event) => {

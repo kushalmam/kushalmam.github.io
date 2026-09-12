@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Light-mode studies — Kushal Mamillapalli</title>
+    <style>
+      @font-face {
+        font-family: "Archivo Variable";
+        src: url("/assets/archivo-latin-standard-normal-DY7AcnAa.woff2") format("woff2");
+        font-weight: 100 900;
+      }
+      @font-face {
+        font-family: "Newsreader";
+        src: url("/assets/newsreader-latin-400-italic-CEihAR-f.woff2") format("woff2");
+        font-style: italic;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #151a12;
+        color: #f1f1e8;
+        font-family: "Archivo Variable", sans-serif;
+      }
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 2rem;
+        padding: clamp(1.5rem, 4vw, 4rem);
+        border-bottom: 1px solid #414a3e;
+      }
+      .page-header p, .palette-note { margin: 0; color: #aab2a7; font-size: .78rem; letter-spacing: .04em; }
+      h1 { margin: .45rem 0 0; font-size: clamp(2rem, 5vw, 4.5rem); letter-spacing: -.065em; line-height: .92; }
+      .studies { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .study { min-height: 710px; position: relative; overflow: hidden; padding: clamp(1.25rem, 2.7vw, 2.8rem); border-right: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+      .study:last-child { border-right: 0; }
+      .study::before, .study::after { content: ""; position: absolute; pointer-events: none; border: 1px solid var(--terrain); opacity: .55; border-radius: 50%; transform: rotate(-14deg); }
+      .study::before { width: 150%; height: 52%; left: -32%; top: 42%; }
+      .study::after { width: 130%; height: 34%; left: -12%; top: 55%; }
+      .study[data-palette="sunlit"] { --paper: #f5f3e7; --ink: #182016; --accent: #517c0d; --terrain: #aab987; --line: #c7cfba; }
+      .study[data-palette="lichen"] { --paper: #e9eee4; --ink: #17211a; --accent: #356534; --terrain: #9db297; --line: #bac7b8; }
+      .study[data-palette="signal"] { --paper: #f4f0d8; --ink: #222214; --accent: #6b7a00; --terrain: #bfc370; --line: #d4d0a7; }
+      .study-meta { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 1rem; font: .68rem/1.4 ui-monospace, monospace; color: var(--accent); }
+      .swatches { display: flex; gap: 4px; }
+      .swatches i { width: 12px; height: 12px; border: 1px solid color-mix(in srgb, var(--ink), transparent 60%); }
+      .swatches i:nth-child(1) { background: var(--paper); }.swatches i:nth-child(2) { background: var(--accent); }.swatches i:nth-child(3) { background: var(--ink); }
+      .hero { position: relative; z-index: 1; padding-top: clamp(4rem, 9vw, 8rem); }
+      .eyebrow { margin: 0 0 1rem; font-size: .75rem; line-height: 1.4; color: color-mix(in srgb, var(--ink), transparent 32%); }
+      h2 { margin: 0; max-width: 8ch; font-size: clamp(3.4rem, 6vw, 6rem); font-weight: 650; letter-spacing: -.075em; line-height: .86; }
+      h2 em { display: block; margin: .03em 0 0 .22em; color: var(--accent); font-family: Newsreader, Georgia, serif; font-size: 1.22em; font-weight: 400; letter-spacing: -.07em; }
+      .hero-copy { max-width: 22rem; margin-top: clamp(2rem, 8vw, 6rem); font-size: 1rem; line-height: 1.4; }
+      .hero-copy span { display: block; margin-top: .9rem; font: .7rem/1.4 ui-monospace, monospace; color: color-mix(in srgb, var(--ink), transparent 38%); }
+      .terrain-label { position: absolute; z-index: 1; right: clamp(1.25rem, 2.7vw, 2.8rem); bottom: 2.1rem; display: flex; align-items: center; gap: .6rem; font: .65rem ui-monospace, monospace; color: var(--accent); }
+      .terrain-label::before { content: ""; width: 32px; height: 2px; background: var(--accent); }
+      .verdict { padding: 1rem clamp(1.5rem, 4vw, 4rem) 2rem; border-top: 1px solid #414a3e; color: #d2d8c9; font-size: .9rem; }
+      .verdict strong { color: #c4f34c; }
+      @media (max-width: 820px) { .studies { grid-template-columns: 1fr; }.study { min-height: 580px; border-right: 0; border-bottom: 1px solid var(--line); }.page-header { align-items: start; flex-direction: column; } }
+    </style>
+  </head>
+  <body>
+    <header class="page-header">
+      <div><p>LIGHT-MODE STUDIES / 03</p><h1>Acid green,<br />under daylight.</h1></div>
+      <p class="palette-note">Three restrained directions for a site built from<br />near-black, warm white, and a sharp lime signal.</p>
+    </header>
+    <main class="studies">
+      <article class="study" data-palette="sunlit">
+        <div class="study-meta"><span>01 / SUNLIT MOSS</span><span class="swatches"><i></i><i></i><i></i></span></div>
+        <div class="hero"><p class="eyebrow">Data infrastructure · Backend · Applied ML</p><h2>Behind the <em>interface.</em></h2><p class="hero-copy">I build the systems that make the surface possible.<span>● Data Engineer at Spotify</span></p></div>
+        <p class="terrain-label">visible surface</p>
+      </article>
+      <article class="study" data-palette="lichen">
+        <div class="study-meta"><span>02 / LICHEN FIELD</span><span class="swatches"><i></i><i></i><i></i></span></div>
+        <div class="hero"><p class="eyebrow">Data infrastructure · Backend · Applied ML</p><h2>Behind the <em>interface.</em></h2><p class="hero-copy">I build the systems that make the surface possible.<span>● Data Engineer at Spotify</span></p></div>
+        <p class="terrain-label">service layer</p>
+      </article>
+      <article class="study" data-palette="signal">
+        <div class="study-meta"><span>03 / SIGNAL PAPER</span><span class="swatches"><i></i><i></i><i></i></span></div>
+        <div class="hero"><p class="eyebrow">Data infrastructure · Backend · Applied ML</p><h2>Behind the <em>interface.</em></h2><p class="hero-copy">I build the systems that make the surface possible.<span>● Data Engineer at Spotify</span></p></div>
+        <p class="terrain-label">evidence layer</p>
+      </article>
+    </main>
+    <footer class="verdict"><strong>My pick: Sunlit Moss.</strong> It keeps the dark mode’s lime as a credible signal color, with enough warmth to feel like paper rather than a generic app theme.</footer>
+  </body>
+</html>
