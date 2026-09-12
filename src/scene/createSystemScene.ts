@@ -152,7 +152,7 @@ export function createSystemScene(host: HTMLElement) {
   // follows the theme switch instead of snapping a frame ahead of the page.
   const tones = {
     ambient: [new THREE.Color(0xa9c6b1), new THREE.Color(0xf4faef)],
-    ground: [new THREE.Color(0x06110b), new THREE.Color(0xc8d7c2)],
+    ground: [new THREE.Color(0x06110b), new THREE.Color(0xd8e9c4)],
     key: [new THREE.Color(0xe2f5ce), new THREE.Color(0xffffff)],
     emerald: [new THREE.Color(0x258b61), new THREE.Color(0x76b637)],
     fog: [new THREE.Color(0x090d0a), new THREE.Color(0xfafbf6)],

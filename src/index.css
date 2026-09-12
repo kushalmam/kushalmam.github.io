@@ -54,7 +54,7 @@
   --paper: #fafbf6;
   --ink: #111712;
   --muted: #58615a;
-  --accent: #39751f;
+  --accent: #76b637;
   --accent-display: #76b637;
   --accent-hot: #a7f25a;
   --accent-scene: #98d746;
@@ -62,6 +62,17 @@
   --line: #d7ddd3;
   --strata-fill: #f0f8e5;
   --strata-line: #bddc98;
+}
+
+/* Keep compact navigation and project metadata quiet against the brighter
+   decorative lime used throughout the light palette. */
+:root[data-theme="light"] .site-header nav a[aria-current="location"],
+:root[data-theme="light"] .project-index > :first-child,
+:root[data-theme="light"] .visual-heading > .loop-status {
+  color: var(--ink);
+}
+:root[data-theme="light"] .visual-heading > .loop-status i {
+  background: var(--accent);
 }
 * {
   box-sizing: border-box;
