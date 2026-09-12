@@ -55,13 +55,13 @@
   --ink: #111712;
   --muted: #58615a;
   --accent: #39751f;
-  --accent-display: #69ad31;
+  --accent-display: #76b637;
   --accent-hot: #a7f25a;
-  --accent-scene: #8dce40;
+  --accent-scene: #98d746;
   --toggle-ink: #111712;
   --line: #d7ddd3;
-  --strata-fill: #edf3e8;
-  --strata-line: #b3cfae;
+  --strata-fill: #f0f8e5;
+  --strata-line: #bddc98;
 }
 * {
   box-sizing: border-box;
@@ -310,7 +310,7 @@ main:focus {
   opacity: 0.2;
 }
 .strata-field[data-section="2"] {
-  opacity: 0.38;
+  opacity: 0.65;
 }
 .strata-field[data-section="3"] {
   opacity: 0.55;
@@ -869,7 +869,7 @@ footer a {
     opacity: 0.1;
   }
   .strata-field[data-section="2"] {
-    opacity: 0.16;
+    opacity: 0.4;
   }
   .strata-field[data-section="3"] {
     opacity: 0.3;
@@ -1075,9 +1075,9 @@ footer a {
 .project-index > :first-child { color: var(--accent); }
 .project-evidence { grid-row: 2 / 5; }
 .project--research .project-evidence { grid-row: 3 / 5; }
-:root[data-theme="light"] .project-visual { background: color-mix(in srgb, #eff8e9 72%, white); border-color: #c5d8bf; }
+:root[data-theme="light"] .project-visual { background: color-mix(in srgb, var(--strata-fill) 72%, white); border-color: var(--strata-line); }
 :root[data-theme="light"] .retrieval-sources span { background: #fafbf6; }
-:root[data-theme="light"] .strata-key span::before { background: #80ad70; }
+:root[data-theme="light"] .strata-key span::before { background: var(--accent-display); }
 @media (max-width: 700px) {
   .strata-key { max-width: 31rem; gap: 0.5rem 0.75rem; font-size: 0.5625rem; }
   .project-index { margin-bottom: var(--s5); font-size: 0.625rem; }

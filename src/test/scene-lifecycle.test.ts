@@ -113,7 +113,7 @@ describe("systems drawing lifecycle", () => {
     const host = document.createElement("div");
     const scene = createSystemScene(host);
     visibility([{ isIntersecting: true }]);
-    scene.focus(2);
+    scene.focus(2, 1);
     flush();
     expect(calls.render).toHaveBeenCalledOnce();
     host
@@ -128,28 +128,30 @@ describe("systems drawing lifecycle", () => {
     scene.dispose();
     expect(frames.size).toBe(0);
   });
-  it("separates strata and lights the selected project route", () => {
+  it("loops project geometry, morphs between projects, and stops offscreen", () => {
     const scene = createSystemScene(document.createElement("div"));
     visibility([{ isIntersecting: true }]);
     flush();
-    const renderedScene = calls.render.mock
-      .lastCall![0] as import("three").Scene;
-    const strata = renderedScene.children.find(
-      (object) => object.type === "Group",
-    )!;
-    const initialGap =
-      strata.children[0].position.y - strata.children[1].position.y;
+    const advance = () => {
+      const pending = [...frames.values()];
+      frames.clear();
+      now += 16;
+      pending.forEach(callback => callback(now));
+    };
+    scene.focus(2, 0);
+    for (let i = 0; i < 100; i++) advance();
+    const renderedScene = calls.render.mock.lastCall![0] as import("three").Scene;
+    const field = renderedScene.children.find(object => object.type === "Group")!;
+    const before = field.children.map(layer => layer.position.y);
+    expect(field.children[0].children[0].type).toBe("Mesh");
+    expect(frames.size).toBe(1);
     scene.focus(2, 1);
+    for (let i = 0; i < 100; i++) advance();
+    expect(field.children.map(layer => layer.position.y)).not.toEqual(before);
+    visibility([{ isIntersecting: false }]);
+    calls.render.mockClear();
     flush();
-    expect(
-      strata.children[0].position.y - strata.children[1].position.y,
-    ).toBeGreaterThan(initialGap + 1);
-    const route = strata.children[2].children[2] as import("three").Mesh<
-      import("three").TubeGeometry,
-      import("three").MeshBasicMaterial
-    >;
-    expect(route.material.color.getHexString()).toBe("b9f542");
-    expect(route.material.opacity).toBe(1);
+    expect(calls.render).not.toHaveBeenCalled();
     scene.dispose();
   });
 });

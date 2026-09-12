@@ -154,11 +154,11 @@ export function createSystemScene(host: HTMLElement) {
     ambient: [new THREE.Color(0xa9c6b1), new THREE.Color(0xf4faef)],
     ground: [new THREE.Color(0x06110b), new THREE.Color(0xc8d7c2)],
     key: [new THREE.Color(0xe2f5ce), new THREE.Color(0xffffff)],
-    emerald: [new THREE.Color(0x258b61), new THREE.Color(0x6eae61)],
+    emerald: [new THREE.Color(0x258b61), new THREE.Color(0x76b637)],
     fog: [new THREE.Color(0x090d0a), new THREE.Color(0xfafbf6)],
-    surface: [new THREE.Color(0x081b12), new THREE.Color(0xe4efdf)],
+    surface: [new THREE.Color(0x081b12), new THREE.Color(0xf0f8e5)],
     emissive: [new THREE.Color(0x04130b), new THREE.Color(0x000000)],
-    accent: [new THREE.Color(0xb9f542), new THREE.Color(0x8dce40)],
+    accent: [new THREE.Color(0xb9f542), new THREE.Color(0x98d746)],
   };
   const fog = new THREE.Fog(0x090d0a, 19, 48);
   scene.fog = fog;
@@ -189,19 +189,40 @@ export function createSystemScene(host: HTMLElement) {
     if (Math.abs(tone - toneTarget) < 0.002) tone = toneTarget;
     else moving = true;
     tint(tone);
+    const project = section === 2 ? selected : null;
+    const time = motion.matches ? 0 : now / 1000;
     layers.forEach((layer, index) => {
-      layer.position.y =
-        -index * current.gap + (index === 0 ? current.peel : 0);
-      layer.position.x = index * (0.4 + current.peel * 0.22);
-      layer.position.z = index * 0.18;
-      layer.rotation.z = index === 0 ? current.peel * 0.03 : 0;
+      // Keep the original surfaces, contours and routes together. Each project
+      // changes how those same sheets gather, ripple or fan apart.
+      const phase = time * 0.55 + index * 0.6;
+      const convergence = (1 + Math.sin(time * 0.385)) / 2;
+      const signal = index < 2 ? 1 : index > 2 ? -1 : 0;
+      const lift = project === 1 ? Math.sin(phase) * 0.48
+        : project === 0 ? (index - 2) * convergence * 0.2
+        : project === 2 ? signal * (0.35 + Math.sin(time * 0.36) * 0.12) : 0;
+      const fan = project === 2 ? signal * 0.15 : 0;
+      const gather = project === 0 ? (2 - index) * convergence * 0.27 : 0;
+      const values = [
+        [layer.position, "y", -index * current.gap + (index === 0 ? current.peel : 0) + lift],
+        [layer.position, "x", index * (0.4 + current.peel * 0.22) + gather],
+        [layer.position, "z", index * 0.18],
+        [layer.rotation, "z", (index === 0 ? current.peel * 0.03 : 0) + fan
+          + (project === 1 ? Math.cos(phase) * 0.035 : 0)],
+        [layer.rotation, "y", project === 2 ? signal * (0.065 + Math.sin(time * 0.36) * 0.025) : 0],
+        [layer.scale, "x", project === 0 ? 1 - index * 0.0525 : 1],
+      ] as const;
+      for (const [vector, axis, goal] of values) {
+        vector[axis] = THREE.MathUtils.lerp(vector[axis], goal, blend);
+        if (Math.abs(vector[axis] - goal) < 0.002) vector[axis] = goal;
+        else moving = true;
+      }
       // Fewer visible strata on phones, while preserving the same composition.
       layer.visible = !narrow.matches || index % 2 === 0;
     });
     const exposure = THREE.MathUtils.clamp((current.gap - 0.72) / 0.93, 0, 1);
     surfaces.forEach((surface, index) => {
       const baseOpacity = index < 3 ? 0.8 - exposure * 0.5 : 0.9;
-      surface.opacity = baseOpacity - tone * 0.42;
+      surface.opacity = Math.max(0, baseOpacity - tone * 0.42);
     });
     system.position.set(
       narrow.matches ? current.x * 0.2 : current.x,
@@ -215,10 +236,10 @@ export function createSystemScene(host: HTMLElement) {
     routes.forEach((material, index) => {
       const active = section === 2 ? index === selected : index === 0;
       material.color.copy(active ? accent : emerald);
-      material.opacity = active ? 1 : 0.25;
+      material.opacity = (active ? 1 : 0.25);
     });
     renderer.render(scene, camera);
-    if (moving) frame = requestAnimationFrame(draw);
+    if (moving || (project !== null && !motion.matches)) frame = requestAnimationFrame(draw);
   }
   function invalidate() {
     if (!frame && !disposed && !lost) {
@@ -295,7 +316,11 @@ export function createSystemScene(host: HTMLElement) {
       selected = project;
       target = {
         ...poses[section],
-        gap: poses[section].gap + (project === null ? 0 : 0.25),
+        ...(section === 2 && project !== null ? [
+          { gap: 0.85, peel: 0.45, turn: -0.3, x: 5, y: -0.5, zoom: 1.08 },
+          { gap: 1.05, peel: 0.8, turn: -0.12, x: 5, y: 0, zoom: 1.08 },
+          { gap: 1.2, peel: 0.55, turn: -0.42, x: 5, y: 0, zoom: 1.08 },
+        ][project] : {}),
       };
       invalidate();
     },

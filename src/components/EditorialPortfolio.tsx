@@ -15,7 +15,7 @@ export default function EditorialPortfolio() {
         Skip to content
       </a>
       <SiteHeader />
-      <SystemsScene selectedProject={selectedProject} />
+      <SystemsScene />
       <main id="main" tabIndex={-1}>
         <section
           className="hero"
@@ -117,6 +117,7 @@ export default function EditorialPortfolio() {
           {projects.map((project, index) => (
             <article
               className={`project project--${project.composition}`}
+              data-project-index={index}
               key={project.name}
               data-selected={selectedProject === index || undefined}
             >

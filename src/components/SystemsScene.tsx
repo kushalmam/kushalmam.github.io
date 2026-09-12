@@ -1,32 +1,39 @@
 import { useEffect, useRef, useState } from "react";
 import type { createSystemScene } from "../scene/createSystemScene";
 
-export default function SystemsScene({
-  selectedProject,
-}: {
-  selectedProject: number | null;
-}) {
+export default function SystemsScene() {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<ReturnType<typeof createSystemScene>>();
-  const [section, setSection] = useState(0);
-  const focusRef = useRef({ section, selectedProject });
-  useEffect(() => {
-    focusRef.current = { section, selectedProject };
-    scene.current?.focus(section, section === 2 ? selectedProject : null);
-  }, [section, selectedProject]);
+  const [focus, setFocus] = useState({ section: 0, selectedProject: null as number | null });
+  const focusRef = useRef(focus);
   useEffect(() => {
     let disposed = false;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries)
-          if (entry.isIntersecting)
-            setSection(Number((entry.target as HTMLElement).dataset.depth));
-      },
-      { rootMargin: "-15% 0px -55% 0px" },
-    );
-    document
-      .querySelectorAll("[data-depth]")
-      .forEach((element) => observer.observe(element));
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const anchor = window.innerHeight * 0.45;
+      let section = 0;
+      document.querySelectorAll<HTMLElement>("[data-depth]").forEach((element) => {
+        if (element.getBoundingClientRect().top <= anchor) section = Number(element.dataset.depth);
+      });
+      let selectedProject: number | null = null;
+      if (section === 2) {
+        document.querySelectorAll<HTMLElement>("[data-project-index]").forEach((element) => {
+          if (element.getBoundingClientRect().top <= anchor) selectedProject = Number(element.dataset.projectIndex);
+        });
+      }
+      if (section !== focusRef.current.section || selectedProject !== focusRef.current.selectedProject) {
+        focusRef.current = { section, selectedProject };
+        setFocus(focusRef.current);
+        scene.current?.focus(section, selectedProject);
+      }
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    const resize = new ResizeObserver(schedule);
+    resize.observe(document.body);
+    measure();
     // Delay the optional GPU layer until its host enters the viewport.
     const initialize = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) return;
@@ -49,14 +56,17 @@ export default function SystemsScene({
     if (host.current) initialize.observe(host.current);
     return () => {
       disposed = true;
-      observer.disconnect();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      resize.disconnect();
+      cancelAnimationFrame(frame);
       initialize.disconnect();
       scene.current?.dispose();
       scene.current = undefined;
     };
   }, []);
   return (
-    <div className="strata-field" data-section={section} aria-hidden="true">
+    <div className="strata-field" data-section={focus.section} data-project={focus.selectedProject ?? undefined} aria-hidden="true">
       <div className="systems-canvas" ref={host}>
         <svg
           className="scene-fallback"
