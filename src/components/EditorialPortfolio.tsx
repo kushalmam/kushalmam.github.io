@@ -69,6 +69,10 @@ export default function EditorialPortfolio() {
                 vision for competition robots. I enjoy getting a system working,
                 understanding where it breaks, and making it more reliable.
               </p>
+              <p>
+                Outside of work, I enjoy building Gunpla, playing basketball,
+                and watching murder mysteries.
+              </p>
             </div>
             <figure className="portrait">
               <img
