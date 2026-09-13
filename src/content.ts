@@ -12,11 +12,12 @@ export const projects = [
       caption: "Offline next-review ranking · 29,416 eligible warm test events. Higher is better.",
     },
     evidenceValue: "~46% better",
-    evidenceUnit: "than the strongest baseline on NDCG@10",
+    evidenceUnit: "offline NDCG@10 vs. the strongest baseline",
     detail: "Retrieve and rank products from a history of reviews.",
+    contribution: "I built the retrieval and ranking pipeline and evaluated it against baseline models.",
     stack: "DuckDB / PyTorch / FAISS / LightGBM",
     category: "Recommendation systems",
-    context: "0.0104 vs. 0.0071 · 29,416 test events",
+    context: "0.0104 vs. 0.0071 · 29,416 eligible warm test events",
     caseStudy: [
       {
         title: "Constraint",
@@ -58,6 +59,7 @@ export const projects = [
     evidenceValue: "Best Use",
     evidenceUnit: " of AI",
     detail: "Explore speech-to-CPT assistance for clinical billing.",
+    contribution: "I worked on fracture detection and the TypeScript frontend.",
     stack: "Flask / Groq / React / Expo",
     category: "Applied AI / HackNYU 2025",
     context: "Team award · hackathon prototype",
@@ -99,12 +101,13 @@ export const projects = [
       ],
       caption: "Research workflow · Six committed example outputs, not measured trading performance.",
     },
-    evidenceValue: "Evidence",
-    evidenceUnit: " → thesis",
+    evidenceValue: "6",
+    evidenceUnit: "example research outputs",
     detail: "Investigate where the market and the news tell different stories.",
+    contribution: "I primarily worked on the database and frontend design.",
     stack: "Next.js / Flask / PostgreSQL / K2 + Tavily",
     category: "Agentic research / yHack26",
-    context: "Six example outputs · research prototype",
+    context: "Committed to the repository · research prototype, not measured trading performance",
     caseStudy: [
       {
         title: "Constraint",
@@ -112,7 +115,7 @@ export const projects = [
       },
       {
         title: "Decision",
-        text: "Use a K2/Tavily research agent behind Flask, persist structured market and thesis data in PostgreSQL, and derive a sentiment-divergence signal for the frontend.",
+        text: "I primarily worked on the database and frontend design. The team’s workflow stores market and thesis data in PostgreSQL and connects a K2/Tavily research agent through Flask to the analysis view.",
       },
       {
         title: "Evidence",

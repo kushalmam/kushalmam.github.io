@@ -31,16 +31,15 @@ export default function EditorialPortfolio() {
               <span>Behind the</span> <em>interface.</em>
             </h1>
             <p className="hero-intro">
-              I’m Kushal. I build the systems
-              <br className="desktop-break" /> that make the surface possible.
+              I’m Kushal. I build data pipelines
+              <br className="desktop-break" /> and recommendation systems.
             </p>
             <p className="current-role">
               <span className="status-dot" />
               Data Engineer (Emerging Talent) at Spotify
             </p>
-            <p className="strata-key">surface → systems → evidence</p>
             <a className="text-link hero-link" href="#work">
-              Explore selected work <span aria-hidden="true">↓</span>
+              View projects <span aria-hidden="true">↓</span>
             </a>
           </div>
         </section>
@@ -56,9 +55,6 @@ export default function EditorialPortfolio() {
           </header>
           <div className="about-grid">
             <div className="about-copy">
-              <p className="lead">
-                A useful interface starts with a system you can trust.
-              </p>
               <p>
                 I’m a 2026 Computer Science graduate from NYU Tandon and a Data
                 Engineer (Emerging Talent) at Spotify, improving personalization
@@ -116,7 +112,7 @@ export default function EditorialPortfolio() {
         >
           <header className="section-heading">
             <p className="section-label">Selected work</p>
-            <h2 id="work-title">Built below the surface.</h2>
+            <h2 id="work-title">Projects & experiments.</h2>
           </header>
           {projects.map((project, index) => (
             <article
@@ -132,7 +128,10 @@ export default function EditorialPortfolio() {
                   <h3>{project.name}</h3>
                 </div>
               </div>
-              <p className="project-thesis">{project.detail}</p>
+              <div className="project-thesis">
+                <p>{project.detail}</p>
+                <p className="project-contribution">{project.contribution}</p>
+              </div>
               <p className="project-stack">{project.stack}</p>
               <div className="project-evidence">
                 <strong>
