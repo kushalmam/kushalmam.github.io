@@ -1,101 +1,116 @@
 import { useEffect, useRef, useState } from "react";
-import type { createSystemScene } from "../scene/createSystemScene";
+import { createSplineScene, WIRE_SCENE_URL, type SplineScene } from "../scene/loadSplineScene";
 
 export default function SystemsScene() {
   const host = useRef<HTMLDivElement>(null);
-  const scene = useRef<ReturnType<typeof createSystemScene>>();
-  const [focus, setFocus] = useState({ section: 0, selectedProject: null as number | null });
-  const focusRef = useRef(focus);
+  const [paused, setPaused] = useState(false);
+  const [section, setSection] = useState(0);
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const app = useRef<SplineScene>();
+  const pausedRef = useRef(paused);
+
   useEffect(() => {
+    pausedRef.current = paused;
+    if (paused || document.hidden) app.current?.stop();
+    else app.current?.play();
+  }, [paused]);
+
+  useEffect(() => {
+    const container = host.current;
+    if (!container) return;
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let disposed = false;
+    let initializing = false;
     let frame = 0;
-    const measure = () => {
-      frame = 0;
-      const anchor = window.innerHeight * 0.45;
-      let section = 0;
-      document.querySelectorAll<HTMLElement>("[data-depth]").forEach((element) => {
-        if (element.getBoundingClientRect().top <= anchor) section = Number(element.dataset.depth);
-      });
-      let selectedProject: number | null = null;
-      if (section === 2) {
-        document.querySelectorAll<HTMLElement>("[data-project-index]").forEach((element) => {
-          if (element.getBoundingClientRect().top <= anchor) selectedProject = Number(element.dataset.projectIndex);
-        });
-      }
-      if (section !== focusRef.current.section || selectedProject !== focusRef.current.selectedProject) {
-        focusRef.current = { section, selectedProject };
-        setFocus(focusRef.current);
-        scene.current?.focus(section, selectedProject);
+    let canvas: HTMLCanvasElement | undefined;
+    let resize: ResizeObserver | undefined;
+
+    const sync = () => {
+      if (pausedRef.current || reduced.matches || document.hidden) app.current?.stop();
+      else app.current?.play();
+    };
+    const initialize = async () => {
+      if (initializing || app.current || disposed || reduced.matches) return;
+      initializing = true;
+      try {
+        canvas = document.createElement("canvas");
+        container.append(canvas);
+        const runtime = await createSplineScene(canvas);
+        if (disposed) { runtime.dispose(); return; }
+        app.current = runtime;
+        await runtime.load(WIRE_SCENE_URL);
+        if (disposed) return;
+        const measure = () => runtime.setSize(container.clientWidth, container.clientHeight);
+        resize = new ResizeObserver(measure);
+        resize.observe(container);
+        measure();
+        setReady(true);
+        sync();
+      } catch {
+        if (disposed) return;
+        app.current?.dispose();
+        app.current = undefined;
+        canvas?.remove();
+        setFailed(true);
+        // Static geometry is reserved for failure, never the loading state.
+      } finally {
+        initializing = false;
       }
     };
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
+    const measureSection = () => {
+      frame = 0;
+      let current = 0;
+      document.querySelectorAll<HTMLElement>("[data-depth]").forEach(element => {
+        if (element.getBoundingClientRect().top <= innerHeight * .45) current = Number(element.dataset.depth);
+      });
+      setSection(current);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(measureSection); };
+    const motionChanged = () => {
+      setPaused(reduced.matches);
+      pausedRef.current = reduced.matches;
+      if (!reduced.matches) void initialize();
+      sync();
+    };
+    const visibility = () => sync();
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { void initialize(); observer.disconnect(); }
+    });
+    observer.observe(container);
+    reduced.addEventListener("change", motionChanged);
+    document.addEventListener("visibilitychange", visibility);
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
-    const resize = new ResizeObserver(schedule);
-    resize.observe(document.body);
-    measure();
-    // Delay the optional GPU layer until its host enters the viewport.
-    const initialize = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      initialize.disconnect();
-      void import("../scene/createSystemScene")
-        .then(({ createSystemScene }) => {
-          if (disposed || !host.current) return;
-          scene.current = createSystemScene(host.current);
-          scene.current.focus(
-            focusRef.current.section,
-            focusRef.current.section === 2
-              ? focusRef.current.selectedProject
-              : null,
-          );
-        })
-        .catch(() => {
-          /* The static systems drawing remains if WebGL is unavailable. */
-        });
-    });
-    if (host.current) initialize.observe(host.current);
+    setPaused(reduced.matches);
+    pausedRef.current = reduced.matches;
+    measureSection();
     return () => {
       disposed = true;
+      observer.disconnect();
+      resize?.disconnect();
+      reduced.removeEventListener("change", motionChanged);
+      document.removeEventListener("visibilitychange", visibility);
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
-      resize.disconnect();
       cancelAnimationFrame(frame);
-      initialize.disconnect();
-      scene.current?.dispose();
-      scene.current = undefined;
+      app.current?.dispose();
+      app.current = undefined;
+      canvas?.remove();
     };
   }, []);
-  return (
-    <div className="strata-field" data-section={focus.section} data-project={focus.selectedProject ?? undefined} aria-hidden="true">
-      <div className="systems-canvas" ref={host}>
-        <svg
-          className="scene-fallback"
-          viewBox="0 0 1400 900"
-          fill="none"
-          preserveAspectRatio="xMidYMid slice"
-        >
-          {[4, 3, 2, 1, 0].map((layer) => (
-            <g key={layer} transform={`translate(${layer * 12},${layer * 38})`}>
-              <path
-                d="M230 455C470 230 510 625 800 350S1190 395 1550 120L1530 405C1110 680 1050 440 800 660S470 535 230 455Z"
-                fill="var(--strata-fill)"
-                stroke="var(--strata-line)"
-              />
-              {[0, 1, 2, 3].map((line) => (
-                <path
-                  key={line}
-                  d={`M${280 + line * 30} ${450 + line * 8}C550 ${300 + line * 55} 560 ${640 + line * 30} 810 ${380 + line * 48}S1210 ${450 + line * 20} 1530 ${180 + line * 50}`}
-                  stroke={
-                    layer === 0 && line === 2
-                      ? "var(--accent)"
-                      : "var(--strata-line)"
-                  }
-                />
-              ))}
-            </g>
-          ))}
-        </svg>
+
+  return <>
+    <div className="strata-field wire-field" data-section={section} data-paused={paused || undefined} aria-hidden="true">
+      <div className="wire-motion-surface">
+      <div className="systems-canvas" ref={host} data-ready={ready || undefined}>
+        {!ready && (failed || paused) && <svg className="scene-fallback" viewBox="0 0 600 1000" fill="none" preserveAspectRatio="xMidYMid slice">
+          {Array.from({ length: 14 }, (_, i) =>
+            <path key={i} d={`M${190+i*15} -50 C${90+i*23} 220 ${410-i*8} 300 ${170+i*17} 510 S${390-i*10} 850 ${220+i*13} 1050`} stroke="var(--strata-line)" strokeWidth={i % 4 === 0 ? 2 : 1} />
+          )}
+        </svg>}
+      </div>
       </div>
     </div>
-  );
+  </>;
 }
