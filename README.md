@@ -8,12 +8,12 @@ network access. `WIRE_SCENE_URL` selects the published export.
 The background is displayed horizontally, fades behind prose, and stops when the document
 is hidden. Reduced-motion visitors initially get static SVG wires without loading
 the runtime. The fallback also covers initialization failure.
-The native approximation remains in `src/scene/createWireScene.ts` and the
-side-by-side comparison at `/wire-compare.html`; it is not the live background.
+The native approximation remains in `src/scene/createWireScene.ts`; it is not
+the live background.
 
 Scene credit: [Flow by Vlad](https://community.spline.design/file/ff4fcef4-b6ab-406f-9359-d639509f2d99),
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Adapted to wires-only
-and displayed horizontally. Credit also remains on the comparison page.
+and displayed horizontally.
 
 The System Strata design and renderer budgets below describe the previous
 terrain implementation, retained in `src/scene/createSystemScene.ts` as reference.

@@ -10,7 +10,7 @@ export default defineConfig({
   base,
   build: {
     rollupOptions: {
-      input: { main: path.resolve(__dirname, "index.html"), comparison: path.resolve(__dirname, "wire-compare.html") },
+      input: path.resolve(__dirname, "index.html"),
     },
   },
   server: {
