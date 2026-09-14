@@ -25,6 +25,7 @@ export default function SystemsScene() {
     let frame = 0;
     let canvas: HTMLCanvasElement | undefined;
     let resize: ResizeObserver | undefined;
+    let theme: MutationObserver | undefined;
 
     const sync = () => {
       if (pausedRef.current || reduced.matches || document.hidden) app.current?.stop();
@@ -41,6 +42,16 @@ export default function SystemsScene() {
         app.current = runtime;
         await runtime.load(WIRE_SCENE_URL);
         if (disposed) return;
+        // This export renders alpha as black. Match the page surface instead;
+        // do not invert the canvas or modify the original wire materials.
+        const syncBackground = () => {
+          const root = document.documentElement;
+          const paper = getComputedStyle(root).getPropertyValue("--paper").trim();
+          runtime.setBackgroundColor(paper || (root.dataset.theme === "light" ? "#fafbf6" : "#090d0a"));
+        };
+        syncBackground();
+        theme = new MutationObserver(syncBackground);
+        theme.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
         const measure = () => runtime.setSize(container.clientWidth, container.clientHeight);
         resize = new ResizeObserver(measure);
         resize.observe(container);
@@ -89,6 +100,7 @@ export default function SystemsScene() {
       disposed = true;
       observer.disconnect();
       resize?.disconnect();
+      theme?.disconnect();
       reduced.removeEventListener("change", motionChanged);
       document.removeEventListener("visibilitychange", visibility);
       window.removeEventListener("scroll", schedule);
