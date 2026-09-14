@@ -1,0 +1,128 @@
+import { useEffect, useRef, useState } from "react";
+import { createSplineScene, WIRE_SCENE_URL, type SplineScene } from "../scene/loadSplineScene";
+
+export default function SplineBackground() {
+  const host = useRef<HTMLDivElement>(null);
+  const [paused, setPaused] = useState(false);
+  const [section, setSection] = useState(0);
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const app = useRef<SplineScene>();
+  const pausedRef = useRef(paused);
+
+  useEffect(() => {
+    pausedRef.current = paused;
+    if (paused || document.hidden) app.current?.stop();
+    else app.current?.play();
+  }, [paused]);
+
+  useEffect(() => {
+    const container = host.current;
+    if (!container) return;
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    let disposed = false;
+    let initializing = false;
+    let frame = 0;
+    let canvas: HTMLCanvasElement | undefined;
+    let resize: ResizeObserver | undefined;
+    let theme: MutationObserver | undefined;
+
+    const sync = () => {
+      if (pausedRef.current || reduced.matches || document.hidden) app.current?.stop();
+      else app.current?.play();
+    };
+    const initialize = async () => {
+      if (initializing || app.current || disposed || reduced.matches) return;
+      initializing = true;
+      try {
+        canvas = document.createElement("canvas");
+        container.append(canvas);
+        const runtime = await createSplineScene(canvas);
+        if (disposed) { runtime.dispose(); return; }
+        app.current = runtime;
+        await runtime.load(WIRE_SCENE_URL);
+        if (disposed) return;
+        // This export renders alpha as black. Match the page surface instead;
+        // do not invert the canvas or modify the original wire materials.
+        const syncBackground = () => {
+          const root = document.documentElement;
+          const paper = getComputedStyle(root).getPropertyValue("--paper").trim();
+          runtime.setBackgroundColor(paper || (root.dataset.theme === "light" ? "#fafbf6" : "#090d0a"));
+        };
+        syncBackground();
+        theme = new MutationObserver(syncBackground);
+        theme.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+        const measure = () => runtime.setSize(container.clientWidth, container.clientHeight);
+        resize = new ResizeObserver(measure);
+        resize.observe(container);
+        measure();
+        setReady(true);
+        sync();
+      } catch {
+        if (disposed) return;
+        app.current?.dispose();
+        app.current = undefined;
+        canvas?.remove();
+        setFailed(true);
+        // Static geometry is reserved for failure, never the loading state.
+      } finally {
+        initializing = false;
+      }
+    };
+    const measureSection = () => {
+      frame = 0;
+      let current = 0;
+      document.querySelectorAll<HTMLElement>("[data-depth]").forEach(element => {
+        if (element.getBoundingClientRect().top <= innerHeight * .45) current = Number(element.dataset.depth);
+      });
+      setSection(current);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(measureSection); };
+    const motionChanged = () => {
+      setPaused(reduced.matches);
+      pausedRef.current = reduced.matches;
+      if (!reduced.matches) void initialize();
+      sync();
+    };
+    const visibility = () => sync();
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { void initialize(); observer.disconnect(); }
+    });
+    observer.observe(container);
+    reduced.addEventListener("change", motionChanged);
+    document.addEventListener("visibilitychange", visibility);
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    setPaused(reduced.matches);
+    pausedRef.current = reduced.matches;
+    measureSection();
+    return () => {
+      disposed = true;
+      observer.disconnect();
+      resize?.disconnect();
+      theme?.disconnect();
+      reduced.removeEventListener("change", motionChanged);
+      document.removeEventListener("visibilitychange", visibility);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      cancelAnimationFrame(frame);
+      app.current?.dispose();
+      app.current = undefined;
+      canvas?.remove();
+    };
+  }, []);
+
+  return <>
+    <div className="strata-field wire-field" data-section={section} data-paused={paused || undefined} aria-hidden="true">
+      <div className="wire-motion-surface">
+      <div className="systems-canvas" ref={host} data-ready={ready || undefined}>
+        {!ready && (failed || paused) && <svg className="scene-fallback" viewBox="0 0 600 1000" fill="none" preserveAspectRatio="xMidYMid slice">
+          {Array.from({ length: 14 }, (_, i) =>
+            <path key={i} d={`M${190+i*15} -50 C${90+i*23} 220 ${410-i*8} 300 ${170+i*17} 510 S${390-i*10} 850 ${220+i*13} 1050`} stroke="var(--strata-line)" strokeWidth={i % 4 === 0 ? 2 : 1} />
+          )}
+        </svg>}
+      </div>
+      </div>
+    </div>
+  </>;
+}

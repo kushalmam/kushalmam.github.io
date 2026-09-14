@@ -1,6 +1,6 @@
 import { render, waitFor, cleanup, act } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import SystemsScene from "../components/SystemsScene";
+import SystemsScene from "../components/SplineBackground";
 
 const scene = vi.hoisted(() => ({ load: vi.fn().mockResolvedValue(undefined), setBackgroundColor: vi.fn(), setSize: vi.fn(), play: vi.fn(), stop: vi.fn(), dispose: vi.fn() }));
 vi.mock("../scene/loadSplineScene", () => ({ WIRE_SCENE_URL: "scene", createSplineScene: vi.fn().mockResolvedValue(scene) }));

@@ -1,5 +1,10 @@
 # Kushal Mamillapalli — Behind the interface
 
+The live site has been rolled back to the pre-Spline System Strata background.
+The Spline integration is parked in `src/components/SplineBackground.tsx` for
+later debugging and is not loaded by the portfolio. The notes below describe
+that parked integration.
+
 The live background uses the actual wires-only **Flow** Spline scene, preserving
 its materials and authored animation. `src/scene/loadSplineScene.ts` loads a
 pinned Spline runtime from a CDN and the published scene from Spline; it requires
