@@ -302,6 +302,18 @@ main:focus {
   pointer-events: none;
   transition: opacity var(--focus-time) var(--ease);
 }
+/* Keep the vignette in page space so it does not skew with the wire canvas.
+   The paper token makes its edges ivory in light mode and dark in dark mode. */
+.wire-field::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 56%,
+    transparent 24%,
+    color-mix(in srgb, var(--paper) 28%, transparent) 58%,
+    color-mix(in srgb, var(--paper) 78%, transparent) 100%);
+}
 .systems-canvas {
   position: absolute;
   inset: 0;
