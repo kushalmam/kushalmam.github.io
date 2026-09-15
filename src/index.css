@@ -314,6 +314,17 @@ main:focus {
     color-mix(in srgb, var(--paper) 28%, transparent) 58%,
     color-mix(in srgb, var(--paper) 78%, transparent) 100%);
 }
+:root[data-theme="light"] .wire-field::after {
+  background:
+    radial-gradient(ellipse at 33% 52%,
+      color-mix(in srgb, var(--paper) 56%, transparent) 0%,
+      color-mix(in srgb, var(--paper) 38%, transparent) 34%,
+      transparent 66%),
+    radial-gradient(ellipse at 50% 56%,
+      transparent 24%,
+      color-mix(in srgb, var(--paper) 28%, transparent) 58%,
+      color-mix(in srgb, var(--paper) 78%, transparent) 100%);
+}
 .systems-canvas {
   position: absolute;
   inset: 0;
@@ -360,9 +371,13 @@ main:focus {
 }
 .wire-field .systems-canvas canvas {
   opacity: 0;
-  transition: opacity 700ms ease;
+  transition: opacity 700ms ease, filter var(--focus-time) var(--ease);
 }
 .wire-field .systems-canvas[data-ready] canvas { opacity: 1; }
+:root[data-theme="light"] .wire-field .systems-canvas[data-ready] canvas {
+  opacity: 0.56;
+  filter: contrast(0.88) saturate(0.78);
+}
 @media (prefers-reduced-motion: reduce) {
   .wire-field .systems-canvas canvas { transition: none; }
 }
