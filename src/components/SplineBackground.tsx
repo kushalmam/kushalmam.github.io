@@ -7,6 +7,8 @@ export default function SplineBackground() {
   const [paused, setPaused] = useState(false);
   const [section, setSection] = useState(0);
   const [ready, setReady] = useState(false);
+  const [introduced, setIntroduced] = useState(false);
+  const [resuming, setResuming] = useState(false);
   const [failed, setFailed] = useState(false);
   const app = useRef<SplineScene>();
   const pausedRef = useRef(paused);
@@ -27,7 +29,12 @@ export default function SplineBackground() {
     let canvas: HTMLCanvasElement | undefined;
     let resize: ResizeObserver | undefined;
     let theme: MutationObserver | undefined;
+    let measureCanvas: (() => void) | undefined;
+    let restoreFraming: (() => void) | undefined;
+    let resumeFrame = 0;
+    let settleFrame = 0;
     let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+    let introTimer: ReturnType<typeof setTimeout> | undefined;
 
     const sync = () => {
       if (pausedRef.current || reduced.matches || document.hidden) app.current?.stop();
@@ -51,11 +58,19 @@ export default function SplineBackground() {
         const wires = runtime.findObjectByName("lines");
         const camera = runtime.findObjectByName("Camera");
         if (wires && camera) {
-          const start = { x: wires.position.x, y: wires.position.y };
-          wires.rotation.z += Math.PI / 2;
-          wires.position.x = camera.position.x - (start.y - camera.position.y);
-          wires.position.y = camera.position.y + (start.x - camera.position.x);
-          runtime.requestRender();
+          const start = { x: wires.position.x, y: wires.position.y, z: wires.rotation.z };
+          const target = {
+            x: camera.position.x - (start.y - camera.position.y),
+            y: camera.position.y + (start.x - camera.position.x),
+            z: start.z + Math.PI / 2,
+          };
+          restoreFraming = () => {
+            wires.rotation.z = target.z;
+            wires.position.x = target.x;
+            wires.position.y = target.y;
+            runtime.requestRender();
+          };
+          restoreFraming();
         }
         const setVignette = studyVignette(runtime);
         const syncBackground = () => {
@@ -72,11 +87,18 @@ export default function SplineBackground() {
         syncBackground();
         theme = new MutationObserver(syncBackground);
         theme.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-        const measure = () => runtime.setSize(container.clientWidth, container.clientHeight);
-        resize = new ResizeObserver(measure);
+        measureCanvas = () => {
+          const width = container.clientWidth;
+          const height = container.clientHeight;
+          // Hidden tabs can briefly report a collapsed box. Passing that to the
+          // runtime distorts its orthographic camera until the following resize.
+          if (width > 0 && height > 0) runtime.setSize(width, height);
+        };
+        resize = new ResizeObserver(measureCanvas);
         resize.observe(container);
-        measure();
+        measureCanvas();
         setReady(true);
+        introTimer = setTimeout(() => setIntroduced(true), 1200);
         sync();
       } catch {
         if (disposed) return;
@@ -104,7 +126,34 @@ export default function SplineBackground() {
       if (!reduced.matches) void initialize();
       sync();
     };
-    const visibility = () => sync();
+    const visibility = () => {
+      cancelAnimationFrame(resumeFrame);
+      cancelAnimationFrame(settleFrame);
+      if (document.hidden) {
+        setResuming(true);
+        sync();
+        return;
+      }
+
+      // Prepare the stopped scene before its first visible frame, then verify it
+      // once more after Spline restarts. This prevents a stale hidden-tab size or
+      // authored transform from flashing on return.
+      measureCanvas?.();
+      restoreFraming?.();
+      measureSection();
+      resumeFrame = requestAnimationFrame(() => {
+        if (disposed || document.hidden) return;
+        measureCanvas?.();
+        sync();
+        restoreFraming?.();
+        settleFrame = requestAnimationFrame(() => {
+          if (disposed || document.hidden) return;
+          measureCanvas?.();
+          restoreFraming?.();
+          setResuming(false);
+        });
+      });
+    };
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) { void initialize(); observer.disconnect(); }
     });
@@ -122,11 +171,14 @@ export default function SplineBackground() {
       resize?.disconnect();
       theme?.disconnect();
       clearTimeout(refreshTimer);
+      clearTimeout(introTimer);
       reduced.removeEventListener("change", motionChanged);
       document.removeEventListener("visibilitychange", visibility);
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
       cancelAnimationFrame(frame);
+      cancelAnimationFrame(resumeFrame);
+      cancelAnimationFrame(settleFrame);
       app.current?.dispose();
       app.current = undefined;
       canvas?.remove();
@@ -134,7 +186,7 @@ export default function SplineBackground() {
   }, []);
 
   return <>
-    <div className="strata-field wire-field" data-section={section} data-paused={paused || undefined} aria-hidden="true">
+    <div className="strata-field wire-field" data-section={section} data-paused={paused || undefined} data-intro={ready && !introduced || undefined} data-resuming={resuming || undefined} aria-hidden="true">
       <div className="wire-motion-surface">
       <div className="systems-canvas" ref={host} data-ready={ready || undefined}>
         {!ready && (failed || paused) && <svg className="scene-fallback" viewBox="0 0 600 1000" fill="none" preserveAspectRatio="xMidYMid slice">

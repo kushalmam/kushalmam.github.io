@@ -4,8 +4,15 @@ import { projects } from "../content";
 export default function ProjectVisual({ project }: { project: (typeof projects)[number] }) {
   const host = useRef<HTMLElement>(null);
   const reducedMotion = useRef(false);
+  const started = useRef(false);
   const [stage, setStage] = useState(2);
   const [visible, setVisible] = useState(false);
+  const loopLabel = project.composition === "metric"
+    ? "Retrieval pass"
+    : project.composition === "award"
+      ? "Live transcript"
+      : "Evidence check";
+  const pace = project.composition === "award" ? 1300 : project.composition === "research" ? 2200 : 1700;
 
   useEffect(() => {
     reducedMotion.current = window.matchMedia(
@@ -14,7 +21,10 @@ export default function ProjectVisual({ project }: { project: (typeof projects)[
     if (!host.current || !("IntersectionObserver" in window)) return;
     const observer = new IntersectionObserver(([entry]) => {
       setVisible(entry.isIntersecting);
-      if (entry.isIntersecting && !reducedMotion.current) setStage(0);
+      if (entry.isIntersecting && !reducedMotion.current && !started.current) {
+        started.current = true;
+        setStage(0);
+      }
     }, { threshold: 0.35 });
     observer.observe(host.current);
     return () => observer.disconnect();
@@ -24,16 +34,16 @@ export default function ProjectVisual({ project }: { project: (typeof projects)[
     if (!visible || reducedMotion.current) return;
     const timer = window.setTimeout(
       () => setStage((current) => (current + 1) % 3),
-      1800,
+      pace,
     );
     return () => window.clearTimeout(timer);
-  }, [visible, stage]);
+  }, [pace, visible, stage]);
 
   return (
     <figure ref={host} className={`project-visual animated-visual visual--${project.composition}`} data-stage={stage} data-playing={visible && !reducedMotion.current}>
       <div className="visual-heading">
         <span>{project.visual.label}</span>
-        <span className="loop-status"><i /> System loop</span>
+        <span className="loop-status">{loopLabel}</span>
       </div>
       <div className="visual-loop" aria-hidden="true">
       {project.composition === "metric" ? (
