@@ -2,7 +2,7 @@ import { useState } from "react";
 import { projects, experiences } from "../content";
 import OrgMark from "./OrgMark";
 import SiteHeader from "./SiteHeader";
-import SystemsScene from "./SystemsScene";
+import SystemsScene from "./SplineBackground";
 import ProjectVisual from "./ProjectVisual";
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;

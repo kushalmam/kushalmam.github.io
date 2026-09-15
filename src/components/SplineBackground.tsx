@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createSplineScene, WIRE_SCENE_URL, type SplineScene } from "../scene/loadSplineScene";
+import { studyVignette } from "../scene/splineStudyVignette";
 
 export default function SplineBackground() {
   const host = useRef<HTMLDivElement>(null);
@@ -26,6 +27,7 @@ export default function SplineBackground() {
     let canvas: HTMLCanvasElement | undefined;
     let resize: ResizeObserver | undefined;
     let theme: MutationObserver | undefined;
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 
     const sync = () => {
       if (pausedRef.current || reduced.matches || document.hidden) app.current?.stop();
@@ -42,12 +44,30 @@ export default function SplineBackground() {
         app.current = runtime;
         await runtime.load(WIRE_SCENE_URL);
         if (disposed) return;
-        // This export renders alpha as black. Match the page surface instead;
-        // do not invert the canvas or modify the original wire materials.
+        const decorative = new Set(["Flow", "Button", "Rectangle", "Keep Your Data"]);
+        runtime.getAllObjects().forEach(object => {
+          if (decorative.has(object.name)) object.visible = false;
+        });
+        const wires = runtime.findObjectByName("lines");
+        const camera = runtime.findObjectByName("Camera");
+        if (wires && camera) {
+          const start = { x: wires.position.x, y: wires.position.y };
+          wires.rotation.z += Math.PI / 2;
+          wires.position.x = camera.position.x - (start.y - camera.position.y);
+          wires.position.y = camera.position.y + (start.x - camera.position.x);
+          runtime.requestRender();
+        }
+        const setVignette = studyVignette(runtime);
         const syncBackground = () => {
           const root = document.documentElement;
           const paper = getComputedStyle(root).getPropertyValue("--paper").trim();
+          setVignette(root.dataset.theme === "light");
           runtime.setBackgroundColor(paper || (root.dataset.theme === "light" ? "#fafbf6" : "#090d0a"));
+          if (pausedRef.current || reduced.matches || document.hidden) {
+            clearTimeout(refreshTimer);
+            runtime.play();
+            refreshTimer = setTimeout(() => runtime.stop(), 500);
+          }
         };
         syncBackground();
         theme = new MutationObserver(syncBackground);
@@ -101,6 +121,7 @@ export default function SplineBackground() {
       observer.disconnect();
       resize?.disconnect();
       theme?.disconnect();
+      clearTimeout(refreshTimer);
       reduced.removeEventListener("change", motionChanged);
       document.removeEventListener("visibilitychange", visibility);
       window.removeEventListener("scroll", schedule);

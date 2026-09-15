@@ -2,7 +2,12 @@ import { render, waitFor, cleanup, act } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import SystemsScene from "../components/SplineBackground";
 
-const scene = vi.hoisted(() => ({ load: vi.fn().mockResolvedValue(undefined), setBackgroundColor: vi.fn(), setSize: vi.fn(), play: vi.fn(), stop: vi.fn(), dispose: vi.fn() }));
+const scene = vi.hoisted(() => ({
+  load: vi.fn().mockResolvedValue(undefined), setBackgroundColor: vi.fn(), setSize: vi.fn(), play: vi.fn(), stop: vi.fn(), dispose: vi.fn(), requestRender: vi.fn(),
+  getAllObjects: vi.fn(() => [{ name: "Flow", visible: true }, { name: "lines", visible: true }]),
+  findObjectByName: vi.fn(),
+  _scene: { activePage: { data: { postprocessing: { vignette: { enabled: true } } } } },
+}));
 vi.mock("../scene/loadSplineScene", () => ({ WIRE_SCENE_URL: "scene", createSplineScene: vi.fn().mockResolvedValue(scene) }));
 afterEach(() => { cleanup(); delete document.documentElement.dataset.theme; vi.unstubAllGlobals(); vi.clearAllMocks(); });
 
@@ -18,6 +23,8 @@ it("matches light mode before reveal and follows subsequent theme changes", asyn
   const { container } = render(<SystemsScene />);
   await waitFor(() => expect(container.querySelector("[data-ready]" )).not.toBeNull());
   expect(scene.setBackgroundColor).toHaveBeenLastCalledWith("#fafbf6");
+  expect(scene._scene.activePage.data.postprocessing.vignette.enabled).toBe(false);
   act(() => { document.documentElement.dataset.theme = "dark"; });
   await waitFor(() => expect(scene.setBackgroundColor).toHaveBeenLastCalledWith("#090d0a"));
+  expect(scene._scene.activePage.data.postprocessing.vignette.enabled).toBe(true);
 });

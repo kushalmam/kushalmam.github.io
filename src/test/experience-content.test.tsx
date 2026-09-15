@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../components/SystemsScene", () => ({ default: () => null }));
+vi.mock("../components/SplineBackground", () => ({ default: () => null }));
 
 import EditorialPortfolio from "../components/EditorialPortfolio";
 

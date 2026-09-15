@@ -10,7 +10,10 @@ export default defineConfig({
   base,
   build: {
     rollupOptions: {
-      input: path.resolve(__dirname, "index.html"),
+      input: {
+        main: path.resolve(__dirname, "index.html"),
+        splineStudy: path.resolve(__dirname, "spline-study.html"),
+      },
     },
   },
   server: {

@@ -319,12 +319,7 @@ main:focus {
   inset: 0;
 }
 .wire-field .systems-canvas {
-  inset: auto;
-  left: 50%;
-  top: 50%;
-  width: 100svh;
-  height: 100vw;
-  transform: translate(-50%, -50%) rotate(90deg);
+  inset: 0;
   overflow: hidden;
 }
 .wire-motion-surface {

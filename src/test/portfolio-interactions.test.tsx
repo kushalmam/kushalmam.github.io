@@ -8,7 +8,7 @@ import {
 import { afterEach, describe, expect, it, vi } from "vitest";
 import EditorialPortfolio from "../components/EditorialPortfolio";
 
-vi.mock("../components/SystemsScene", () => ({ default: () => null }));
+vi.mock("../components/SplineBackground", () => ({ default: () => null }));
 afterEach(() => {
   cleanup();
   localStorage.clear();

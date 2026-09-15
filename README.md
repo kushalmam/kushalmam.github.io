@@ -1,9 +1,20 @@
 # Kushal Mamillapalli — Behind the interface
 
-The live site has been rolled back to the pre-Spline System Strata background.
-The Spline integration is parked in `src/components/SplineBackground.tsx` for
-later debugging and is not loaded by the portfolio. The notes below describe
-that parked integration.
+The live site uses the earlier Flow Spline export as a horizontal, full-viewport
+wire background. Demo objects are hidden locally; the scene's wire geometry,
+materials, lighting, and authored animation remain intact.
+
+## Isolated Spline investigation
+
+Open `/spline-study.html` on the development server for the original export next
+to the actual wires-only export. This page is a separate build entry and is not
+imported by the live portfolio. It offers light/dark surface checks, an optional
+page-level edge fade, pause/play, and horizontal wire-group rotation around the
+authored camera center. It never rotates the canvas or alters wire materials.
+
+The earlier export showed no badge in browser verification. No watermark asset
+or branding method is altered. See [the investigation](docs/research/spline-theme-export-findings.md)
+for confirmed API behavior, limitations, and browser validation.
 
 The live background uses the actual wires-only **Flow** Spline scene, preserving
 its materials and authored animation. `src/scene/loadSplineScene.ts` loads a
@@ -11,8 +22,10 @@ pinned Spline runtime from a CDN and the published scene from Spline; it require
 network access. `WIRE_SCENE_URL` selects the published export.
 
 The background is displayed horizontally, fades behind prose, and stops when the document
-is hidden. Reduced-motion visitors initially get static SVG wires without loading
-the runtime. The fallback also covers initialization failure.
+is hidden. Dark mode preserves the authored vignette; light mode disables only that
+effect through a guarded adapter for the pinned runtime and uses the page's ivory
+surface instead. Reduced-motion visitors initially get static SVG wires without
+loading the runtime. The fallback also covers initialization failure.
 The native approximation remains in `src/scene/createWireScene.ts`; it is not
 the live background.
 
@@ -45,7 +58,7 @@ bun run preview
 - `src/components/SiteHeader.tsx`: native anchor navigation.
 - `src/components/ThemeToggle.tsx`: accessible light/dark switch and persistence.
 - `src/components/OrgMark.tsx`: single-colour org logos for the experience rows.
-- `src/components/SystemsScene.tsx`: page observation, scene loading, and static fallback.
+- `src/components/SplineBackground.tsx`: page observation, scene loading, theme handling, and fallback.
 - `src/scene/createSystemScene.ts`: scene objects, animation, renderer lifecycle, and disposal.
 - `scripts/staticFallback.ts`: build-time HTML from the same project and experience data.
 - `index.html`: metadata, pre-paint theme initialization, and fallback insertion point.
