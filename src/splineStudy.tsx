@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { splineStudyController, type StudyTheme } from "./scene/splineStudyController";
 import { WIRE_SCENE_URL } from "./scene/loadSplineScene";
-import "@fontsource/ibm-plex-sans/400.css";
-import "@fontsource/ibm-plex-sans/500.css";
+// The study only renders Latin copy; keep the standalone preview from
+// shipping unrelated script subsets in its entry chunk.
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-500.css";
 import "./splineStudy.css";
 
 const ORIGINAL = "https://prod.spline.design/wsJFrnRqL89Q5Hh6/scene.splinecode";

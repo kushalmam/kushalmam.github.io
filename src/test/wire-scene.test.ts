@@ -15,6 +15,7 @@ vi.mock("three", async importOriginal => ({
 }));
 
 let frames: Map<number, FrameRequestCallback>;
+let hidden: ReturnType<typeof vi.spyOn>;
 beforeEach(() => {
   vi.clearAllMocks();
   frames = new Map();
@@ -24,7 +25,7 @@ beforeEach(() => {
     return id;
   });
   vi.stubGlobal("cancelAnimationFrame", (key: number) => frames.delete(key));
-  vi.spyOn(document, "hidden", "get").mockReturnValue(false);
+  hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(false);
 });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
@@ -75,4 +76,20 @@ it("runs one loop, pauses, recovers context, and releases GPU resources", () => 
   expect(frames.size).toBe(0);
   disposal.forEach(spy => expect(spy).toHaveBeenCalledOnce());
   expect(calls.dispose).toHaveBeenCalledOnce();
+});
+
+it("resumes its loop after a hidden tab becomes visible again", () => {
+  const canvas = document.createElement("canvas");
+  const wires = createWireScene(canvas);
+  wires.play();
+  expect(frames.size).toBe(1);
+
+  hidden.mockReturnValue(true);
+  document.dispatchEvent(new Event("visibilitychange"));
+  expect(frames.size).toBe(0);
+
+  hidden.mockReturnValue(false);
+  document.dispatchEvent(new Event("visibilitychange"));
+  expect(frames.size).toBe(1);
+  wires.dispose();
 });

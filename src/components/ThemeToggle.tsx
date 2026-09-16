@@ -14,6 +14,8 @@ const stored = () => {
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>(() => {
+    const saved = stored();
+    if (isTheme(saved)) return saved;
     const painted = document.documentElement.dataset.theme;
     if (isTheme(painted)) return painted;
     return matchMedia("(prefers-color-scheme: dark)").matches
@@ -51,6 +53,7 @@ export default function ThemeToggle() {
     const followOtherTabs = (event: StorageEvent) => {
       if (event.key !== "portfolio-theme" && event.key !== null) return;
       if (isTheme(event.newValue)) setTheme(event.newValue);
+      else if (!isTheme(stored())) setTheme(query.matches ? "dark" : "light");
     };
     query.addEventListener("change", followSystem);
     window.addEventListener("storage", followOtherTabs);

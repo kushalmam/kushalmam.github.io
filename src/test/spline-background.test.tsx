@@ -69,3 +69,17 @@ it("restores the intended wire framing before resuming a visible tab", async () 
   expect(scene.requestRender).toHaveBeenCalled();
   await waitFor(() => expect(container.querySelector(".wire-field")).not.toHaveAttribute("data-resuming"));
 });
+
+it("defers the remote scene while the document is hidden", async () => {
+  Object.defineProperty(document, "hidden", { configurable: true, value: true });
+  stubBrowserObservers();
+  const { container } = render(<SystemsScene />);
+  await Promise.resolve();
+  expect(container.querySelector("[data-ready]")).toBeNull();
+  expect(scene.load).not.toHaveBeenCalled();
+
+  Object.defineProperty(document, "hidden", { configurable: true, value: false });
+  act(() => document.dispatchEvent(new Event("visibilitychange")));
+  await waitFor(() => expect(container.querySelector("[data-ready]")).not.toBeNull());
+  expect(scene.load).toHaveBeenCalledOnce();
+});

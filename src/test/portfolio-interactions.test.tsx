@@ -23,17 +23,23 @@ describe("portfolio interactions without WebGL", () => {
     });
     const first = screen.getByText("Inside Rekindle").closest("details")!;
     const second = screen.getByText("Inside AutoCPT").closest("details")!;
+    const firstSummary = first.querySelector("summary")!;
+    const secondSummary = second.querySelector("summary")!;
     expect(first.open).toBe(false);
-    fireEvent.click(first.querySelector("summary")!);
+    expect(firstSummary).toHaveAttribute("aria-controls", "project-details-0");
+    fireEvent.click(firstSummary);
     await waitFor(() => expect(first.open).toBe(true));
     expect(screen.getByText(/An 18 GB M3 Pro shaped/)).toBeVisible();
-    fireEvent.click(second.querySelector("summary")!);
+    fireEvent.click(secondSummary);
     await waitFor(() => {
       expect(first.open).toBe(false);
       expect(second.open).toBe(true);
     });
-    fireEvent.click(second.querySelector("summary")!);
-    await waitFor(() => expect(second.open).toBe(false));
+    expect(secondSummary).toHaveAttribute("aria-controls", "project-details-1");
+    fireEvent.click(secondSummary);
+    await waitFor(() => {
+      expect(second.open).toBe(false);
+    });
     expect(
       screen.getByRole("link", { name: "Read the Rekindle experiment report" }),
     ).toHaveAttribute(
@@ -50,6 +56,7 @@ describe("portfolio interactions without WebGL", () => {
 
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-checked", "true");
+    expect(toggle).toHaveAccessibleName("Dark theme");
     expect(document.documentElement.dataset.theme).toBe("dark");
     expect(localStorage.getItem("portfolio-theme")).toBe("dark");
 
@@ -62,6 +69,18 @@ describe("portfolio interactions without WebGL", () => {
       new StorageEvent("storage", { key: "portfolio-theme", newValue: "dark" }),
     );
     expect(toggle).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("moves focus to the destination landmark after section navigation", async () => {
+    render(<EditorialPortfolio />);
+    const workLink = screen.getByRole("link", { name: "Work" });
+    workLink.focus();
+    fireEvent.click(workLink, { ctrlKey: true });
+    expect(workLink).toHaveFocus();
+
+    fireEvent.click(workLink);
+    await waitFor(() => expect(document.getElementById("work")).toHaveFocus());
+    expect(document.getElementById("work")).toHaveAttribute("tabindex", "-1");
   });
 
   it("keeps all navigation targets and the résumé available", () => {

@@ -7,18 +7,34 @@ export default function ProjectVisual({ project }: { project: (typeof projects)[
   const started = useRef(false);
   const [stage, setStage] = useState(2);
   const [visible, setVisible] = useState(false);
+  const [motionReduced, setMotionReduced] = useState(false);
+  const [pageVisible, setPageVisible] = useState(() => !document.hidden);
   const loopLabel = project.composition === "metric"
     ? "Retrieval pass"
     : project.composition === "award"
       ? "Live transcript"
       : "Evidence check";
   const pace = project.composition === "award" ? 1300 : project.composition === "research" ? 2200 : 1700;
+  const visualHeadingId = `visual-heading-${project.composition}`;
+  const visualCaptionId = `visual-caption-${project.composition}`;
 
   useEffect(() => {
-    reducedMotion.current = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (!host.current || !("IntersectionObserver" in window)) return;
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const motionChanged = () => {
+      reducedMotion.current = motion.matches;
+      setMotionReduced(motion.matches);
+      if (motion.matches) setStage(2);
+    };
+    const visibilityChanged = () => setPageVisible(!document.hidden);
+    motionChanged();
+    motion.addEventListener("change", motionChanged);
+    document.addEventListener("visibilitychange", visibilityChanged);
+    if (!host.current || !("IntersectionObserver" in window)) {
+      return () => {
+        motion.removeEventListener("change", motionChanged);
+        document.removeEventListener("visibilitychange", visibilityChanged);
+      };
+    }
     const observer = new IntersectionObserver(([entry]) => {
       setVisible(entry.isIntersecting);
       if (entry.isIntersecting && !reducedMotion.current && !started.current) {
@@ -27,22 +43,33 @@ export default function ProjectVisual({ project }: { project: (typeof projects)[
       }
     }, { threshold: 0.35 });
     observer.observe(host.current);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      motion.removeEventListener("change", motionChanged);
+      document.removeEventListener("visibilitychange", visibilityChanged);
+    };
   }, []);
 
   useEffect(() => {
-    if (!visible || reducedMotion.current) return;
+    if (!visible || motionReduced || !pageVisible) return;
     const timer = window.setTimeout(
       () => setStage((current) => (current + 1) % 3),
       pace,
     );
     return () => window.clearTimeout(timer);
-  }, [pace, visible, stage]);
+  }, [motionReduced, pageVisible, pace, visible, stage]);
 
   return (
-    <figure ref={host} className={`project-visual animated-visual visual--${project.composition}`} data-stage={stage} data-playing={visible && !reducedMotion.current}>
+    <figure
+      ref={host}
+      className={`project-visual animated-visual visual--${project.composition}`}
+      data-stage={stage}
+      data-playing={visible && !motionReduced && pageVisible}
+      aria-labelledby={visualHeadingId}
+      aria-describedby={visualCaptionId}
+    >
       <div className="visual-heading">
-        <span>{project.visual.label}</span>
+        <span id={visualHeadingId}>{project.visual.label}</span>
         <span className="loop-status">{loopLabel}</span>
       </div>
       <div className="visual-loop" aria-hidden="true">
@@ -87,7 +114,7 @@ export default function ProjectVisual({ project }: { project: (typeof projects)[
         </div>
       )}
       </div>
-      <figcaption>{project.visual.caption} Animation illustrates the workflow; timing is not a benchmark.</figcaption>
+      <figcaption id={visualCaptionId}>{project.visual.caption} Animation illustrates the workflow; timing is not a benchmark.</figcaption>
     </figure>
   );
 }

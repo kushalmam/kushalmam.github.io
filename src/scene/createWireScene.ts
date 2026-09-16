@@ -128,7 +128,9 @@ export function createWireScene(canvas: HTMLCanvasElement) {
   let frame = 0;
   let elapsed = 0;
   let previous = 0;
-  const render = () => { if (!disposed && !lost) renderer.render(scene, camera); };
+  const render = () => {
+    if (!disposed && !lost && !document.hidden) renderer.render(scene, camera);
+  };
   const tick = (now: number) => {
     frame = 0;
     if (disposed || stopped || lost || document.hidden) return;
@@ -167,8 +169,18 @@ export function createWireScene(canvas: HTMLCanvasElement) {
     render();
     if (!stopped) play();
   };
+  const visibilityChanged = () => {
+    if (document.hidden) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      return;
+    }
+    render();
+    if (!stopped) play();
+  };
   canvas.addEventListener("webglcontextlost", contextLost);
   canvas.addEventListener("webglcontextrestored", contextRestored);
+  document.addEventListener("visibilitychange", visibilityChanged);
   return {
     play, stop,
     setSize(width: number, height: number) {
@@ -187,6 +199,7 @@ export function createWireScene(canvas: HTMLCanvasElement) {
       disposed = true;
       stop();
       theme.disconnect();
+      document.removeEventListener("visibilitychange", visibilityChanged);
       canvas.removeEventListener("webglcontextlost", contextLost);
       canvas.removeEventListener("webglcontextrestored", contextRestored);
       geometries.forEach(geometry => geometry.dispose());

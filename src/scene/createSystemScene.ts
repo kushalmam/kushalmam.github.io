@@ -30,7 +30,7 @@ export function createSystemScene(host: HTMLElement) {
     antialias: true,
     powerPreference: "low-power",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 90);
   camera.position.set(1, 11, 23);
@@ -164,6 +164,7 @@ export function createSystemScene(host: HTMLElement) {
   scene.fog = fog;
   let tone = 0,
     toneTarget = 0;
+  let renderedZoom = camera.zoom;
   // Production CSS minification can rewrite 480ms as .48s.
   const focusTime = getComputedStyle(document.documentElement)
     .getPropertyValue("--focus-time")
@@ -231,8 +232,12 @@ export function createSystemScene(host: HTMLElement) {
     );
     system.rotation.y = current.turn;
     system.rotation.z = -0.12;
-    camera.zoom = narrow.matches ? current.zoom * 0.7 : current.zoom;
-    camera.updateProjectionMatrix();
+    const zoom = narrow.matches ? current.zoom * 0.7 : current.zoom;
+    if (Math.abs(renderedZoom - zoom) > 0.0005) {
+      camera.zoom = zoom;
+      camera.updateProjectionMatrix();
+      renderedZoom = zoom;
+    }
     routes.forEach((material, index) => {
       const active = section === 2 ? index === selected : index === 0;
       material.color.copy(active ? accent : emerald);
@@ -311,6 +316,7 @@ export function createSystemScene(host: HTMLElement) {
   motion.addEventListener("change", invalidate);
   narrow.addEventListener("change", invalidate);
   return {
+    wake() { invalidate(); },
     focus(value: number, project: number | null = null) {
       section = Math.max(0, Math.min(poses.length - 1, value));
       selected = project;

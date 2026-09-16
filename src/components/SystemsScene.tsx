@@ -29,10 +29,21 @@ export default function SystemsScene() {
       }
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
+    const visibilityChanged = () => {
+      // createSystemScene intentionally drops its RAF while a tab is hidden.
+      // Wake it explicitly when the document becomes visible again; otherwise
+      // the scene can remain frozen until the next scroll or focus change.
+      if (!document.hidden) scene.current?.wake();
+      schedule();
+    };
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
+    document.addEventListener("visibilitychange", visibilityChanged);
     const resize = new ResizeObserver(schedule);
-    resize.observe(document.body);
+    // The canvas is fixed to the viewport. Observing the whole document also
+    // wakes this effect for every content reflow, even though its dimensions
+    // have not changed.
+    if (host.current) resize.observe(host.current);
     measure();
     // Delay the optional GPU layer until its host enters the viewport.
     const initialize = new IntersectionObserver(([entry]) => {
@@ -58,6 +69,7 @@ export default function SystemsScene() {
       disposed = true;
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
+      document.removeEventListener("visibilitychange", visibilityChanged);
       resize.disconnect();
       cancelAnimationFrame(frame);
       initialize.disconnect();

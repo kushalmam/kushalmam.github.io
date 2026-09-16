@@ -108,6 +108,23 @@ describe("systems drawing lifecycle", () => {
     expect(host.querySelector("canvas")).toBeNull();
     expect(calls.dispose).toHaveBeenCalledOnce();
   });
+  it("wakes after a hidden tab becomes visible again", () => {
+    const scene = createSystemScene(document.createElement("div"));
+    visibility([{ isIntersecting: true }]);
+    flush();
+    calls.render.mockClear();
+
+    Object.defineProperty(document, "hidden", { configurable: true, value: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    flush();
+    expect(calls.render).not.toHaveBeenCalled();
+
+    Object.defineProperty(document, "hidden", { configurable: true, value: false });
+    document.dispatchEvent(new Event("visibilitychange"));
+    flush();
+    expect(calls.render).toHaveBeenCalled();
+    scene.dispose();
+  });
   it("renders a single settled frame for reduced motion and retains fallback on context loss", () => {
     reduced = true;
     const host = document.createElement("div");

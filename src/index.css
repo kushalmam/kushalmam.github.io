@@ -74,12 +74,21 @@
 html {
   scroll-padding-top: calc(var(--header-height) + var(--s5));
   scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 body {
   margin: 0;
+  min-width: 320px;
   font-size: 1rem;
   line-height: 1.65;
   background: var(--paper);
+}
+#root {
+  min-height: 100svh;
+}
+img {
+  max-width: 100%;
 }
 h1,
 h2,
@@ -119,6 +128,11 @@ a:hover {
 button {
   font: inherit;
   color: inherit;
+}
+a,
+button,
+summary {
+  -webkit-tap-highlight-color: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 a:focus-visible,
 summary:focus-visible,
@@ -188,7 +202,9 @@ main:focus {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--paper);
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  backdrop-filter: blur(14px) saturate(120%);
   box-shadow: 0 1px 0 var(--line);
 }
 .header-inner {
@@ -198,6 +214,9 @@ main:focus {
   gap: var(--s7);
 }
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-family: var(--display);
   font-weight: 600;
   letter-spacing: -0.04em;
@@ -302,6 +321,9 @@ main:focus {
   pointer-events: none;
   transition: opacity var(--focus-time) var(--ease);
 }
+.wire-field {
+  overflow: clip;
+}
 /* Keep the vignette in page space so it does not skew with the wire canvas.
    The paper token makes its edges ivory in light mode and dark in dark mode. */
 .wire-field::after {
@@ -344,10 +366,10 @@ main:focus {
   transform: translate3d(-2%, 10%, 0) scale(1.06, 1.34) skewY(-1deg);
 }
 .wire-field[data-section="2"] .wire-motion-surface {
-  transform: translate3d(2%, 9%, 0) scale(1.08, .7) skewY(2deg);
+  transform: translate3d(2%, 9%, 0) scale(1.08, .88) skewY(2deg);
 }
 .wire-field[data-section="3"] .wire-motion-surface {
-  transform: translate3d(0, 8%, 0) scale(1.12, .46) skewY(0deg);
+  transform: translate3d(0, 8%, 0) scale(1.12, .88) skewY(0deg);
 }
 .wire-field[data-paused] .wire-motion-surface { transition: none; }
 @media (prefers-reduced-motion: reduce) {
@@ -360,6 +382,12 @@ main:focus {
   width: 100%;
   height: 100%;
   inset: 0;
+}
+.wire-field .systems-canvas {
+  /* Fade the transformed canvas at its own edges so the oversized motion
+     surface never reads as a hard rectangular panel against the paper. */
+  -webkit-mask-image: radial-gradient(ellipse closest-side at center, #000 58%, transparent 100%);
+  mask-image: radial-gradient(ellipse closest-side at center, #000 58%, transparent 100%);
 }
 .systems-canvas[data-ready] .scene-fallback {
   display: none;
@@ -379,7 +407,7 @@ main:focus {
 }
 :root[data-theme="light"] .wire-field .systems-canvas[data-ready] canvas {
   opacity: 0.56;
-  filter: contrast(0.88) saturate(0.78);
+  filter: saturate(0.78);
 }
 @media (prefers-reduced-motion: reduce) {
   .wire-field .systems-canvas canvas { transition: none; }
@@ -446,7 +474,9 @@ main:focus {
 .hero h1 em {
   display: block;
   width: fit-content;
-  color: var(--accent-display);
+  /* The display lime is reserved for decorative diagrams in light mode; the
+     headline uses the text accent so it remains comfortably readable on paper. */
+  color: var(--accent);
   font-size: 1.48em;
   line-height: 0.92;
   letter-spacing: -0.065em;
@@ -457,6 +487,7 @@ main:focus {
   line-height: 1.45;
   max-width: 37ch;
   margin-top: var(--s7);
+  text-wrap: pretty;
 }
 .current-role {
   display: flex;
@@ -465,6 +496,7 @@ main:focus {
   font-size: 0.875rem;
   margin-top: var(--s4);
   color: var(--muted);
+  max-width: 38ch;
 }
 .status-dot {
   width: 5px;
@@ -577,7 +609,7 @@ main:focus {
 }
 .portrait {
   transform: rotate(3deg);
-  margin-top: calc(-1 * var(--s8));
+  margin-top: clamp(-4rem, -5vw, -2rem);
 }
 .portrait img {
   display: block;
@@ -640,6 +672,13 @@ main:focus {
 .work > .section-heading h2 {
   max-width: 13ch;
 }
+.project,
+.project-visual,
+.ranking-demo,
+.speech-demo,
+.research-demo {
+  min-width: 0;
+}
 .project {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -656,6 +695,7 @@ main:focus {
 .project h3 {
   font-size: clamp(2.75rem, 5vw, 4.5rem);
   margin-top: var(--s3);
+  max-width: 13ch;
 }
 .project-thesis {
   grid-column: 1;
@@ -663,6 +703,7 @@ main:focus {
   line-height: 1.5;
   margin-top: var(--s5);
   max-width: 38ch;
+  text-wrap: pretty;
 }
 .project-stack {
   grid-column: 1;
@@ -684,7 +725,7 @@ main:focus {
   font-size: clamp(3rem, 7.5vw, 7.5rem);
   letter-spacing: -0.06em;
   line-height: 1;
-  color: var(--accent-display);
+  color: var(--accent);
 }
 .project-evidence small {
   display: block;
@@ -733,7 +774,7 @@ main:focus {
   font-weight: 700;
 }
 .project--award .project-evidence small {
-  color: var(--accent-display);
+  color: var(--accent);
   font-family: var(--editorial);
   font-style: italic;
   font-size: 0.85em;
@@ -762,7 +803,7 @@ main:focus {
   font-family: var(--editorial);
   font-style: italic;
   font-size: clamp(2.5rem, 4.5vw, 4.5rem);
-  color: var(--accent-display);
+  color: var(--accent);
   font-weight: 400;
 }
 .project--research .project-evidence small {
@@ -822,6 +863,11 @@ main:focus {
   list-style: none;
   font-size: 0.9375rem;
   border-bottom: 1px solid var(--line);
+}
+.project summary:hover,
+.project summary:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 .project summary::-webkit-details-marker {
   display: none;
@@ -894,6 +940,12 @@ main:focus {
   font-size: 0.8125rem;
   text-decoration: underline;
 }
+.project-links a:hover,
+.email-link:hover,
+.text-link:hover {
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.34em;
+}
 .contact {
   padding-block: var(--section-space);
 }
@@ -941,6 +993,8 @@ footer {
   font-size: 0.8125rem;
 }
 footer a {
+  display: inline-flex;
+  align-items: center;
   min-height: 44px;
 }
 @media (max-width: 1000px) {
@@ -1182,7 +1236,7 @@ footer a {
 .animated-visual { overflow: visible; background: transparent; }
 .visual-heading { padding-bottom: var(--s3); }
 .loop-status { display: inline-flex; align-items: center; gap: var(--s2); color: var(--muted); }
-.visual-loop { position: relative; padding-top: var(--s7); }
+.visual-loop { position: relative; padding-top: var(--s7); overflow: clip; }
 .visual--metric .visual-loop::after { content: ""; position: absolute; top: var(--s5); bottom: 0; left: -20%; width: 12%; opacity: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent), transparent 84%), transparent); transform: skewX(-12deg); animation: loop-scan 5.4s var(--ease) infinite; pointer-events: none; }
 .demo-kicker, .demo-footnote { display: block; font: 0.6875rem/1.6 var(--technical); color: var(--muted); }
 .demo-footnote { margin-top: var(--s5); }
@@ -1197,7 +1251,7 @@ footer a {
 .candidate-field i { height: 24px; background: var(--strata-line); border: 1px solid var(--line); transition: transform 650ms var(--ease), opacity 650ms, background 650ms; transition-delay: calc(var(--i) * 12ms); }
 [data-stage="1"] .candidate-field i:not(.candidate-selected), [data-stage="2"] .candidate-field i:not(.candidate-selected) { opacity: 0.12; transform: scale(0.65); }
 [data-stage="1"] .candidate-selected, [data-stage="2"] .candidate-selected { background: var(--accent-display); transform: translateY(-6px); }
-.ranking-result strong { display: block; font: clamp(1.5rem, 3vw, 3rem)/1.2 var(--technical); color: var(--accent-display); margin: var(--s4) 0; transition: transform 600ms var(--ease); transform-origin: left; }
+.ranking-result strong { display: block; font: clamp(1.5rem, 3vw, 3rem)/1.2 var(--technical); color: var(--accent); margin: var(--s4) 0; transition: transform 600ms var(--ease); transform-origin: left; }
 .visual--metric[data-stage="2"] .ranking-result strong { transform: scale(1.08); }
 .ranking-result > :last-child { font-size: 0.75rem; color: var(--muted); }
 .speech-demo, .research-demo { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s7); min-height: 240px; }
@@ -1214,6 +1268,17 @@ footer a {
 [data-revealed] { transition: opacity 550ms, transform 550ms var(--ease); }
 [data-revealed="false"] { opacity: 0.18; transform: translateY(10px); }
 :root[data-theme="light"] [data-revealed="false"] { opacity: 0.3; }
+.animated-visual .code-panel[data-revealed="false"],
+.animated-visual .signal-panel[data-revealed="false"] {
+  opacity: 0.58;
+}
+:root[data-theme="light"] .animated-visual .code-panel[data-revealed="false"],
+:root[data-theme="light"] .animated-visual .signal-panel[data-revealed="false"] {
+  opacity: 0.82;
+}
+.animated-visual .signal-verdict[data-revealed="false"] {
+  opacity: 0.56;
+}
 .visual--award .code-panel[data-revealed="false"] { transform: translateX(4vw); }
 .suggestion-row { display: flex; justify-content: space-between; gap: var(--s3); padding-block: var(--s5); border-bottom: 1px solid var(--line); align-items: center; }
 .suggestion-row strong { font-size: 1rem; font-weight: 500; }
@@ -1222,7 +1287,7 @@ footer a {
 .visual--research .research-doc { transform: translateX(4vw); }
 .visual--research .signal-panel { transform: translate(-2vw, var(--s5)); }
 .visual--research .signal-panel[data-revealed="false"] { transform: translate(4vw, var(--s5)); }
-.research-doc em { color: var(--accent-display); }
+.research-doc em { color: var(--accent); }
 .document-lines { display: flex; gap: 6px; margin-top: var(--s4); }
 .document-lines i { height: 3px; flex: 1; background: var(--strata-line); transition: background 500ms; }
 [data-stage="1"] .document-lines i, [data-stage="2"] .document-lines i { background: var(--accent-display); }
@@ -1270,4 +1335,77 @@ footer a {
   .project + .project { margin-top: var(--s7); }
   .project--research .project-thesis { font-size: 1.375rem; }
   .hero-link { margin-top: var(--s5); }
+}
+
+@media (min-width: 701px) and (max-width: 1000px) {
+  :root {
+    --section-space: clamp(3.5rem, 7vw, 5rem);
+  }
+
+  .project {
+    grid-template-columns: minmax(0, 1.05fr) minmax(13rem, 0.75fr);
+    column-gap: 8%;
+  }
+
+  .project h3 {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .project-thesis {
+    font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+  }
+
+  .project-evidence strong,
+  .project--metric .project-evidence strong {
+    font-size: clamp(2.75rem, 6.5vw, 5.25rem);
+  }
+
+  .project-visual {
+    margin-top: var(--s6);
+  }
+}
+
+@media (max-width: 700px) {
+  .site-header nav {
+    justify-content: flex-start;
+    gap: var(--s4);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .site-header nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .site-header nav a {
+    flex: 0 0 auto;
+  }
+
+  .portrait {
+    width: min(70%, 20rem);
+    margin-top: var(--s5);
+    margin-left: auto;
+  }
+
+  .project-visual {
+    margin-top: var(--s6);
+    padding-block: var(--s5);
+  }
+
+  .visual-heading {
+    flex-wrap: wrap;
+  }
+
+  /* Scale the metric by its content rather than the full flex column; this
+     retains the emphasis without making the transformed box wider than the
+     viewport. */
+  .ranking-result strong {
+    display: inline-block;
+    line-height: 0.95;
+  }
+
+  .visual--award .code-panel[data-revealed="false"],
+  .visual--research .signal-panel[data-revealed="false"] {
+    transform: translateX(0);
+  }
 }

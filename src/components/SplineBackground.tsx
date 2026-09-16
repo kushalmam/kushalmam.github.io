@@ -41,7 +41,7 @@ export default function SplineBackground() {
       else app.current?.play();
     };
     const initialize = async () => {
-      if (initializing || app.current || disposed || reduced.matches) return;
+      if (initializing || app.current || disposed || reduced.matches || document.hidden) return;
       initializing = true;
       try {
         canvas = document.createElement("canvas");
@@ -134,6 +134,10 @@ export default function SplineBackground() {
         sync();
         return;
       }
+
+      // A page restored in the background may have skipped initialization.
+      // Start the scene only when the first visible frame can be useful.
+      if (!app.current) void initialize();
 
       // Prepare the stopped scene before its first visible frame, then verify it
       // once more after Spline restarts. This prevents a stale hidden-tab size or

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { projects, experiences } from "../content";
 import OrgMark from "./OrgMark";
 import SiteHeader from "./SiteHeader";
@@ -9,6 +9,26 @@ const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 
 export default function EditorialPortfolio() {
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
+
+  const focusSectionAfterNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) return;
+    const href = event.currentTarget.getAttribute("href");
+    if (!href?.startsWith("#")) return;
+    const target = document.getElementById(href.slice(1));
+    if (!target) return;
+    window.setTimeout(() => {
+      if (target instanceof HTMLElement) {
+        target.focus({ preventScroll: true });
+      }
+    }, 0);
+  };
+
   return (
     <>
       <a className="skip-link" href="#main">
@@ -20,6 +40,7 @@ export default function EditorialPortfolio() {
         <section
           className="hero"
           id="top"
+          tabIndex={-1}
           aria-labelledby="hero-title"
           data-depth="0"
         >
@@ -38,7 +59,11 @@ export default function EditorialPortfolio() {
               <span className="status-dot" />
               Data Engineer (Emerging Talent) at Spotify
             </p>
-            <a className="text-link hero-link" href="#work">
+            <a
+              className="text-link hero-link"
+              href="#work"
+              onClick={focusSectionAfterNavigation}
+            >
               View projects <span aria-hidden="true">↓</span>
             </a>
           </div>
@@ -47,6 +72,7 @@ export default function EditorialPortfolio() {
         <section
           className="section about content-grid"
           id="about"
+          tabIndex={-1}
           aria-labelledby="about-title"
           data-depth="1"
         >
@@ -81,8 +107,8 @@ export default function EditorialPortfolio() {
               <figcaption>Outside the editor.</figcaption>
             </figure>
           </div>
-          <div className="experience" id="experience">
-            <h3 className="eyebrow">Experience</h3>
+          <section className="experience" id="experience" aria-labelledby="experience-title">
+            <h3 className="eyebrow" id="experience-title">Experience</h3>
             {experiences.map((experience) => (
               <article className="experience-row" key={experience.name}>
                 <div>
@@ -101,12 +127,13 @@ export default function EditorialPortfolio() {
                 </div>
               </article>
             ))}
-          </div>
+          </section>
         </section>
 
         <section
           className="section work content-grid"
           id="work"
+          tabIndex={-1}
           aria-labelledby="work-title"
           data-depth="2"
         >
@@ -120,14 +147,15 @@ export default function EditorialPortfolio() {
               data-project-index={index}
               key={project.name}
               data-selected={selectedProject === index || undefined}
+              aria-labelledby={`project-title-${index}`}
             >
               <div className="project-index"><span>0{index + 1} / 03</span><span>{["Data → ranking", "Speech → suggestions", "Evidence → thesis"][index]}</span></div>
-              <div className="project-heading">
+              <header className="project-heading">
                 <div>
                   <p className="eyebrow">{project.category}</p>
-                  <h3>{project.name}</h3>
+                  <h3 id={`project-title-${index}`}>{project.name}</h3>
                 </div>
-              </div>
+              </header>
               <div className="project-thesis">
                 <p>{project.detail}</p>
                 <p className="project-contribution">{project.contribution}</p>
@@ -150,13 +178,21 @@ export default function EditorialPortfolio() {
                   );
                 }}
               >
-                <summary>
+                <summary
+                  id={`project-summary-${index}`}
+                  aria-controls={`project-details-${index}`}
+                >
                   <span>Inside {project.name}</span>
                   <span className="disclosure-mark" aria-hidden="true">
                     ↓
                   </span>
                 </summary>
-                <div className="case-study">
+                <div
+                  id={`project-details-${index}`}
+                  className="case-study"
+                  role="region"
+                  aria-labelledby={`project-summary-${index}`}
+                >
                   {project.caseStudy.map((part) => (
                     <div key={part.title}>
                       <h4>{part.title}</h4>
@@ -165,7 +201,11 @@ export default function EditorialPortfolio() {
                   ))}
                 </div>
               </details>
-              <div className="project-links">
+              <div
+                className="project-links"
+                role="group"
+                aria-label={`${project.name} links`}
+              >
                 {project.sources.map((source) => (
                   <a
                     key={source.href}
@@ -185,6 +225,7 @@ export default function EditorialPortfolio() {
         <section
           className="section contact content-grid"
           id="contact"
+          tabIndex={-1}
           aria-labelledby="contact-title"
           data-depth="3"
         >
@@ -197,7 +238,7 @@ export default function EditorialPortfolio() {
           <a className="email-link" href="mailto:kushalmam06@gmail.com">
             kushalmam06@gmail.com <span aria-hidden="true">↗</span>
           </a>
-          <div className="social-links">
+          <nav className="social-links" aria-label="Professional links">
             <a
               href={asset("documents/kushal-mamillapalli-resume.pdf")}
               target="_blank"
@@ -219,12 +260,12 @@ export default function EditorialPortfolio() {
             >
               GitHub ↗
             </a>
-          </div>
+          </nav>
         </section>
       </main>
       <footer className="content-grid">
         <span>© {new Date().getFullYear()} Kushal Mamillapalli</span>
-        <a href="#top">Back to the surface ↑</a>
+        <a href="#top" onClick={focusSectionAfterNavigation}>Back to the surface ↑</a>
       </footer>
     </>
   );
