@@ -1,8 +1,11 @@
 # Kushal Mamillapalli — Behind the interface
 
-The live site uses the earlier Flow Spline export as a horizontal, full-viewport
-wire background. Demo objects are hidden locally; the scene's wire geometry,
-materials, lighting, and authored animation remain intact.
+The live site uses our local Babylon.js wire renderer: 11 original paths,
+reflective metallic materials, larger flowing deformation, randomized color
+packets, 2× travel, and maximum study glow. The approved brighter hero checkpoint
+is also available at `/wire-study.html`. No Spline runtime or remote scene is loaded
+by the portfolio. Reduced-motion visitors get static wires; renderer failure also
+falls back to static geometry.
 
 ## Isolated Spline investigation
 
@@ -16,22 +19,12 @@ The earlier export showed no badge in browser verification. No watermark asset
 or branding method is altered. See [the investigation](docs/research/spline-theme-export-findings.md)
 for confirmed API behavior, limitations, and browser validation.
 
-The live background uses the actual wires-only **Flow** Spline scene, preserving
-its materials and authored animation. `src/scene/loadSplineScene.ts` loads a
-pinned Spline runtime from a CDN and the published scene from Spline; it requires
-network access. `WIRE_SCENE_URL` selects the published export.
+The Spline study remains as an isolated historical reference. Its hosted scenes
+require network access. The portfolio now loads `NativeWireBackground.tsx` and
+`src/scene/wireStudy/createStudy.ts` instead.
 
-The background is displayed horizontally, fades behind prose, and stops when the document
-is hidden. Dark mode preserves the authored vignette; light mode disables only that
-effect through a guarded adapter for the pinned runtime and uses the page's ivory
-surface instead. Reduced-motion visitors initially get static SVG wires without
-loading the runtime. The fallback also covers initialization failure.
-The native approximation remains in `src/scene/createWireScene.ts`; it is not
-the live background.
-
-Scene credit: [Flow by Vlad](https://community.spline.design/file/ff4fcef4-b6ab-406f-9359-d639509f2d99),
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Adapted to wires-only
-and displayed horizontally.
+Historical reference credit: [Flow by Vlad](https://community.spline.design/file/ff4fcef4-b6ab-406f-9359-d639509f2d99),
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 The System Strata design and renderer budgets below describe the previous
 terrain implementation, retained in `src/scene/createSystemScene.ts` as reference.
@@ -58,7 +51,7 @@ bun run preview
 - `src/components/SiteHeader.tsx`: native anchor navigation.
 - `src/components/ThemeToggle.tsx`: accessible light/dark switch and persistence.
 - `src/components/OrgMark.tsx`: single-colour org logos for the experience rows.
-- `src/components/SplineBackground.tsx`: page observation, scene loading, theme handling, and fallback.
+- `src/components/NativeWireBackground.tsx`: native renderer loading, theme handling, section fading, and fallback.
 - `src/scene/createSystemScene.ts`: scene objects, animation, renderer lifecycle, and disposal.
 - `scripts/staticFallback.ts`: build-time HTML from the same project and experience data.
 - `index.html`: metadata, pre-paint theme initialization, and fallback insertion point.
@@ -128,3 +121,33 @@ The existing GitHub Pages workflow deploys pushes to main. This redesign does no
 change that workflow or publish anything itself.
 
 See `docs/redesign-audit.md` for the cleanup inventory and verification record.
+
+## Original Babylon.js wire study
+
+Open `/wire-study.html` for an isolated hero mockup with the portfolio headline,
+navigation, and 11 original wires (matching the earlier reconstruction count). The production portfolio uses the same approved renderer.
+The study bundles Babylon.js locally and does not load Spline or remote art assets.
+
+- `src/scene/wireStudy/paths.ts`: original editable cable landmarks and radii.
+- `src/scene/wireStudy/signals.ts`: randomized emission intervals, bounded manual pulses,
+  and smoothly varying forward travel independent of material shading. Randomness
+  is injectable for frame-rate-invariance and motion-continuity tests.
+- `src/scene/wireStudy/shaders.ts`: analytic chrome studio reflections, larger up/down cable deformation
+  with corrected normals, and separate emissive signal shading; this is an art-directed material, not a PBR simulation.
+- `src/scene/wireStudy/createStudy.ts`: WebGL renderer, arc-length mesh coordinates,
+  HDR bloom, tone mapping, resize handling, and lifecycle cleanup.
+
+Travel defaults to 2× and maximum study glow (.7), with the original thicker
+metallic tubes, larger deformation, and longer colored packet tails restored. Pulse colors vary across
+green, blue, purple, pink, and teal as they travel. Compact controls cover pause,
+travel speed, glow, and light/dark surfaces. Reduced-motion starts paused; hidden or offscreen scenes
+stop their animation loop. Narrow viewports use fewer tube segments and closer framing. Thin reflective
+wires use 3× supersampling on narrow canvases, with a three-million-pixel framebuffer
+budget, to prevent the broken/ridged highlights seen at lower sampling rates. GPU/context failure displays an explicit status message.
+Hero navigation links return to the corresponding sections of the main portfolio.
+
+Validation: signal timing, speed scaling, and capacity/retirement have unit tests;
+run `bun run test`, `bun run typecheck`, `bun run lint`, and `bun run build`.
+This is a visual prototype, not a production performance budget: its separate entry
+adds roughly 270 KB gzip of renderer code plus shader chunks. No mobile hardware
+benchmark or exact visual-match claim is made.

@@ -1332,3 +1332,16 @@ footer a {
 @media (prefers-reduced-motion: reduce) {
   .animated-visual *, .animated-visual *::before, .animated-visual *::after { animation: none !important; transition: none !important; }
 }
+
+/* Native wire background uses the approved hero-study framing and animation. */
+.native-wire-field {
+  mask-image: linear-gradient(90deg,rgba(0,0,0,.28),rgba(0,0,0,.48) 42%,#000 85%);
+}
+.native-wire-field canvas,.native-wire-field svg {
+  display:block;position:absolute;inset:0;width:100%;height:100%;
+  mask-image:linear-gradient(180deg,transparent 3%,#000 22%,#000 82%,transparent);
+}
+.native-wire-field:not([data-ready]) canvas { visibility:hidden; }
+@media(max-width:600px){
+  .native-wire-field{mask-image:linear-gradient(90deg,rgba(0,0,0,.22),rgba(0,0,0,.6));}
+}
