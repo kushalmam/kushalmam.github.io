@@ -149,7 +149,7 @@ export default function EditorialPortfolio() {
               data-selected={selectedProject === index || undefined}
               aria-labelledby={`project-title-${index}`}
             >
-              <div className="project-index"><span>0{index + 1} / 03</span><span>{["Data → ranking", "Speech → suggestions", "Evidence → thesis"][index]}</span></div>
+              <div className="project-index"><span>0{index + 1} / 03</span></div>
               <header className="project-heading">
                 <div>
                   <p className="eyebrow">{project.category}</p>
@@ -163,7 +163,7 @@ export default function EditorialPortfolio() {
               <p className="project-stack">{project.stack}</p>
               <div className="project-evidence">
                 <strong>
-                  {project.evidenceValue}
+                  {project.evidenceValue}{" "}
                   <small>{project.evidenceUnit}</small>
                 </strong>
                 <span>{project.context}</span>

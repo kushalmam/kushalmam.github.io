@@ -673,10 +673,7 @@ main:focus {
   max-width: 13ch;
 }
 .project,
-.project-visual,
-.ranking-demo,
-.speech-demo,
-.research-demo {
+.project-visual {
   min-width: 0;
 }
 .project {
@@ -807,7 +804,11 @@ main:focus {
   font-weight: 400;
 }
 .project--research .project-evidence small {
-  font-size: 0.8em;
+  font-family: var(--display);
+  font-size: 1.125rem;
+  font-style: normal;
+  line-height: 1.4;
+  letter-spacing: 0;
   color: var(--ink);
 }
 .project-visual {
@@ -822,27 +823,12 @@ main:focus {
   content: "";
   position: absolute;
   z-index: 0;
-  inset: -12% -2vw;
+  inset: 0 -2vw;
   pointer-events: none;
   background: radial-gradient(ellipse at 50% 48%,
     color-mix(in srgb, var(--paper) 94%, transparent) 0%,
     color-mix(in srgb, var(--paper) 80%, transparent) 68%,
     transparent 100%);
-}
-.visual-heading {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--s4);
-  font-family: var(--technical);
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-.visual-heading > :last-child { color: var(--accent); }
-.project-visual figcaption {
-  margin-top: var(--s6);
-  font-size: 0.75rem;
-  color: var(--muted);
-  max-width: 75ch;
 }
 .project-visual > * {
   position: relative;
@@ -1158,7 +1144,7 @@ footer a {
     font-size: 2.5rem;
   }
   .project--research .project-evidence small {
-    display: inline;
+    display: block;
   }
   .project details {
     width: 100%;
@@ -1247,86 +1233,73 @@ footer a {
 .project-evidence { grid-row: 2 / 5; }
 .project--research .project-evidence { grid-row: 3 / 5; }
 
-/* Project studies are compact process diagrams rather than dashboard cards. */
+/* Project studies are editorial engineering demonstrations, not dashboard cards. */
 .animated-visual { overflow: visible; background: transparent; }
-.visual-heading { padding-bottom: var(--s3); }
-.loop-status { display: inline-flex; align-items: center; gap: var(--s2); color: var(--accent); }
-.visual-loop { position: relative; padding-top: var(--s6); overflow: clip; }
-.process-svg { display: block; width: 100%; height: auto; overflow: visible; }
-.process-svg text { font: 0.75rem var(--technical); letter-spacing: 0.02em; fill: var(--muted); }
-.diagram-grid path { fill: none; stroke: var(--line); stroke-width: 1; opacity: 0.5; }
-.diagram-grid .grid-line--strong { opacity: 0.9; stroke-dasharray: 1 8; }
-.metric-routes path,
-.speech-route path {
-  fill: none;
-  stroke: var(--strata-line);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-dasharray: 2 9;
-  animation: route-flow 3.2s linear infinite;
-  animation-play-state: paused;
-}
-.animated-visual[data-playing="true"] .metric-routes path,
-.animated-visual[data-playing="true"] .speech-route path,
-.animated-visual[data-playing="true"] .research-signal { animation-play-state: running; }
-.flow-dot { fill: var(--accent-display); opacity: 0.9; }
-.metric-sources circle { fill: var(--strata-line); opacity: 0.7; }
-.diagram-node rect,
-.diagram-node circle {
-  fill: color-mix(in srgb, var(--paper) 82%, var(--strata-fill));
-  stroke: var(--line);
-  stroke-width: 1.5;
-  transition: fill var(--focus-time) var(--ease), stroke var(--focus-time) var(--ease), transform var(--focus-time) var(--ease);
-}
-.diagram-node text { fill: var(--ink); }
-.visual--metric[data-stage="0"] .metric-retrieve rect,
-.visual--metric[data-stage="1"] .metric-retrieve rect,
-.visual--metric[data-stage="2"] .metric-rank rect,
-.visual--award[data-stage="0"] .speech-node circle,
-.visual--award[data-stage="1"] .code-node circle,
-.visual--award[data-stage="2"] .code-node circle { fill: var(--strata-fill); stroke: var(--accent); }
-.metric-candidates circle {
-  fill: var(--strata-line);
-  transform-box: fill-box;
-  transform-origin: center;
-  transition: fill var(--focus-time) var(--ease), opacity var(--focus-time) var(--ease), transform var(--focus-time) var(--ease);
-}
-.visual--metric[data-stage="0"] .metric-candidates circle { opacity: 0.45; }
-.visual--metric[data-stage="1"] .metric-candidates circle:nth-child(-n + 16),
-.visual--metric[data-stage="2"] .metric-candidates circle:nth-child(-n + 8) { fill: var(--accent-display); opacity: 1; transform: scale(1.35); }
-.visual--metric[data-stage="1"] .metric-candidates circle:nth-child(n + 17),
-.visual--metric[data-stage="2"] .metric-candidates circle:nth-child(n + 9) { opacity: 0.18; transform: scale(0.7); }
-.metric-output path { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
-.speech-wave rect {
-  fill: var(--accent-display);
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: voice-bar 900ms ease-in-out infinite alternate;
-  animation-delay: calc(var(--bar-index) * -40ms);
-  animation-play-state: paused;
-}
-.animated-visual[data-playing="true"] .speech-wave rect { animation-play-state: running; }
-.speech-route path { stroke: var(--accent); }
-.code-stack rect { fill: var(--strata-fill); stroke: var(--line); stroke-width: 1.5; transition: fill var(--focus-time) var(--ease), stroke var(--focus-time) var(--ease), opacity var(--focus-time) var(--ease); }
-.visual--award[data-stage="0"] .code-stack rect { opacity: 0.28; }
-.visual--award[data-stage="1"] .code-stack rect:first-child,
-.visual--award[data-stage="2"] .code-stack rect { fill: var(--accent-display); stroke: var(--accent); opacity: 1; }
-.research-axis { fill: none; stroke: var(--line); stroke-width: 1; }
-.research-signal { fill: none; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 0.1 0.04; animation: signal-draw 5.4s linear infinite; animation-play-state: paused; }
-.research-signal--market { stroke: var(--accent); }
-.research-signal--news { stroke: var(--ink); opacity: 0.72; animation-delay: -2.7s; }
-.research-divergence { transform-box: fill-box; transform-origin: center; opacity: 0.3; transition: opacity var(--focus-time) var(--ease), transform var(--focus-time) var(--ease); }
-.visual--research[data-stage="1"] .research-divergence { opacity: 0.75; transform: scaleY(0.75); }
-.visual--research[data-stage="2"] .research-divergence { opacity: 1; }
-.research-divergence path { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-linecap: round; }
-.research-divergence circle { fill: var(--accent-display); }
-.signal-label { font-size: 0.6875rem !important; }
-.signal-label--market { fill: var(--accent) !important; }
-.signal-label--news { fill: var(--ink) !important; opacity: 0.72; }
-.project-visual figcaption { margin-top: var(--s5); font: 0.6875rem/1.6 var(--technical); color: var(--muted); max-width: 75ch; }
-@keyframes route-flow { to { stroke-dashoffset: -44; } }
-@keyframes voice-bar { from { transform: scaleY(0.35); } to { transform: scaleY(1); } }
-@keyframes signal-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.replay-diagram,
+.speech-diagram,
+.market-diagram { position: relative; min-height: 14rem; padding-block: var(--s5); }
+.replay-labels,
+.diagram-label,
+.signal-legend { font: 0.6875rem/1.4 var(--technical); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.replay-labels { display: flex; justify-content: space-between; margin-bottom: var(--s4); }
+.candidate-field { position: relative; height: 13rem; border-block: 1px solid var(--line); }
+.candidate-row { position: absolute; inset-inline: 0; top: 0; display: grid; grid-template-columns: 3.5rem minmax(0, 1fr) 2rem; align-items: center; gap: var(--s4); height: 2.45rem; transform: translateY(calc(var(--position) * 2.45rem)); transition: transform 900ms var(--ease), opacity 500ms var(--ease); }
+.candidate-id,
+.candidate-rank { font: 0.6875rem var(--technical); color: var(--muted); }
+.candidate-rank { text-align: right; opacity: 0.35; transition: opacity 500ms var(--ease), color 500ms var(--ease); }
+.candidate-bar { display: block; height: 2px; background: var(--line); }
+.candidate-bar i { display: block; width: var(--relevance); height: 100%; background: var(--accent-display); transform-origin: left; transition: width 900ms var(--ease), background 500ms var(--ease); }
+.visual--metric[data-stage="1"] .candidate-row { transform: translateY(calc(var(--position) * 2.45rem)); }
+.visual--metric[data-stage="2"] .candidate-row { transform: translateY(calc(var(--rank) * 2.45rem)); }
+.visual--metric[data-stage="2"] .candidate-rank { color: var(--accent); opacity: 1; }
+.replay-scan { position: absolute; top: 3rem; bottom: var(--s5); left: 0; width: 1px; background: var(--accent); opacity: 0; transform: translateX(-1rem); }
+.animated-visual[data-playing="true"] .replay-scan { animation: replay-scan 4.8s var(--ease) infinite; opacity: 0.75; }
+.speech-diagram { display: grid; grid-template-columns: 1.25fr 0.45fr 1fr; align-items: center; gap: var(--s6); }
+.speech-signal,
+.suggestion-field { display: grid; gap: var(--s4); }
+.natural-wave { position: relative; display: flex; align-items: center; gap: 3px; height: 7rem; border-bottom: 1px solid var(--line); }
+.natural-wave i { flex: 1; min-width: 2px; background: var(--accent-display); transform-origin: center; animation: natural-wave 900ms ease-in-out infinite alternate; animation-delay: calc(var(--bar-index) * -38ms); animation-play-state: paused; }
+.animated-visual[data-playing="true"] .natural-wave i { animation-play-state: running; }
+.audio-playhead { position: absolute; inset-block: -0.5rem 0; left: 0; width: 1px; background: var(--ink); opacity: 0.65; }
+.audio-playhead { animation: playhead 3.4s linear infinite; animation-play-state: paused; }
+.animated-visual[data-playing="true"] .audio-playhead { animation-play-state: running; }
+.speech-transcript { display: grid; gap: 0.7rem; align-content: center; }
+.speech-transcript i { display: block; height: 2px; background: var(--line); transform: scaleX(0.4); transform-origin: left; transition: transform 900ms var(--ease), background 500ms var(--ease); }
+.speech-transcript i:nth-child(2) { transform: scaleX(0.7); }
+.speech-transcript i:nth-child(3) { transform: scaleX(0.52); }
+.speech-transcript i:nth-child(4) { transform: scaleX(0.82); }
+.visual--award[data-stage="1"] .speech-transcript i,
+.visual--award[data-stage="2"] .speech-transcript i { background: var(--accent); transform: scaleX(1); }
+.suggestion-line { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); align-items: center; gap: var(--s3); min-height: 2.1rem; border-bottom: 1px solid var(--line); }
+.suggestion-check { color: var(--accent); opacity: 0; transition: opacity 500ms var(--ease); }
+.suggestion-line i { display: block; height: 3px; background: var(--strata-line); transform-origin: left; transition: transform 800ms var(--ease), background 500ms var(--ease); }
+.visual--award[data-stage="0"] .suggestion-line { opacity: 0.38; }
+.visual--award[data-stage="1"] .suggestion-line:first-of-type .suggestion-check,
+.visual--award[data-stage="2"] .suggestion-check { opacity: 1; }
+.visual--award[data-stage="1"] .suggestion-line:first-of-type i,
+.visual--award[data-stage="2"] .suggestion-line i { background: var(--accent-display); transform: scaleX(1); }
+.market-diagram svg { display: block; width: 100%; height: auto; overflow: visible; }
+.market-baseline { fill: none; stroke: var(--line); stroke-width: 1; }
+.market-divergence-band { fill: var(--accent); opacity: 0.12; transition: opacity var(--focus-time) var(--ease); }
+.visual--research[data-stage="1"] .market-divergence-band { opacity: 0.24; }
+.visual--research[data-stage="2"] .market-divergence-band { opacity: 0.38; }
+.market-line { fill: none; stroke-width: 3; stroke-linecap: round; }
+.market-line--market { stroke: var(--accent); }
+.market-line--news { stroke: var(--ink); opacity: 0.7; }
+.market-cursor-group { transform-box: fill-box; transform-origin: center; }
+.market-cursor-group { animation: market-sweep 6s var(--ease) infinite alternate; animation-play-state: paused; }
+.animated-visual[data-playing="true"] .market-cursor-group { animation-play-state: running; }
+.market-cursor { stroke: var(--accent); stroke-width: 1.5; }
+.signal-legend { display: flex; gap: var(--s5); justify-content: flex-end; margin-top: var(--s3); }
+.legend-market { color: var(--accent); }
+.legend-news { color: var(--ink); opacity: 0.72; }
+.visual-control { float: right; min-height: 44px; margin-top: var(--s5); padding: 0; border: 0; color: var(--muted); background: transparent; cursor: pointer; font: 0.6875rem var(--technical); text-decoration: underline; text-underline-offset: 0.3em; }
+.visual-control:disabled { cursor: default; opacity: 0.55; }
+.visual-control:hover { color: var(--accent); }
+@keyframes replay-scan { 0%, 10% { transform: translateX(-1rem); } 80%, 100% { transform: translateX(100%); } }
+@keyframes natural-wave { from { transform: scaleY(0.45); } to { transform: scaleY(1); } }
+@keyframes playhead { from { left: 0; } to { left: 100%; } }
+@keyframes market-sweep { from { transform: translateX(-9rem); } to { transform: translateX(7rem); } }
 @media (min-width: 701px) and (max-width: 1000px) {
   :root { --section-space: clamp(3.5rem, 7vw, 5rem); }
   .project { grid-template-columns: minmax(0, 1.05fr) minmax(13rem, 0.75fr); column-gap: 8%; }
@@ -1346,15 +1319,16 @@ footer a {
   .project + .project { margin-top: var(--s7); }
   .project--research .project-thesis { font-size: 1.375rem; }
   .hero-link { margin-top: var(--s5); }
-  .visual-heading { flex-wrap: wrap; align-items: center; }
-  .process-svg { width: 100%; }
-  .process-svg text { font-size: 32px; }
-  .process-svg .signal-label { font-size: 32px !important; }
-  /* Labels sit below the nodes on phones: 32 SVG units render at least 12px
-     at our 320px minimum width, without squeezing text inside tiny circles. */
-  .process-svg .diagram-node text { font-size: 32px; transform: translateY(105px); }
+  .replay-diagram, .speech-diagram, .market-diagram { min-height: 12rem; }
+  .speech-diagram { grid-template-columns: 1fr; gap: var(--s5); }
+  .speech-transcript { display: none; }
+  .natural-wave { height: 5.5rem; }
+  .signal-legend { justify-content: flex-start; }
+  .candidate-row { gap: var(--s3); }
 }
 @media (prefers-reduced-motion: reduce) {
   .animated-visual *, .animated-visual *::before, .animated-visual *::after { animation: none !important; transition: none !important; }
-  .animated-visual animateMotion { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animated-visual *, .animated-visual *::before, .animated-visual *::after { animation: none !important; transition: none !important; }
 }
