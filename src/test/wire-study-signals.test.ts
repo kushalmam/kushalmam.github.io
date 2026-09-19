@@ -47,17 +47,14 @@ it("gives separate pulses distinct motion profiles and bounds shader capacity", 
   expect(signals.packets(0).length).toBeLessThanOrEqual(6);
 });
 
-it("schedules all eleven hero wires with evolving colors across the palette", () => {
-  const signals = new SignalController(seeded(), 11);
-  signals.advance(8, 1);
-  const colors: number[] = [];
-  for (let wire = 0; wire < 11; wire++) {
-    expect(signals.packets(wire).length).toBeGreaterThan(0);
-    colors.push(...signals.packets(wire).map(p => p.color));
-  }
-  expect(colors.every(color => color >= 0 && color < 5)).toBe(true);
-  expect(new Set(colors.map(Math.floor)).size).toBe(5);
-  const before = signals.packets(10)[0].color;
-  signals.advance(.2, 1);
-  expect(signals.packets(10)[0].color).not.toBe(before);
+it("keeps the twenty-wire field sparse and limits colors to cream/lime or rare cyan", () => {
+  const signals = new SignalController(seeded(), 20);
+  // With a 25-second lifetime, the global emission stream retains ~12 packets,
+  // versus ~64 at the previous eleven-wire rate.
+  signals.advance(120, 1);
+  const packets = Array.from({ length: 20 }, (_, i) => signals.packets(i)).flat();
+  expect(packets.length).toBeGreaterThan(7);
+  expect(packets.length).toBeLessThan(18);
+  expect(packets.every(p => (p.color >= 0 && p.color <= 1) || p.color === 2)).toBe(true);
+  expect(packets.filter(p => p.color === 2).length).toBeLessThan(4);
 });

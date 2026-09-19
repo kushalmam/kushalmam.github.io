@@ -15,11 +15,11 @@ it("loads the native scene, follows theme changes, and disposes on unmount", asy
   unmount();
   expect(scene.dispose).toHaveBeenCalledOnce();
 });
-it("uses eleven static wires without starting the GPU for reduced motion", async () => {
+it("uses twenty static wires without starting the GPU for reduced motion", async () => {
   vi.stubGlobal("matchMedia", () => ({ matches: true, addEventListener() {}, removeEventListener() {} }));
   const { container } = render(<NativeWireBackground />);
   await act(async () => {});
-  expect(container.querySelectorAll("polyline")).toHaveLength(11);
+  expect(container.querySelectorAll("polyline")).toHaveLength(20);
   expect(container.querySelector("[data-ready]")).toBeNull();
   expect(scene.setPlaying).not.toHaveBeenCalled();
 });

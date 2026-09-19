@@ -9,11 +9,11 @@ export default function SiteHeader() {
       frame = 0;
       const threshold = (document.querySelector(".site-header")?.getBoundingClientRect().height ?? 80) + 120;
       let current = "top";
-      for (const id of ["top", "about", "work", "contact"]) {
+      for (const id of ["top", "work", "about", "more-work", "contact"]) {
         if ((document.getElementById(id)?.getBoundingClientRect().top ?? Infinity) <= threshold) current = id;
       }
       if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4) current = "contact";
-      setActive(current);
+      setActive(current === "more-work" ? "work" : current);
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
     update();
@@ -60,7 +60,7 @@ export default function SiteHeader() {
           Kushal Mamillapalli<span className="brand-dot">.</span>
         </a>
         <nav aria-label="Main navigation">
-          {["about", "work"].map((id) => (
+          {["work", "about"].map((id) => (
             <a
               key={id}
               href={`#${id}`}

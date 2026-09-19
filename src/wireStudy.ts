@@ -23,11 +23,11 @@ root.innerHTML = `
   </div></section></main>
   <div id="failure" role="status" hidden></div>
   <aside class="study-tools" aria-label="Hero preview controls">
-    <span>HERO PREVIEW / 11 WIRES</span>
+    <span>HERO PREVIEW / 20 WIRES</span>
     <button id="play" aria-pressed="false">Pause motion</button>
     <details><summary>Adjust</summary><div class="study-settings">
       <label>Travel <output id="speed-value">2.0×</output><input id="speed" aria-label="Travel speed" type="range" min="0.2" max="2" step="0.1" value="2" /></label>
-      <label>Glow <output id="glow-value">MAX</output><input id="glow" aria-label="Glow strength" type="range" min="0" max="0.7" step="0.01" value="0.7" /></label>
+      <label>Glow <output id="glow-value">30%</output><input id="glow" aria-label="Glow strength" type="range" min="0" max="0.7" step="0.01" value="0.21" /></label>
     </div></details>
   </aside>`;
 const get = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;

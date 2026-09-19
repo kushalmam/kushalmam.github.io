@@ -10,6 +10,7 @@ import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline";
 import { ImageProcessingConfiguration } from "@babylonjs/core/Materials/imageProcessingConfiguration";
+import { renderScale } from "./renderQuality";
 import { wireAssets } from "./paths";
 import { SignalController } from "./signals";
 import { fragmentSource, vertexSource } from "./shaders";
@@ -49,14 +50,15 @@ export function createStudy(canvas: HTMLCanvasElement, onError: (message: string
     data.applyToMesh(mesh);
     const material = new ShaderMaterial(`cable-${index}`, scene, { vertexSource, fragmentSource }, {
       attributes: ["position", "normal", "uv"],
-      uniforms: ["world", "worldViewProjection", "eye", "lightTheme", "signalsVisible", "packets", "motionTime", "wirePhase"],
+      uniforms: ["world", "worldViewProjection", "eye", "lightTheme", "signalsVisible", "packets", "motionTime", "strandBrightness", "reflectionFilter"],
     });
     material.backFaceCulling = false;
     material.setVector3("eye", camera.position);
     material.setFloat("signalsVisible", 1);
     material.setFloat("motionTime", 0);
-    material.setFloat("wirePhase", index * 2.1);
+    material.setFloat("strandBrightness", asset.brightness);
     material.setFloat("lightTheme", 0);
+    material.setFloat("reflectionFilter", .3);
     material.onError = (_effect, errors) => onError(`Wire shader could not compile: ${errors}`);
     mesh.material = material;
     mesh.freezeWorldMatrix();
@@ -64,12 +66,14 @@ export function createStudy(canvas: HTMLCanvasElement, onError: (message: string
   });
   const pipeline = new DefaultRenderingPipeline("studio-finishing", true, scene, [camera]);
   pipeline.samples = 4;
-  pipeline.fxaaEnabled = true;
+  // MSAA plus supersampling resolves edges without FXAA smearing thin strands.
+  pipeline.fxaaEnabled = false;
   pipeline.bloomEnabled = true;
-  pipeline.bloomThreshold = 1.65;
-  pipeline.bloomWeight = .7;
-  pipeline.bloomKernel = 48;
-  pipeline.bloomScale = .5;
+  // Keep the silver body out of bloom; only HDR packet highlights should glow.
+  pipeline.bloomThreshold = 2.1;
+  pipeline.bloomWeight = .21;
+  pipeline.bloomKernel = 16;
+  pipeline.bloomScale = 1;
   scene.imageProcessingConfiguration.toneMappingEnabled = true;
   scene.imageProcessingConfiguration.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES;
   scene.imageProcessingConfiguration.exposure = 1.25;
@@ -101,14 +105,18 @@ export function createStudy(canvas: HTMLCanvasElement, onError: (message: string
     }
   };
   const resize = () => {
-    // Thin reflective tubes need supersampling even on low-DPR displays.
-    // Cap the framebuffer area to avoid unbounded cost on large monitors.
-    const preferredScale = canvas.clientWidth < 700 ? 3 : Math.max(2, devicePixelRatio || 1);
-    const pixelBudgetScale = Math.sqrt(3_000_000 / Math.max(1, canvas.clientWidth * canvas.clientHeight));
-    engine.setHardwareScalingLevel(1 / Math.min(preferredScale, 3, pixelBudgetScale));
+    const scale = renderScale(canvas.clientWidth, canvas.clientHeight, devicePixelRatio || 1);
+    engine.setHardwareScalingLevel(1 / scale);
     engine.resize();
     const aspect = canvas.clientWidth / Math.max(canvas.clientHeight, 1);
     const halfWidth = canvas.clientWidth < 700 ? 7.2 : 10.5;
+    materials.forEach((material, index) => {
+      const pixelRadius = wireAssets[index].radius * (small ? 1.25 : 1)
+        * canvas.clientWidth * scale / (2 * halfWidth);
+      // Fixed per-wire pixel footprint: unlike screen derivatives, it cannot pulse
+      // when individual triangles cross pixel boundaries.
+      material.setFloat("reflectionFilter", Math.min(.65, .65 / Math.max(pixelRadius, 1)));
+    });
     camera.orthoLeft = -halfWidth; camera.orthoRight = halfWidth;
     camera.orthoTop = halfWidth / aspect; camera.orthoBottom = -halfWidth / aspect;
     render();

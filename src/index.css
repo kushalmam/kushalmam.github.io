@@ -11,17 +11,17 @@
 :root {
   font-family: "IBM Plex Sans", sans-serif;
   color-scheme: dark;
-  --paper: #090d0a;
-  --ink: #f1f1e8;
-  --muted: #a4ada6;
-  --accent-text: #b9f542;
-  --accent-visual: #b9f542;
+  --paper: #0a0b0a;
+  --ink: #f2f0e8;
+  --muted: #b0b0a9;
+  --accent-text: #b8ff3d;
+  --accent-visual: #b8ff3d;
   --accent: var(--accent-text);
   --accent-display: var(--accent-visual);
-  --accent-hot: #b9f542;
-  --accent-scene: #b9f542;
-  --toggle-ink: #090d0a;
-  --line: #303a31;
+  --accent-hot: #b8ff3d;
+  --accent-scene: #b8ff3d;
+  --toggle-ink: #0a0b0a;
+  --line: #30312f;
   --strata-fill: #102219;
   --strata-line: #28543a;
   --display: "Archivo Variable", sans-serif;
@@ -53,17 +53,17 @@
 }
 :root[data-theme="light"] {
   color-scheme: light;
-  --paper: #fafbf6;
-  --ink: #111712;
-  --muted: #58615a;
+  --paper: #f4f2ea;
+  --ink: #171816;
+  --muted: #62625b;
   --accent-text: #527f1f;
-  --accent-visual: #98d746;
+  --accent-visual: #b8ff3d;
   --accent: var(--accent-text);
   --accent-display: var(--accent-visual);
-  --accent-hot: #a7f25a;
-  --accent-scene: #98d746;
-  --toggle-ink: #111712;
-  --line: #d7ddd3;
+  --accent-hot: #b8ff3d;
+  --accent-scene: #b8ff3d;
+  --toggle-ink: #171816;
+  --line: #d4d2c9;
   --strata-fill: #f0f8e5;
   --strata-line: #bddc98;
 }
@@ -438,7 +438,7 @@ main:focus {
   background:
     radial-gradient(ellipse at 29% 48%,
       color-mix(in srgb, var(--paper) 72%, transparent) 0%,
-      color-mix(in srgb, var(--paper) 48%, transparent) 34%,
+      color-mix(in srgb, var(--paper) 72%, transparent) 34%,
       transparent 67%),
     radial-gradient(ellipse at 50% 56%,
       transparent 24%,
@@ -1344,4 +1344,170 @@ footer a {
 .native-wire-field:not([data-ready]) canvas { visibility:hidden; }
 @media(max-width:600px){
   .native-wire-field{mask-image:linear-gradient(90deg,rgba(0,0,0,.22),rgba(0,0,0,.6));}
+}
+
+/* Let section changes settle gradually; keep luminous accents behind the copy. */
+.native-wire-field {
+  transition: opacity 1200ms var(--ease);
+}
+.native-wire-field::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 34% 48%,
+      color-mix(in srgb, var(--paper) 72%, transparent),
+      color-mix(in srgb, var(--paper) 16%, transparent) 68%),
+    linear-gradient(color-mix(in srgb, var(--paper) 65%, transparent), color-mix(in srgb, var(--paper) 65%, transparent));
+  opacity: .38;
+  transition: opacity 1200ms var(--ease), background-color var(--focus-time) var(--ease);
+}
+:root[data-theme="light"] .native-wire-field::after { opacity: .52; }
+.native-wire-field[data-section="1"]::after { opacity: .62; }
+.native-wire-field[data-section="3"]::after { opacity: .48; }
+.native-wire-field canvas {
+  opacity: 0;
+  transition: opacity 1000ms var(--ease);
+}
+.native-wire-field[data-ready] canvas { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .native-wire-field, .native-wire-field::after, .native-wire-field canvas {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* The assembly is a locally rendered object, composed beside real HTML copy. */
+.sculpture-hero {
+  min-height: calc(100svh - var(--header-height));
+  padding: 2.5rem 0 2rem;
+  display: flex;
+  overflow: clip;
+}
+.hero-layout {
+  display: grid;
+  grid-template-columns: 46% 54%;
+  align-items: center;
+}
+.sculpture-hero .hero-copy { z-index: 1; padding-block: 3rem; }
+.sculpture-hero .eyebrow {
+  max-width: 48ch;
+  font-size: .66rem;
+  line-height: 1.8;
+  letter-spacing: .12em;
+  color: var(--muted);
+}
+.sculpture-hero h1 {
+  font-size: clamp(3.8rem, 6.3vw, 6.5rem);
+  font-weight: 550;
+  font-stretch: 96%;
+  letter-spacing: -.065em;
+  line-height: 1.01;
+  margin: 2.5rem 0 2rem;
+}
+.sculpture-hero h1 > span { text-transform: none; }
+.sculpture-hero h1 em {
+  margin-left: 0;
+  font-size: 1.13em;
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -.055em;
+  color: var(--ink);
+}
+.sculpture-hero .hero-intro {
+  max-width: 29ch;
+  font-size: clamp(1.05rem, 1.45vw, 1.3rem);
+  line-height: 1.6;
+  color: var(--muted);
+  margin-top: 0;
+}
+.sculpture-hero .hero-link {
+  position: static;
+  margin-top: 2.5rem;
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: .5rem;
+  gap: 3rem;
+}
+.sculpture-hero .hero-link span { color: var(--accent); }
+.hero-object {
+  position: relative;
+  margin: 0 -8% 0 -5%;
+  width: min(113%, 78svh);
+  justify-self: center;
+  min-width: 0;
+}
+.hero-object picture { display: block; }
+.hero-object img { display: block; width: 100%; height: auto; }
+.hero-object figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 12% 0 13%;
+  font-family: var(--technical);
+  font-size: .6rem;
+  font-style: normal;
+  letter-spacing: .055em;
+  color: var(--muted);
+}
+.current-work {
+  display: grid;
+  grid-template-columns: 1fr 2.1fr auto;
+  gap: 2rem;
+  align-items: center;
+  padding-block: clamp(3rem, 4.5vw, 4.5rem);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.current-work .eyebrow { display: flex; align-items: center; gap: .75rem; font-size: .65rem; margin: 0; }
+.current-work h2 { font-family: var(--display); font-size: clamp(1.15rem, 1.7vw, 1.55rem); font-weight: 450; line-height: 1.35; letter-spacing: -.025em; margin: 0; }
+.current-work p:not(.eyebrow) { color: var(--muted); font-size: .85rem; margin: .5rem 0 0; }
+.current-work .text-link { font-size: .75rem; gap: 1rem; }
+#experience { scroll-margin-top: calc(var(--header-height) + 2rem); }
+@media (min-width: 1500px) {
+  .sculpture-hero { min-height: min(900px, calc(100svh - var(--header-height))); }
+}
+@media (max-width: 900px) {
+  .sculpture-hero { min-height: 700px; }
+  .sculpture-hero h1 { font-size: clamp(3.4rem, 7vw, 5.5rem); }
+  .sculpture-hero .eyebrow { font-size: .6rem; }
+  .hero-object { margin-right: -18%; margin-left: -10%; }
+  .hero-object figcaption { padding-inline: 12%; font-size: .5rem; }
+
+  .current-work { grid-template-columns: 1fr 2fr; gap: 1.25rem; }
+  .current-work > .text-link { grid-column: 2; justify-self: start; }
+}
+@media (max-width: 600px) {
+  .sculpture-hero { min-height: auto; padding: 2.25rem 0 1.75rem; }
+  .hero-layout { grid-template-columns: 1fr; }
+  .sculpture-hero .hero-copy { padding: 0; }
+  .sculpture-hero .eyebrow { max-width: 100%; font-size: .56rem; letter-spacing: .07em; }
+  .sculpture-hero h1 { font-size: clamp(3.5rem, 13vw, 5rem); margin: 1.75rem 0 1.25rem; }
+  .sculpture-hero .hero-intro { max-width: 30ch; font-size: 1rem; }
+  .sculpture-hero .hero-link { margin-top: 1rem; gap: 2rem; }
+  .hero-object { width: auto; margin: -.5rem -1.25rem 0 15%; }
+  .hero-object figcaption { padding: 0 10%; font-size: .52rem; }
+
+  .current-work { grid-template-columns: 1fr; gap: 1.25rem; padding-block: 3rem; }
+  .current-work > .text-link { grid-column: 1; }
+}
+
+/* A deliberate chapter break after the current-work context. */
+#work { padding-top: clamp(11rem, 14vw, 16rem); }
+.hero-object figcaption { justify-content: flex-end; }
+.assembly-parallax { transform: translate3d(var(--pointer-x, 0px), var(--pointer-y, 0px), 0); transition: transform 1100ms cubic-bezier(.2,.7,.2,1); }
+.assembly-drift { position: relative; animation: assembly-drift 20s ease-in-out infinite; animation-play-state: paused; }
+.hero-object[data-playing] .assembly-drift { animation-play-state: running; }
+.assembly-video { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 500ms ease; pointer-events: none; }
+.assembly-video[data-ready] { opacity: 1; }
+/* Hide the underlying still once video is ready; transparent video must not double the geometry. */
+.assembly-drift:has(.assembly-video[data-ready]) picture { visibility: hidden; }
+.assembly-pause { padding: 0; border: 0; background: none; font: inherit; color: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; min-height: 24px; }
+.hero-object figcaption { align-items: center; min-height: 24px; }
+@keyframes assembly-drift { 0%,100% { transform: translateY(0); } 25% { transform: translateY(-3px); } 75% { transform: translateY(3px); } }
+@media (prefers-reduced-motion: reduce) {
+  .assembly-parallax { transform: none; transition: none; }
+  .assembly-drift { animation: none; }
+  .assembly-video { display: none; }
+  .assembly-drift:has(.assembly-video[data-ready]) picture { visibility: visible; }
 }

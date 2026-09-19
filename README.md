@@ -1,11 +1,18 @@
 # Kushal Mamillapalli — Behind the interface
 
-The live site uses our local Babylon.js wire renderer: 11 original paths,
-reflective metallic materials, larger flowing deformation, randomized color
-packets, 2× travel, and maximum study glow. The approved brighter hero checkpoint
-is also available at `/wire-study.html`. No Spline runtime or remote scene is loaded
-by the portfolio. Reduced-motion visitors get static wires; renderer failure also
-falls back to static geometry.
+The homepage uses an original Blender assembly beside HTML copy. Neutral silver,
+clear acrylic, graphite, and a lime insert sit on graphite or warm-paper foundations.
+A locally rendered transparent video adds a slow ±4° turn and tiny layer shifts;
+CSS adds a 6px total drift and damped mouse parallax. Offscreen, hidden-document,
+manual pause, reduced-motion, and poster fallback behavior live in `AssemblyVisual.tsx`.
+There is no client-side 3D renderer or hosted scene dependency.
+
+Page order: hero → Spotify context → Rekindle → About/Experience → remaining
+projects → Contact. Case studies share one disclosure state across both work sections.
+
+The editable Blender scene and reproducible scripts live in `scripts/hero/`.
+See [the asset workflow](scripts/hero/README.md) for rendering and compression.
+Only optimized WebP posters and the WebM in `public/images/hero/` ship with the website.
 
 ## Isolated Spline investigation
 
@@ -20,8 +27,7 @@ or branding method is altered. See [the investigation](docs/research/spline-them
 for confirmed API behavior, limitations, and browser validation.
 
 The Spline study remains as an isolated historical reference. Its hosted scenes
-require network access. The portfolio now loads `NativeWireBackground.tsx` and
-`src/scene/wireStudy/createStudy.ts` instead.
+require network access. The portfolio does not import either study or `NativeWireBackground.tsx`.
 
 Historical reference credit: [Flow by Vlad](https://community.spline.design/file/ff4fcef4-b6ab-406f-9359-d639509f2d99),
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
@@ -30,8 +36,7 @@ The System Strata design and renderer budgets below describe the previous
 terrain implementation, retained in `src/scene/createSystemScene.ts` as reference.
 
 An editorial portfolio about data infrastructure, backend systems, and applied ML.
-Built with React 18, TypeScript, Vite, plain CSS, and a progressively enhanced raw
-Three.js drawing. No router or animation framework is needed for this single page.
+Built with React 18, TypeScript, Vite, plain CSS, and locally rendered imagery. No router or animation framework is needed for this single page.
 
 ```sh
 bun install
@@ -51,7 +56,8 @@ bun run preview
 - `src/components/SiteHeader.tsx`: native anchor navigation.
 - `src/components/ThemeToggle.tsx`: accessible light/dark switch and persistence.
 - `src/components/OrgMark.tsx`: single-colour org logos for the experience rows.
-- `src/components/NativeWireBackground.tsx`: native renderer loading, theme handling, section fading, and fallback.
+- `scripts/hero/`: editable sculpture, rendering script, and responsive image exporter.
+- `src/components/NativeWireBackground.tsx`: historical wire integration, not imported by the homepage.
 - `src/scene/createSystemScene.ts`: scene objects, animation, renderer lifecycle, and disposal.
 - `scripts/staticFallback.ts`: build-time HTML from the same project and experience data.
 - `index.html`: metadata, pre-paint theme initialization, and fallback insertion point.
@@ -61,7 +67,7 @@ The build inserts readable content into the root before React mounts. Project an
 experience edits therefore reach the JavaScript and no-JavaScript versions together.
 The résumé and portrait use Vite's configured base path, including `/portfolio/`.
 
-## Design protocol
+## Historical design protocol (superseded by the assembly hero)
 
 The visual identity is **System Strata**: five sampled terrain surfaces represent
 visible surface, interface, services, data, and evidence. A full-viewport visual
@@ -96,7 +102,7 @@ library. CSS opacity changes quiet the field under prose. The 480ms focus token
 drives time-based damping; rendering stops after the pose settles. Reduced motion
 uses a single settled frame. Hover timing remains 160ms.
 
-## Performance and maintenance
+## Historical renderer performance and maintenance
 
 The optional scene loads when its host is visible. Five strata share one terrain
 geometry and one contour geometry; three small tube geometries follow the surface.
@@ -125,25 +131,29 @@ See `docs/redesign-audit.md` for the cleanup inventory and verification record.
 ## Original Babylon.js wire study
 
 Open `/wire-study.html` for an isolated hero mockup with the portfolio headline,
-navigation, and 11 original wires (matching the earlier reconstruction count). The production portfolio uses the same approved renderer.
+navigation, and 20 strands arranged into five loose bundles. The production portfolio no longer imports this renderer.
 The study bundles Babylon.js locally and does not load Spline or remote art assets.
 
 - `src/scene/wireStudy/paths.ts`: original editable cable landmarks and radii.
 - `src/scene/wireStudy/signals.ts`: randomized emission intervals, bounded manual pulses,
   and smoothly varying forward travel independent of material shading. Randomness
   is injectable for frame-rate-invariance and motion-continuity tests.
-- `src/scene/wireStudy/shaders.ts`: analytic chrome studio reflections, larger up/down cable deformation
+- `src/scene/wireStudy/shaders.ts`: analytic chrome studio reflections, coherent slow spatial-flow deformation
   with corrected normals, and separate emissive signal shading; this is an art-directed material, not a PBR simulation.
 - `src/scene/wireStudy/createStudy.ts`: WebGL renderer, arc-length mesh coordinates,
-  HDR bloom, tone mapping, resize handling, and lifecycle cleanup.
+  tight full-resolution HDR bloom, tone mapping, resize handling, and lifecycle cleanup.
+  MSAA/supersampling and footprint-filtered reflections replace the extra FXAA blur
+  to reduce crawling highlights and ribbed halos on moving wires.
 
-Travel defaults to 2× and maximum study glow (.7), with the original thicker
-metallic tubes, larger deformation, and longer colored packet tails restored. Pulse colors vary across
-green, blue, purple, pink, and teal as they travel. Compact controls cover pause,
+Travel defaults to 2× and glow to .21 (70% below the previous .7). A shared
+emission scheduler produces about .5 packets per scene-second, roughly 80% fewer
+than the former eleven independent streams. Highlights stay cream/lime with 5%
+muted cyan emissions; most strands are thin, faint background layers. No
+independent strand oscillation is applied. Compact controls cover pause,
 travel speed, glow, and light/dark surfaces. Reduced-motion starts paused; hidden or offscreen scenes
 stop their animation loop. Narrow viewports use fewer tube segments and closer framing. Thin reflective
-wires use 3× supersampling on narrow canvases, with a three-million-pixel framebuffer
-budget, to prevent the broken/ridged highlights seen at lower sampling rates. GPU/context failure displays an explicit status message.
+wires use 3× supersampling on narrow canvases, with an eight-million-pixel framebuffer
+budget (never below CSS resolution), to prevent the broken/ridged highlights seen at lower sampling rates. GPU/context failure displays an explicit status message.
 Hero navigation links return to the corresponding sections of the main portfolio.
 
 Validation: signal timing, speed scaling, and capacity/retirement have unit tests;

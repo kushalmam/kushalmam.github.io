@@ -2,8 +2,8 @@ import { useState, type MouseEvent } from "react";
 import { projects, experiences } from "../content";
 import OrgMark from "./OrgMark";
 import SiteHeader from "./SiteHeader";
-import SystemsScene from "./NativeWireBackground";
 import ProjectVisual from "./ProjectVisual";
+import AssemblyVisual from "./AssemblyVisual";
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 
@@ -29,44 +29,146 @@ export default function EditorialPortfolio() {
     }, 0);
   };
 
+  const renderProject = (project: (typeof projects)[number], index: number) => (
+    <article
+      className={`project project--${project.composition}`}
+      data-project-index={index}
+      key={project.name}
+      data-selected={selectedProject === index || undefined}
+      aria-labelledby={`project-title-${index}`}
+    >
+      <div className="project-index"><span>0{index + 1} / 03</span></div>
+      <header className="project-heading">
+        <div>
+          <p className="eyebrow">{project.category}</p>
+          <h3 id={`project-title-${index}`}>{project.name}</h3>
+        </div>
+      </header>
+      <div className="project-thesis">
+        <p>{project.detail}</p>
+        <p className="project-contribution">{project.contribution}</p>
+      </div>
+      <p className="project-stack">{project.stack}</p>
+      <div className="project-evidence">
+        <strong>
+          {project.evidenceValue}{" "}
+          <small>{project.evidenceUnit}</small>
+        </strong>
+        <span>{project.context}</span>
+      </div>
+      <ProjectVisual project={project} />
+      <details
+        open={selectedProject === index}
+        onToggle={(event) => {
+          const open = event.currentTarget.open;
+          setSelectedProject((current) =>
+            open ? index : current === index ? null : current,
+          );
+        }}
+      >
+        <summary
+          id={`project-summary-${index}`}
+          aria-controls={`project-details-${index}`}
+        >
+          <span>Inside {project.name}</span>
+          <span className="disclosure-mark" aria-hidden="true">
+            ↓
+          </span>
+        </summary>
+        <div
+          id={`project-details-${index}`}
+          className="case-study"
+          role="region"
+          aria-labelledby={`project-summary-${index}`}
+        >
+          {project.caseStudy.map((part) => (
+            <div key={part.title}>
+              <h4>{part.title}</h4>
+              <p>{part.text}</p>
+            </div>
+          ))}
+        </div>
+      </details>
+      <div
+        className="project-links"
+        role="group"
+        aria-label={`${project.name} links`}
+      >
+        {project.sources.map((source) => (
+          <a
+            key={source.href}
+            href={source.href}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {source.label}
+            <span aria-hidden="true">↗</span>
+          </a>
+        ))}
+      </div>
+    </article>
+  );
+
   return (
     <>
       <a className="skip-link" href="#main">
         Skip to content
       </a>
       <SiteHeader />
-      <SystemsScene />
       <main id="main" tabIndex={-1}>
         <section
-          className="hero"
+          className="hero sculpture-hero"
           id="top"
           tabIndex={-1}
           aria-labelledby="hero-title"
           data-depth="0"
         >
-          <div className="hero-copy content-grid">
-            <p className="eyebrow">
-              Data infrastructure · Backend · Applied ML
-            </p>
-            <h1 id="hero-title">
-              <span>Behind the</span> <em>interface.</em>
-            </h1>
-            <p className="hero-intro">
-              I’m Kushal. I build data pipelines
-              <br className="desktop-break" /> and recommendation systems.
-            </p>
-            <p className="current-role">
-              <span className="status-dot" />
-              Data Engineer (Emerging Talent) at Spotify
-            </p>
-            <a
-              className="text-link hero-link"
-              href="#work"
-              onClick={focusSectionAfterNavigation}
-            >
-              View projects <span aria-hidden="true">↓</span>
-            </a>
+          <div className="hero-layout content-grid">
+            <div className="hero-copy">
+              <p className="eyebrow">
+                Data infrastructure<br />
+                Backend systems · Applied ML
+              </p>
+              <h1 id="hero-title">
+                <span>Behind the</span> <em>interface.</em>
+              </h1>
+              <p className="hero-intro">
+                I build the systems that move, shape,
+                and serve data at scale.
+              </p>
+              <a
+                className="text-link hero-link"
+                href="#work"
+                onClick={focusSectionAfterNavigation}
+              >
+                Explore systems <span aria-hidden="true">↓</span>
+              </a>
+            </div>
+            <AssemblyVisual />
           </div>
+        </section>
+
+        <section className="current-work content-grid" aria-labelledby="current-work-title">
+          <p className="eyebrow"><span className="status-dot" /> Currently at Spotify</p>
+          <div>
+            <h2 id="current-work-title">Behind a more personal listening experience.</h2>
+            <p>Improving personalization data pipelines as a Data Engineer (Emerging Talent).</p>
+          </div>
+          <a className="text-link" href="#experience" onClick={focusSectionAfterNavigation}>Experience <span aria-hidden="true">↗</span></a>
+        </section>
+
+        <section
+          className="section work content-grid"
+          id="work"
+          tabIndex={-1}
+          aria-labelledby="work-title"
+          data-depth="2"
+        >
+          <header className="section-heading">
+            <p className="section-label">Selected system / 01</p>
+            <h2 id="work-title">Retrieval. Ranking. Real constraints.</h2>
+          </header>
+          {renderProject(projects[0], 0)}
         </section>
 
         <section
@@ -107,7 +209,7 @@ export default function EditorialPortfolio() {
               <figcaption>Outside the editor.</figcaption>
             </figure>
           </div>
-          <section className="experience" id="experience" aria-labelledby="experience-title">
+          <section className="experience" id="experience" tabIndex={-1} aria-labelledby="experience-title">
             <h3 className="eyebrow" id="experience-title">Experience</h3>
             {experiences.map((experience) => (
               <article className="experience-row" key={experience.name}>
@@ -130,96 +232,12 @@ export default function EditorialPortfolio() {
           </section>
         </section>
 
-        <section
-          className="section work content-grid"
-          id="work"
-          tabIndex={-1}
-          aria-labelledby="work-title"
-          data-depth="2"
-        >
+        <section className="section work content-grid" id="more-work" tabIndex={-1} aria-labelledby="more-work-title" data-depth="2">
           <header className="section-heading">
-            <p className="section-label">Selected work</p>
-            <h2 id="work-title">Projects & experiments.</h2>
+            <p className="section-label">More work / 02—03</p>
+            <h2 id="more-work-title">Projects & experiments.</h2>
           </header>
-          {projects.map((project, index) => (
-            <article
-              className={`project project--${project.composition}`}
-              data-project-index={index}
-              key={project.name}
-              data-selected={selectedProject === index || undefined}
-              aria-labelledby={`project-title-${index}`}
-            >
-              <div className="project-index"><span>0{index + 1} / 03</span></div>
-              <header className="project-heading">
-                <div>
-                  <p className="eyebrow">{project.category}</p>
-                  <h3 id={`project-title-${index}`}>{project.name}</h3>
-                </div>
-              </header>
-              <div className="project-thesis">
-                <p>{project.detail}</p>
-                <p className="project-contribution">{project.contribution}</p>
-              </div>
-              <p className="project-stack">{project.stack}</p>
-              <div className="project-evidence">
-                <strong>
-                  {project.evidenceValue}{" "}
-                  <small>{project.evidenceUnit}</small>
-                </strong>
-                <span>{project.context}</span>
-              </div>
-              <ProjectVisual project={project} />
-              <details
-                open={selectedProject === index}
-                onToggle={(event) => {
-                  const open = event.currentTarget.open;
-                  setSelectedProject((current) =>
-                    open ? index : current === index ? null : current,
-                  );
-                }}
-              >
-                <summary
-                  id={`project-summary-${index}`}
-                  aria-controls={`project-details-${index}`}
-                >
-                  <span>Inside {project.name}</span>
-                  <span className="disclosure-mark" aria-hidden="true">
-                    ↓
-                  </span>
-                </summary>
-                <div
-                  id={`project-details-${index}`}
-                  className="case-study"
-                  role="region"
-                  aria-labelledby={`project-summary-${index}`}
-                >
-                  {project.caseStudy.map((part) => (
-                    <div key={part.title}>
-                      <h4>{part.title}</h4>
-                      <p>{part.text}</p>
-                    </div>
-                  ))}
-                </div>
-              </details>
-              <div
-                className="project-links"
-                role="group"
-                aria-label={`${project.name} links`}
-              >
-                {project.sources.map((source) => (
-                  <a
-                    key={source.href}
-                    href={source.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {source.label}
-                    <span aria-hidden="true">↗</span>
-                  </a>
-                ))}
-              </div>
-            </article>
-          ))}
+          {projects.slice(1).map((project, index) => renderProject(project, index + 1))}
         </section>
 
         <section

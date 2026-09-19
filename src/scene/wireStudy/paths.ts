@@ -1,21 +1,27 @@
-// Original editable horizontal paths, expanded to the previous 11-wire composition.
-const landmarks = [
-  [-156,-142,-117,-123,-139,-118,-94,-88,-82],
-  [-113,-98,-68,-83,-113,-103,-73,-59,-69],
-  [-82,-62,-35,-48,-72,-56,-46,-66,-77],
-  [-49,-38,-53,-71,-59,-28,-15,-27,-39],
-  [-18,-30,-56,-36,-8,-10,-25,-41,-48],
-  [4,-10,-28,-15,19,32,18,12,20],
-  [33,15,2,34,57,48,29,34,40],
-  [55,37,18,46,80,53,21,36,57],
-  [81,70,63,82,105,111,94,81,76],
-  [116,102,86,100,119,127,115,96,91],
-  [137,122,109,121,133,128,107,104,110],
+// Five loose bundles preserve the broad horizontal field without tangling it.
+const bundles = [
+  [-3.9,-3.7,-3.25,-3.05,-3.3,-3.55,-3.4,-3.05,-2.8],
+  [-2.15,-1.95,-1.75,-1.7,-1.95,-2.1,-1.9,-1.6,-1.45],
+  [-.55,-.35,-.05,.05,-.15,-.3,-.05,.3,.4],
+  [1.15,1.35,1.65,1.8,1.6,1.4,1.55,1.85,2.05],
+  [2.95,3.15,3.5,3.65,3.45,3.2,3.3,3.65,3.9],
 ];
-export const wireAssets = landmarks.map((path, wire) => ({
-  name: `Wire ${wire + 1}`,
-  radius: [.045,.033,.052,.036,.043,.049,.032,.054,.039,.034,.047][wire],
-  points: path.map((y, i): [number, number, number] => [
-    -12 + i * 3, y / 32, Math.sin(i * .75 + wire * 1.73) * .25 + (wire % 4) * .18,
-  ]),
-}));
+const depthClasses = [
+  { z: -.45, brightness: .26, radius: .019 },
+  { z: 0, brightness: .43, radius: .025 },
+  { z: .45, brightness: .8, radius: .036 },
+];
+export const wireAssets = bundles.flatMap((path, bundle) =>
+  [-.24, -.085, .075, .235].map((offset, strand) => {
+    const depth = depthClasses[[2, 0, 1, 0][strand]];
+    return {
+      name: `Bundle ${bundle + 1} / strand ${strand + 1}`,
+      bundle, depth: depth.z, brightness: depth.brightness, radius: depth.radius,
+      points: path.map((y, i): [number, number, number] => [
+        -12 + i * 3,
+        y + offset * (1 + (i - 4) * .035),
+        depth.z + bundle * .015,
+      ]),
+    };
+  }),
+);

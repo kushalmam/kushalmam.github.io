@@ -3,11 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#090d0a" />
+    <meta name="theme-color" content="#0a0b0a" />
     <meta name="color-scheme" content="dark light" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://unpkg.com" crossorigin />
-    <link rel="preconnect" href="https://prod.spline.design" crossorigin />
     <script>
       (() => {
         let theme = null;
@@ -20,7 +18,7 @@
             : "light";
         document.documentElement.dataset.theme = theme;
         document.querySelector('meta[name="theme-color"]').content =
-          theme === "light" ? "#f0f1eb" : "#090d0a";
+          theme === "light" ? "#f4f2ea" : "#0a0b0a";
       })();
     </script>
     <meta name="robots" content="index, follow" />
@@ -103,14 +101,14 @@
         margin: auto;
         padding: 4rem 1.5rem;
         color: #101712;
-        background: #f0f1eb;
+        background: #f4f2ea;
         font:
           1rem/1.7 system-ui,
           sans-serif;
       }
       [data-theme="dark"] .static-fallback {
         color: #f1f1e8;
-        background: #090d0a;
+        background: #0a0b0a;
       }
       .static-fallback h1 {
         font:
