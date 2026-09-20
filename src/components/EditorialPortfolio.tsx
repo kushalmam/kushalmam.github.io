@@ -1,19 +1,15 @@
-import { useLayoutEffect, useRef, type CSSProperties, type MouseEvent } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import OrgMark from "./OrgMark";
 import ThemeToggle from "./ThemeToggle";
 import SignalRoute from "./SignalRoute";
-import GridLift from "./GridLift";
 import TextStream from "./TextStream";
 import ArrowFillButton from "./ArrowFillButton";
+import FlipText from "./FlipText";
 import { portfolioProjects } from "../portfolioProjects";
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 const revealDelay = (delay: number): CSSProperties => ({ "--reveal-delay": `${delay}ms` } as CSSProperties);
-const contactStreamItems = ["talk."];
-
-function LastName({ origin = false }: { origin?: boolean }) {
-  return <>Mam<span className="name-origin-i">ı<span className="name-origin-dot" /></span><span className="name-stem-pair">ll</span>apall<span className="name-origin-i">ı<span className="name-origin-dot" data-signal-origin={origin ? "" : undefined} /></span></>;
-}
+const contactStreamItems = ["build.", "make.", "ship.", "explore.", "talk."];
 
 const projectSignals = [
   ["M0 100 C72 100 82 34 152 34 S248 100 400 100", "M0 100 C86 100 110 72 174 72 S276 100 400 100", "M0 100 C72 100 82 166 152 166 S248 100 400 100"],
@@ -31,6 +27,7 @@ function navigate(event: MouseEvent<HTMLAnchorElement>) {
 
 export default function EditorialPortfolio() {
   const nameRef = useRef<HTMLDivElement>(null);
+  const [activeContactWord, setActiveContactWord] = useState<string>();
   useLayoutEffect(() => {
     const main = document.querySelector<HTMLElement>("main");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -66,10 +63,9 @@ export default function EditorialPortfolio() {
       <SignalRoute />
       <section className="hero" id="top" tabIndex={-1} aria-labelledby="hero-title">
         <div className="hero-copy"><div className="hero-name" ref={nameRef}>
-          <GridLift targetRef={nameRef} />
           <h1 id="hero-title" aria-label="Kushal Mamillapalli">
-            <span className="name-word name-word--first"><span className="name-layer name-layer--plain">Kushal</span></span>
-            <span className="name-word name-word--last"><span className="name-layer name-layer--plain"><LastName origin /></span></span>
+            <span className="name-word name-word--first"><FlipText>Kushal</FlipText></span>
+            <span className="name-word name-word--last"><FlipText signalIndex={11}>Mamillapalli</FlipText></span>
           </h1>
         </div><p className="hero-role">Data Engineer</p></div>
         <div className="hero-bottom"><p>I make data <em>go places.</em></p><a href="#work" onClick={navigate}>Selected work <span aria-hidden="true">↓</span></a></div>
@@ -96,11 +92,12 @@ export default function EditorialPortfolio() {
           </a>
         </article>)}</div>
       </section>
-      <section className="contact section" id="contact" tabIndex={-1} aria-labelledby="contact-title">
-        <h2 id="contact-title" aria-label="Let’s talk." data-reveal><TextStream
+      <section className="contact section" id="contact" tabIndex={-1} aria-labelledby="contact-title" data-stream-active={activeContactWord ?? undefined}>
+        <h2 id="contact-title" aria-label="Let’s build, make, ship, explore, and talk." data-reveal><TextStream
           prefix={<>Let<span className="signal-terminal">’</span>s</>}
           items={contactStreamItems}
           className="contact-stream"
+          onActiveItemChange={setActiveContactWord}
         /></h2>
         <a className="email-link" href="mailto:kushalmam06@gmail.com" data-reveal style={revealDelay(100)}>kushalmam06@gmail.com <span aria-hidden="true">↗</span></a>
         <div className="contact-bottom" data-reveal style={revealDelay(180)}><ArrowFillButton className="resume-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" href={asset("documents/kushal-mamillapalli-resume.pdf")} target="_blank" rel="noopener noreferrer"><span className="resume-link__content"><span>Résumé</span><span className="resume-link__format">PDF ↗</span></span></ArrowFillButton><nav aria-label="Professional links"><a href="https://linkedin.com/in/kushal-mamillapalli" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="https://github.com/Techdude01" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav></div>

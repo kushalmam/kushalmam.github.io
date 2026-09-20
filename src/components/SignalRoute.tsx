@@ -55,8 +55,11 @@ export default function SignalRoute() {
       const terminalRect = terminal.getBoundingClientRect();
       const endX = terminalRect.left - rect.left + terminalRect.width / 2;
       const endY = terminalRect.top - rect.top + terminalRect.height / 2;
-      const loopRadius = mobile ? 16 : 28;
-      d += ` L ${center} ${endY + loopRadius * 2.7} C ${center} ${endY + loopRadius * 1.2}, ${endX + loopRadius * 2} ${endY + loopRadius * 2.7}, ${endX + loopRadius * 1.5} ${endY + loopRadius * .55} C ${endX + loopRadius * 1.35} ${endY - loopRadius * 1.4}, ${endX - loopRadius * 1.6} ${endY - loopRadius * 1.2}, ${endX - loopRadius * 1.3} ${endY + loopRadius * .15} Q ${endX - loopRadius * .35} ${endY - loopRadius * .35}, ${endX} ${endY}`;
+      const approachHeight = mobile ? 34 : 68;
+      const branchX = mobile ? Math.max(endX + 22, center - 8) : Math.max(endX + 44, center - 78);
+      // The final strand turns into the node before the baseline, avoiding a dangling
+      // hook under the headline. The headline itself remains above this route.
+      d += ` L ${center} ${endY - approachHeight} C ${center} ${endY - 21}, ${branchX + 26} ${endY - 9}, ${branchX} ${endY + 3} C ${endX + 15} ${endY + 8}, ${endX + 5} ${endY + 2}, ${endX} ${endY}`;
       const landmarks = [about, ...[...document.querySelectorAll<HTMLElement>(".project-image")].map(image => image.getBoundingClientRect().top - rect.top + image.clientHeight / 2)];
       setLayout({ d, heroD, width, mainTop: rect.top + window.scrollY, about, landmarks, height: main.offsetHeight });
     };

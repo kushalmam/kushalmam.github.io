@@ -84,12 +84,13 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
       const t = i / (rings - 1);
       const opening = Math.exp(-Math.pow((p.y - about - 170) / 240, 2));
       const chapterSpread = (landmarks ?? []).reduce((spread, landmark) => spread + Math.exp(-Math.pow((p.y - landmark) / 115, 2)), 0);
-      const spacing = (mobile ? 4 : 7) + opening * (mobile ? 3 : 14) + chapterSpread * (mobile ? 3 : 10);
+      const contactConvergence = 1 - .86 * THREE.MathUtils.smoothstep(t, .91, 1);
+      const spacing = ((mobile ? 4 : 7) + opening * (mobile ? 3 : 14) + chapterSpread * (mobile ? 3 : 10)) * contactConvergence;
       const phase = t * Math.PI * 8 + strand * Math.PI * 2 / 3;
       const offset = Math.cos(phase) * spacing;
       const z = Math.sin(phase) * spacing;
       const taper = 1 - .35 * THREE.MathUtils.smoothstep(p.y, about - 100, about + 200);
-      const radius = (mobile ? 3.4 : 5.9) * taper;
+      const radius = (mobile ? 3.4 : 5.9) * taper * (1 - .42 * THREE.MathUtils.smoothstep(t, .94, 1));
       for (let j = 0; j <= sides; j++) {
         const angle = j / sides * Math.PI * 2;
         const c = Math.cos(angle), s = Math.sin(angle);

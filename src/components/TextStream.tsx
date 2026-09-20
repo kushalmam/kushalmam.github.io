@@ -2,14 +2,14 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { gsap } from "gsap";
 import "./text-stream.css";
 
-type Props = { items: string[]; prefix: ReactNode; paused?: boolean; className?: string };
+type Props = { items: string[]; prefix: ReactNode; paused?: boolean; className?: string; onActiveItemChange?: (item: string) => void };
 
 /**
  * Scroll-momentum loop adapted from ObsidianUI's official Text Stream source:
  * https://www.obsidianui.dev/docs/text-stream
  * The centered mask and per-line focus falloff are tuned for this site's contact title.
  */
-export default function TextStream({ items, prefix, paused = false, className = "" }: Props) {
+export default function TextStream({ items, prefix, paused = false, className = "", onActiveItemChange }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -17,6 +17,7 @@ export default function TextStream({ items, prefix, paused = false, className = 
   const [copyCount, setCopyCount] = useState(1);
   const [inView, setInView] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const activeItemRef = useRef<string>();
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -54,14 +55,26 @@ export default function TextStream({ items, prefix, paused = false, className = 
       const bounds = viewport.getBoundingClientRect();
       const center = bounds.top + bounds.height / 2;
       const halfHeight = bounds.height / 2;
+      let nearestItem: HTMLElement | undefined;
+      let nearestDistance = Infinity;
       track.querySelectorAll<HTMLElement>(".text-stream__item").forEach(item => {
         const rect = item.getBoundingClientRect();
-        const position = Math.min(1, Math.abs((rect.top + rect.height / 2 - center) / halfHeight));
+        const distance = Math.abs(rect.top + rect.height / 2 - center);
+        const position = Math.min(1, distance / halfHeight);
         const edge = gsap.utils.clamp(0, 1, (position - .56) / .44);
         const eased = edge * edge * (3 - 2 * edge);
         item.style.opacity = `${1 - eased * .82}`;
         item.style.filter = `blur(${eased * 3.25}px)`;
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestItem = item;
+        }
       });
+      const activeItem = nearestItem?.dataset.streamItem;
+      if (activeItem && activeItem !== activeItemRef.current) {
+        activeItemRef.current = activeItem;
+        onActiveItemChange?.(activeItem);
+      }
     };
     const tick = (_time: number, deltaTime: number) => {
       if (!metrics.distance) return;
@@ -103,7 +116,7 @@ export default function TextStream({ items, prefix, paused = false, className = 
       window.clearTimeout(timeout);
       gsap.ticker.remove(tick);
     };
-  }, [inView, items, paused, reduceMotion]);
+  }, [inView, items, onActiveItemChange, paused, reduceMotion]);
 
   if (!items.length) return null;
 
@@ -112,7 +125,7 @@ export default function TextStream({ items, prefix, paused = false, className = 
     <div ref={viewportRef} className="text-stream__viewport" aria-hidden="true">
       <div ref={trackRef} className="text-stream__track">
         {Array.from({ length: reduceMotion ? 1 : copyCount }, (_, copyIndex) => <div key={copyIndex} ref={copyIndex === 0 ? contentRef : null} className="text-stream__copy">
-          {items.map((item, index) => <div className="text-stream__item" key={`${copyIndex}-${index}`}>{item}</div>)}
+          {items.map((item, index) => <div className="text-stream__item" data-stream-item={item} key={`${copyIndex}-${index}`}>{item}</div>)}
         </div>)}
       </div>
     </div>
