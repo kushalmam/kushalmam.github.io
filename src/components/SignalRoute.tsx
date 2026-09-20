@@ -55,9 +55,7 @@ export default function SignalRoute() {
       const endX = terminalRect.left - rect.left + terminalRect.width / 2;
       const endY = terminalRect.top - rect.top + terminalRect.height / 2;
       const loopRadius = mobile ? 22 : 34;
-      const approachX = mobile ? rail : width * .88;
-      const approachY = endY + loopRadius * 2.2;
-      d += ` L ${center} ${endY + loopRadius * 3} C ${center} ${endY + loopRadius * 1.5}, ${approachX} ${approachY}, ${approachX} ${endY + loopRadius} C ${approachX} ${endY - loopRadius * .8}, ${endX + loopRadius * 2.2} ${endY - loopRadius * 1.4}, ${endX + loopRadius} ${endY - loopRadius * .4} C ${endX + loopRadius * .35} ${endY - loopRadius * 1.35}, ${endX - loopRadius * .5} ${endY - loopRadius * 1.1}, ${endX} ${endY}`;
+      d += ` L ${center} ${endY + loopRadius * 2} C ${center} ${endY + loopRadius}, ${endX + loopRadius * 2} ${endY + loopRadius * 2}, ${endX + loopRadius * 2} ${endY} C ${endX + loopRadius * 2} ${endY - loopRadius * 1.7}, ${endX - loopRadius * 2} ${endY - loopRadius * 1.7}, ${endX - loopRadius} ${endY - loopRadius * .15} Q ${endX - loopRadius * .35} ${endY - loopRadius * .5}, ${endX} ${endY}`;
       const landmarks = [about, ...[...document.querySelectorAll<HTMLElement>(".project-image")].map(image => image.getBoundingClientRect().top - rect.top + image.clientHeight / 2)];
       setLayout({ d, heroD, width, mainTop: rect.top + window.scrollY, about, landmarks, height: main.offsetHeight });
     };
