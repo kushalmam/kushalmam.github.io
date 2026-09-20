@@ -1,10 +1,11 @@
-import type { MouseEvent } from "react";
+import { useLayoutEffect, type CSSProperties, type MouseEvent } from "react";
 import OrgMark from "./OrgMark";
 import ThemeToggle from "./ThemeToggle";
 import SignalRoute from "./SignalRoute";
 import { portfolioProjects } from "../portfolioProjects";
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+const revealDelay = (delay: number): CSSProperties => ({ "--reveal-delay": `${delay}ms` } as CSSProperties);
 
 function LastName({ origin = false }: { origin?: boolean }) {
   return <>Mam<span className="name-origin-i">ı<span className="name-origin-dot" /></span><span className="name-stem-pair">ll</span>apall<span className="name-origin-i">ı<span className="name-origin-dot" data-signal-origin={origin ? "" : undefined} /></span></>;
@@ -25,6 +26,31 @@ function navigate(event: MouseEvent<HTMLAnchorElement>) {
 }
 
 export default function EditorialPortfolio() {
+  useLayoutEffect(() => {
+    const main = document.querySelector<HTMLElement>("main");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (!main || reducedMotion.matches || !("IntersectionObserver" in window)) return;
+
+    const targets = [...main.querySelectorAll<HTMLElement>("[data-reveal]")];
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        (entry.target as HTMLElement).dataset.revealed = "true";
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: .12, rootMargin: "0px 0px -6% 0px" });
+
+    targets.forEach(target => {
+      target.dataset.revealed = "false";
+      observer.observe(target);
+    });
+    main.dataset.revealReady = "true";
+    return () => {
+      observer.disconnect();
+      delete main.dataset.revealReady;
+    };
+  }, []);
+
   return <>
     <a className="skip-link" href="#main" onClick={navigate}>Skip to content</a>
     <header className="site-header">
@@ -49,31 +75,31 @@ export default function EditorialPortfolio() {
         <div className="hero-bottom"><p>I make data <em>go places.</em></p><a href="#work" onClick={navigate}>Selected work <span aria-hidden="true">↓</span></a></div>
       </section>
       <section className="about section" id="about" tabIndex={-1} aria-labelledby="about-title">
-        <figure className="about-portrait"><img src={asset("images/portrait.jpg")} alt="Kushal overlooking the New York skyline" width="720" height="709" loading="lazy" /></figure>
+        <figure className="about-portrait" data-reveal><img src={asset("images/portrait.jpg")} alt="Kushal overlooking the New York skyline" width="720" height="709" loading="lazy" /></figure>
         <div className="about-content">
-          <h2 className="about-lead" id="about-title">Data pipelines.<br />Real impact.</h2>
-          <p className="about-text">I build data pipelines and recommendation systems that turn messy inputs into reliable products.</p>
+          <h2 className="about-lead" id="about-title" data-reveal style={revealDelay(60)}>Data pipelines.<br />Real impact.</h2>
+          <p className="about-text" data-reveal style={revealDelay(120)}>I build data pipelines and recommendation systems that turn messy inputs into reliable products.</p>
           <div className="about-affiliations">
-            <div className="affiliation"><OrgMark name="spotify" /><span>Spotify<small>Data Engineer</small></span></div>
-            <div className="affiliation affiliation--nyu"><OrgMark name="nyu" /><span>NYU Tandon<small>Computer Science ’26</small></span></div>
-            <div className="affiliation"><OrgMark name="arc" /><span>ARC Robotics<small>Former RoboMaster CV Lead</small></span></div>
+            <div className="affiliation" data-reveal style={revealDelay(180)}><OrgMark name="spotify" /><span>Spotify<small>Data Engineer</small></span></div>
+            <div className="affiliation affiliation--nyu" data-reveal style={revealDelay(230)}><OrgMark name="nyu" /><span>NYU Tandon<small>Computer Science ’26</small></span></div>
+            <div className="affiliation" data-reveal style={revealDelay(280)}><OrgMark name="arc" /><span>ARC Robotics<small>Former RoboMaster CV Lead</small></span></div>
           </div>
-          <p className="about-offscreen">Usually building Gunpla or watching a murder mystery. Sometimes on the basketball court.</p>
+          <p className="about-offscreen" data-reveal style={revealDelay(320)}>Usually building Gunpla or watching a murder mystery. Sometimes on the basketball court.</p>
         </div>
       </section>
       <section className="work section" id="work" tabIndex={-1} aria-labelledby="work-title">
-        <div className="work-heading"><h2 id="work-title">Selected work<span>.</span></h2></div>
+        <div className="work-heading"><h2 id="work-title" data-reveal>Selected work<span>.</span></h2></div>
         <div className="project-grid">{portfolioProjects.map((project, index) => <article className={`project-card project-card--${index}`} key={project.name}>
-          <a href={project.href} target="_blank" rel="noopener noreferrer" aria-label={`View ${project.name} on GitHub`}>
+          <a href={project.href} target="_blank" rel="noopener noreferrer" aria-label={`View ${project.name} on GitHub`} data-reveal style={revealDelay(index * 85)}>
             <div className="project-image"><img src={asset(`images/projects/${project.image}`)} alt={project.alt} loading="lazy" width="1400" height="800" /><svg className="project-signal" viewBox="0 0 400 200" preserveAspectRatio="none" aria-hidden="true">{projectSignals[index].map((d, strand) => <path key={strand} d={d} />)}</svg><span className="project-open" aria-hidden="true">↗</span></div>
             <div className="project-caption"><h3>{project.name}</h3><p>{project.description}</p></div>
           </a>
         </article>)}</div>
       </section>
       <section className="contact section" id="contact" tabIndex={-1} aria-labelledby="contact-title">
-        <h2 id="contact-title">Let’s talk<span>.</span></h2>
-        <a className="email-link" href="mailto:kushalmam06@gmail.com">kushalmam06@gmail.com <span aria-hidden="true">↗</span></a>
-        <div className="contact-bottom"><a className="resume-link" href={asset("documents/kushal-mamillapalli-resume.pdf")} target="_blank" rel="noopener noreferrer">Résumé <span>PDF ↗</span></a><nav aria-label="Professional links"><a href="https://linkedin.com/in/kushal-mamillapalli" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="https://github.com/Techdude01" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav></div>
+        <h2 id="contact-title" data-reveal>Let’s talk<span className="signal-endpoint">.<span className="signal-terminal" aria-hidden="true" /></span></h2>
+        <a className="email-link" href="mailto:kushalmam06@gmail.com" data-reveal style={revealDelay(100)}>kushalmam06@gmail.com <span aria-hidden="true">↗</span></a>
+        <div className="contact-bottom" data-reveal style={revealDelay(180)}><a className="resume-link" href={asset("documents/kushal-mamillapalli-resume.pdf")} target="_blank" rel="noopener noreferrer">Résumé <span>PDF ↗</span></a><nav aria-label="Professional links"><a href="https://linkedin.com/in/kushal-mamillapalli" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="https://github.com/Techdude01" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav></div>
       </section>
     </main>
     <footer><span>© {new Date().getFullYear()} Kushal Mamillapalli</span><a href="#top" onClick={navigate}>Back to top ↑</a></footer>

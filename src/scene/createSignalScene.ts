@@ -118,6 +118,9 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
   canvas.addEventListener("webglcontextlost", lost);
   let disposed = false;
   return {
+    prepare() {
+      return renderer.compileAsync(scene, camera);
+    },
     render(scroll: number, progress: number, dark: boolean, reduced: boolean) {
       if (disposed) return;
       camera.position.y = mainTop - scroll;
