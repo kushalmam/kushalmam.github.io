@@ -118,6 +118,49 @@ h1 {
 h1>span {
   display: block;
 }
+.name-word {
+  display: grid;
+  width: fit-content;
+}
+.name-layer {
+  grid-area: 1 / 1;
+  width: fit-content;
+  will-change: opacity, transform;
+}
+.name-layer--plain {
+  animation: name-plain 16s infinite ease-in-out;
+}
+.name-layer--outline {
+  color: transparent;
+  -webkit-text-stroke: clamp(1px, .11vw, 2px) var(--ink);
+  opacity: 0;
+  animation: name-outline 16s infinite ease-in-out;
+}
+.name-layer--editorial {
+  color: var(--ink);
+  font-family: Newsreader, Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -.055em;
+  opacity: 0;
+  transform: translateY(.035em);
+  animation: name-editorial 16s infinite ease-in-out;
+}
+.name-word--last .name-layer {
+  animation-delay: -4s;
+}
+@keyframes name-plain {
+  0%, 43%, 100% { opacity: 1; transform: translateY(0); }
+  49%, 93% { opacity: 0; transform: translateY(.035em); }
+}
+@keyframes name-outline {
+  0%, 42%, 72%, 100% { opacity: 0; transform: translateY(.035em); }
+  49%, 66% { opacity: 1; transform: translateY(0); }
+}
+@keyframes name-editorial {
+  0%, 65%, 94%, 100% { opacity: 0; transform: translateY(.06em); }
+  73%, 88% { opacity: 1; transform: translateY(.035em); }
+}
 .name-period {
   color: #789b8d;
 }
@@ -617,7 +660,7 @@ h1>span {
   --paper: #f3f1e9;
   --ink: #244e49;
   --muted: #63766c;
-  --grid: rgba(57, 87, 72, .026);
+  --grid: rgba(57, 87, 72, .065);
   --line: #d2d8cd;
   --mount-book: #eae6dc;
   --mount-market: #c5d4c9;
@@ -631,7 +674,7 @@ h1>span {
   --paper: #111c1b;
   --ink: #e2e5d6;
   --muted: #a3b5aa;
-  --grid: rgba(185, 215, 194, .021);
+  --grid: rgba(185, 215, 194, .055);
   --line: #334742;
   --mint: #a1edbf;
   --mount-book: #393b32;
@@ -740,9 +783,9 @@ body {
   stroke: #a4caba;
 }
 .about {
-  grid-template-columns: .9fr 1fr;
-  gap: 14%;
-  padding: 100px 12% 160px 16%;
+  grid-template-columns: .82fr 1.18fr;
+  gap: 10%;
+  padding: 100px 10% 160px 14%;
   align-items: center;
 }
 .about-portrait {
@@ -766,7 +809,7 @@ body {
   letter-spacing: -.06em;
 }
 .about-text {
-  max-width: 30ch;
+  max-width: 42ch;
   font-size: 17px;
   margin-top: 25px;
 }

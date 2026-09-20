@@ -23,18 +23,29 @@ export default function EditorialPortfolio() {
     <main id="main" tabIndex={-1}>
       <SignalRoute />
       <section className="hero" id="top" tabIndex={-1} aria-labelledby="hero-title">
-        <div className="hero-copy"><h1 id="hero-title"><span>Kushal</span>{" "}<span>Mamillapalli<span className="name-period">.</span></span></h1><p className="hero-role">Data Engineer</p></div>
+        <div className="hero-copy"><h1 id="hero-title" aria-label="Kushal Mamillapalli">
+          <span className="name-word">
+            <span className="name-layer name-layer--plain">Kushal</span>
+            <span className="name-layer name-layer--outline" aria-hidden="true">Kushal</span>
+            <span className="name-layer name-layer--editorial" aria-hidden="true">Kushal</span>
+          </span>
+          <span className="name-word name-word--last">
+            <span className="name-layer name-layer--plain">Mamillapalli<span className="name-period">.</span></span>
+            <span className="name-layer name-layer--outline" aria-hidden="true">Mamillapalli.</span>
+            <span className="name-layer name-layer--editorial" aria-hidden="true">Mamillapalli.</span>
+          </span>
+        </h1><p className="hero-role">Data Engineer</p></div>
         <div className="hero-bottom"><p>I make data <em>go places.</em></p><a href="#work" onClick={navigate}>Selected work <span aria-hidden="true">↓</span></a></div>
       </section>
       <section className="about section" id="about" tabIndex={-1} aria-labelledby="about-title">
         <figure className="about-portrait"><img src={asset("images/portrait.jpg")} alt="Kushal overlooking the New York skyline" width="720" height="709" loading="lazy" /></figure>
         <div className="about-content">
           <h2 className="about-lead" id="about-title">Data pipelines.<br />Real impact.</h2>
-          <p className="about-text">I build data pipelines and recommendation systems. At NYU’s Team Ultraviolet, I led computer vision for RoboMaster robots.</p>
+          <p className="about-text">I build data pipelines and recommendation systems that turn messy inputs into reliable products.</p>
           <div className="about-affiliations">
             <div className="affiliation"><OrgMark name="spotify" /><span>Spotify<small>Data Engineer</small></span></div>
             <div className="affiliation affiliation--nyu"><OrgMark name="nyu" /><span>NYU Tandon<small>Computer Science ’26</small></span></div>
-            <div className="affiliation"><OrgMark name="arc" /><span>Team Ultraviolet<small>RoboMaster · Computer Vision Lead</small></span></div>
+            <div className="affiliation"><OrgMark name="arc" /><span>Team Ultraviolet<small>RoboMaster CV Lead</small></span></div>
           </div>
           <p className="about-offscreen">Usually building Gunpla or watching a murder mystery. Sometimes on the basketball court.</p>
         </div>

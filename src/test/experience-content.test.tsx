@@ -6,7 +6,7 @@ afterEach(cleanup);
 describe("portfolio introduction", () => {
   it("identifies Kushal and preserves current work and education in the short introduction", () => {
     render(<EditorialPortfolio />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Kushal Mamillapalli");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveAccessibleName("Kushal Mamillapalli");
     expect(screen.getAllByText("Data Engineer")[0]).toBeVisible();
     expect(screen.getByText("Spotify")).toBeVisible();
     expect(screen.getByText("NYU Tandon")).toBeVisible();
