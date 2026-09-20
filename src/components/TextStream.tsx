@@ -40,7 +40,8 @@ export default function TextStream({ items, prefix, paused = false, className = 
     const viewport = viewportRef.current;
     if (!track || !content || !viewport || paused || !inView || reduceMotion || !items.length) return;
 
-    const metrics = { y: 0, distance: 0, velocity: .18, targetVelocity: .18, direction: 1 };
+    const baseSpeed = .38;
+    const metrics = { y: 0, distance: 0, velocity: baseSpeed, targetVelocity: baseSpeed, direction: 1 };
     let lastScroll = window.scrollY;
     let timeout = 0;
     const start = () => {
@@ -88,9 +89,9 @@ export default function TextStream({ items, prefix, paused = false, className = 
     const applyScrollMotion = (delta: number) => {
       if (!delta) return;
       metrics.direction = delta > 0 ? -1 : 1;
-      metrics.targetVelocity = metrics.direction * Math.min(2.4, .18 + Math.pow(Math.abs(delta), 1.2) * .003);
+      metrics.targetVelocity = metrics.direction * Math.min(3.6, baseSpeed + Math.pow(Math.abs(delta), 1.2) * .004);
       window.clearTimeout(timeout);
-      timeout = window.setTimeout(() => { metrics.targetVelocity = metrics.direction * .18; }, 140);
+      timeout = window.setTimeout(() => { metrics.targetVelocity = metrics.direction * baseSpeed; }, 140);
     };
     const onWheel = (event: WheelEvent) => applyScrollMotion(event.deltaY);
     const onScroll = () => {
