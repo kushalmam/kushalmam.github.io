@@ -51,7 +51,8 @@ const fragmentShader = /* glsl */`
     float band = exp(-pow((vUv.x - uProgress) / .006, 2.));
     float spill = exp(-length(vPosition - uSignal) / 36.);
     vec3 mint = vec3(.43, 1., .68);
-    color += mint * (band * .95 + spill * .20) * uMotion;
+    float activeStrand = 1.0 - step(.5, uStrand);
+    color += mint * (band * mix(.28, .95, activeStrand) + spill * mix(.08, .20, activeStrand)) * uMotion;
     gl_FragColor = vec4(color, 1.);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
@@ -84,17 +85,21 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
       const t = i / (rings - 1);
       const opening = Math.exp(-Math.pow((p.y - about - 170) / 240, 2));
       const chapterSpread = (landmarks ?? []).reduce((spread, landmark) => spread + Math.exp(-Math.pow((p.y - landmark) / 115, 2)), 0);
-      const contactConvergence = 1 - .86 * THREE.MathUtils.smoothstep(t, .91, 1);
-      const spacing = ((mobile ? 4 : 7) + opening * (mobile ? 3 : 14) + chapterSpread * (mobile ? 3 : 10)) * contactConvergence;
+      const spacing = (mobile ? 4 : 7) + opening * (mobile ? 3 : 14) + chapterSpread * (mobile ? 3 : 10);
       const phase = t * Math.PI * 8 + strand * Math.PI * 2 / 3;
-      const offset = Math.cos(phase) * spacing;
-      const z = Math.sin(phase) * spacing;
+      const contactLead = THREE.MathUtils.smoothstep(t, .82, .96);
+      const terminalFade = strand === 0 ? 0 : THREE.MathUtils.smoothstep(t, .88, .985);
+      const braidedOffset = Math.cos(phase) * spacing;
+      const terminalOffset = strand === 0 ? 0 : (strand === 1 ? -(mobile ? 5 : 9) : (mobile ? 5 : 9));
+      const offset = THREE.MathUtils.lerp(braidedOffset, terminalOffset, contactLead);
+      const z = THREE.MathUtils.lerp(Math.sin(phase) * spacing, strand === 0 ? 0 : (strand === 1 ? -3 : 3), contactLead);
+      const retreat = strand === 0 ? 0 : (mobile ? 22 : 42) * terminalFade;
       const taper = 1 - .35 * THREE.MathUtils.smoothstep(p.y, about - 100, about + 200);
-      const radius = (mobile ? 3.4 : 5.9) * taper * (1 - .42 * THREE.MathUtils.smoothstep(t, .94, 1));
+      const radius = (mobile ? 3.4 : 5.9) * taper * (1 - .24 * THREE.MathUtils.smoothstep(t, .92, 1)) * (1 - terminalFade);
       for (let j = 0; j <= sides; j++) {
         const angle = j / sides * Math.PI * 2;
         const c = Math.cos(angle), s = Math.sin(angle);
-        positions.push(p.x + nx * (offset + radius * c), -p.y - ny * (offset + radius * c), z + radius * s);
+        positions.push(p.x - dx / norm * retreat + nx * (offset + radius * c), -p.y + dy / norm * retreat - ny * (offset + radius * c), z + radius * s);
         normals.push(nx * c, -ny * c, s);
         uvs.push(t, j / sides);
         if (i < rings - 1 && j < sides) {

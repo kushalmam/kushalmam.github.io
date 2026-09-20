@@ -55,11 +55,11 @@ export default function SignalRoute() {
       const terminalRect = terminal.getBoundingClientRect();
       const endX = terminalRect.left - rect.left + terminalRect.width / 2;
       const endY = terminalRect.top - rect.top + terminalRect.height / 2;
-      const approachHeight = mobile ? 76 : 126;
-      const branchX = endX + (mobile ? 16 : 24);
-      // Peel left above the changing word, then descend beside the stable "Let's"
-      // anchor. This keeps the stream's reading zone clear in every word state.
-      d += ` L ${center} ${endY - approachHeight} C ${center} ${endY - approachHeight * .9}, ${branchX + 26} ${endY - approachHeight * .78}, ${branchX} ${endY - 64} C ${branchX} ${endY - 30}, ${endX + 6} ${endY - 8}, ${endX} ${endY}`;
+      const approachHeight = mobile ? 240 : 430;
+      const landingX = endX + (mobile ? 12 : 20);
+      // Complete the broad turn above the reading area. By the time the cable is
+      // visible beside the headline, the active strand is already on its calm descent.
+      d += ` L ${center} ${endY - approachHeight} C ${center} ${endY - approachHeight * .54}, ${landingX + 74} ${endY - approachHeight * .66}, ${landingX} ${endY - approachHeight * .36} C ${landingX} ${endY - approachHeight * .12}, ${landingX} ${endY - 36}, ${endX} ${endY}`;
       const landmarks = [about, ...[...document.querySelectorAll<HTMLElement>(".project-image")].map(image => image.getBoundingClientRect().top - rect.top + image.clientHeight / 2)];
       setLayout({ d, heroD, width, mainTop: rect.top + window.scrollY, about, landmarks, height: main.offsetHeight });
     };
