@@ -1,11 +1,15 @@
-import { useLayoutEffect, type CSSProperties, type MouseEvent } from "react";
+import { useLayoutEffect, useRef, type CSSProperties, type MouseEvent } from "react";
 import OrgMark from "./OrgMark";
 import ThemeToggle from "./ThemeToggle";
 import SignalRoute from "./SignalRoute";
+import GridLift from "./GridLift";
+import TextStream from "./TextStream";
+import ArrowFillButton from "./ArrowFillButton";
 import { portfolioProjects } from "../portfolioProjects";
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 const revealDelay = (delay: number): CSSProperties => ({ "--reveal-delay": `${delay}ms` } as CSSProperties);
+const contactStreamItems = ["talk."];
 
 function LastName({ origin = false }: { origin?: boolean }) {
   return <>Mam<span className="name-origin-i">ı<span className="name-origin-dot" /></span><span className="name-stem-pair">ll</span>apall<span className="name-origin-i">ı<span className="name-origin-dot" data-signal-origin={origin ? "" : undefined} /></span></>;
@@ -26,6 +30,7 @@ function navigate(event: MouseEvent<HTMLAnchorElement>) {
 }
 
 export default function EditorialPortfolio() {
+  const nameRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const main = document.querySelector<HTMLElement>("main");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -60,18 +65,13 @@ export default function EditorialPortfolio() {
     <main id="main" tabIndex={-1}>
       <SignalRoute />
       <section className="hero" id="top" tabIndex={-1} aria-labelledby="hero-title">
-        <div className="hero-copy"><h1 id="hero-title" aria-label="Kushal Mamillapalli">
-          <span className="name-word">
-            <span className="name-layer name-layer--plain">Kushal</span>
-            <span className="name-layer name-layer--outline" aria-hidden="true">Kushal</span>
-            <span className="name-layer name-layer--editorial" aria-hidden="true">Kushal</span>
-          </span>
-          <span className="name-word name-word--last">
-            <span className="name-layer name-layer--plain"><LastName origin /><span className="name-period">.</span></span>
-            <span className="name-layer name-layer--outline" aria-hidden="true"><LastName /><span>.</span></span>
-            <span className="name-layer name-layer--editorial" aria-hidden="true"><LastName /><span>.</span></span>
-          </span>
-        </h1><p className="hero-role">Data Engineer</p></div>
+        <div className="hero-copy"><div className="hero-name" ref={nameRef}>
+          <GridLift targetRef={nameRef} />
+          <h1 id="hero-title" aria-label="Kushal Mamillapalli">
+            <span className="name-word name-word--first"><span className="name-layer name-layer--plain">Kushal</span></span>
+            <span className="name-word name-word--last"><span className="name-layer name-layer--plain"><LastName origin /></span></span>
+          </h1>
+        </div><p className="hero-role">Data Engineer</p></div>
         <div className="hero-bottom"><p>I make data <em>go places.</em></p><a href="#work" onClick={navigate}>Selected work <span aria-hidden="true">↓</span></a></div>
       </section>
       <section className="about section" id="about" tabIndex={-1} aria-labelledby="about-title">
@@ -97,9 +97,13 @@ export default function EditorialPortfolio() {
         </article>)}</div>
       </section>
       <section className="contact section" id="contact" tabIndex={-1} aria-labelledby="contact-title">
-        <h2 id="contact-title" data-reveal>Let’s talk<span className="signal-endpoint">.<span className="signal-terminal" aria-hidden="true" /></span></h2>
+        <h2 id="contact-title" aria-label="Let’s talk." data-reveal><TextStream
+          prefix={<>Let<span className="signal-terminal">’</span>s</>}
+          items={contactStreamItems}
+          className="contact-stream"
+        /></h2>
         <a className="email-link" href="mailto:kushalmam06@gmail.com" data-reveal style={revealDelay(100)}>kushalmam06@gmail.com <span aria-hidden="true">↗</span></a>
-        <div className="contact-bottom" data-reveal style={revealDelay(180)}><a className="resume-link" href={asset("documents/kushal-mamillapalli-resume.pdf")} target="_blank" rel="noopener noreferrer">Résumé <span>PDF ↗</span></a><nav aria-label="Professional links"><a href="https://linkedin.com/in/kushal-mamillapalli" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="https://github.com/Techdude01" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav></div>
+        <div className="contact-bottom" data-reveal style={revealDelay(180)}><ArrowFillButton className="resume-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" href={asset("documents/kushal-mamillapalli-resume.pdf")} target="_blank" rel="noopener noreferrer"><span className="resume-link__content"><span>Résumé</span><span className="resume-link__format">PDF ↗</span></span></ArrowFillButton><nav aria-label="Professional links"><a href="https://linkedin.com/in/kushal-mamillapalli" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="https://github.com/Techdude01" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav></div>
       </section>
     </main>
     <footer><span>© {new Date().getFullYear()} Kushal Mamillapalli</span><a href="#top" onClick={navigate}>Back to top ↑</a></footer>

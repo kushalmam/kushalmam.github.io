@@ -1,0 +1,104 @@
+.arrow-fill-btn {
+  --fill-ease: cubic-bezier(.785, .135, .15, .86);
+  position: relative;
+  display: inline-flex;
+  width: fit-content;
+  min-width: 190px;
+  height: 54px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 58px 0 22px;
+  border: 1px solid color-mix(in srgb, var(--btn-bg), transparent 30%);
+  border-radius: 3px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  font: 500 15px/1 Archivo, sans-serif;
+  text-decoration: none;
+  text-rendering: geometricPrecision;
+  white-space: nowrap;
+  cursor: pointer;
+  isolation: isolate;
+}
+
+.arrow-fill-btn__text {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.arrow-fill-btn__circle {
+  position: absolute;
+  z-index: 2;
+  inset: -1px;
+  display: flex;
+  align-items: center;
+  padding: 0 58px 0 22px;
+  border-radius: 3px;
+  background: var(--btn-fill-bg);
+  color: var(--btn-fill-text);
+  clip-path: inset(6px 6px 6px calc(100% - 40px) round 3px);
+  transition: clip-path .46s var(--fill-ease), background-color .46s var(--fill-ease), color .46s var(--fill-ease);
+}
+
+.arrow-fill-btn__circle-text {
+  width: 100%;
+}
+
+.arrow-fill-btn__icon-wrap {
+  position: absolute;
+  top: 50%;
+  right: 17px;
+  display: grid;
+  width: 15px;
+  height: 15px;
+  place-items: center;
+  transform: translateY(-50%);
+}
+
+.arrow-fill-btn__icon {
+  width: 13px;
+  height: 13px;
+  overflow: hidden;
+  color: var(--btn-arrow);
+}
+
+.arrow-fill-btn__path {
+  fill: currentColor;
+  transform-origin: center;
+  transition: transform .46s var(--fill-ease);
+}
+
+.arrow-fill-btn__path:first-child {
+  transform: translateX(-120%) scale(0);
+}
+
+.arrow-fill-btn:is(:hover, :focus-visible) .arrow-fill-btn__circle {
+  clip-path: inset(0 round 3px);
+  background: var(--btn-fill-bg-hover);
+  color: var(--btn-fill-text-hover);
+}
+
+.arrow-fill-btn:is(:hover, :focus-visible) .arrow-fill-btn__icon {
+  color: var(--btn-arrow-hover);
+}
+
+.arrow-fill-btn:is(:hover, :focus-visible) .arrow-fill-btn__path:first-child {
+  transform: translateX(0) scale(1);
+}
+
+.arrow-fill-btn:is(:hover, :focus-visible) .arrow-fill-btn__path:last-child {
+  transform: translateX(120%) scale(0);
+}
+
+.arrow-fill-btn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow-fill-btn__circle,
+  .arrow-fill-btn__path {
+    transition: none;
+  }
+}

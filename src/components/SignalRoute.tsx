@@ -13,8 +13,9 @@ export default function SignalRoute() {
     const main = document.querySelector("main");
     if (!main) return;
     let mounted = true;
+    let layoutReady = false;
     const measure = () => {
-      if (!mounted || document.fonts.status !== "loaded") return;
+      if (!mounted || !layoutReady || document.fonts.status !== "loaded") return;
       const origin = document.querySelector<HTMLElement>("[data-signal-origin]");
       const terminal = document.querySelector<HTMLElement>(".signal-terminal");
       const topSection = document.getElementById("top");
@@ -54,14 +55,21 @@ export default function SignalRoute() {
       const terminalRect = terminal.getBoundingClientRect();
       const endX = terminalRect.left - rect.left + terminalRect.width / 2;
       const endY = terminalRect.top - rect.top + terminalRect.height / 2;
-      const loopRadius = mobile ? 22 : 34;
-      d += ` L ${center} ${endY + loopRadius * 2} C ${center} ${endY + loopRadius}, ${endX + loopRadius * 2} ${endY + loopRadius * 2}, ${endX + loopRadius * 2} ${endY} C ${endX + loopRadius * 2} ${endY - loopRadius * 1.7}, ${endX - loopRadius * 2} ${endY - loopRadius * 1.7}, ${endX - loopRadius} ${endY - loopRadius * .15} Q ${endX - loopRadius * .35} ${endY - loopRadius * .5}, ${endX} ${endY}`;
+      const loopRadius = mobile ? 16 : 28;
+      d += ` L ${center} ${endY + loopRadius * 2.7} C ${center} ${endY + loopRadius * 1.2}, ${endX + loopRadius * 2} ${endY + loopRadius * 2.7}, ${endX + loopRadius * 1.5} ${endY + loopRadius * .55} C ${endX + loopRadius * 1.35} ${endY - loopRadius * 1.4}, ${endX - loopRadius * 1.6} ${endY - loopRadius * 1.2}, ${endX - loopRadius * 1.3} ${endY + loopRadius * .15} Q ${endX - loopRadius * .35} ${endY - loopRadius * .35}, ${endX} ${endY}`;
       const landmarks = [about, ...[...document.querySelectorAll<HTMLElement>(".project-image")].map(image => image.getBoundingClientRect().top - rect.top + image.clientHeight / 2)];
       setLayout({ d, heroD, width, mainTop: rect.top + window.scrollY, about, landmarks, height: main.offsetHeight });
     };
     const observer = new ResizeObserver(measure);
     observer.observe(main);
-    document.fonts.ready.then(measure);
+    document.fonts.ready.then(async () => {
+      const nameAnimations = [...document.querySelectorAll<HTMLElement>(".name-word")]
+        .flatMap(word => word.getAnimations().map(animation => animation.finished));
+      await Promise.allSettled(nameAnimations);
+      if (!mounted) return;
+      layoutReady = true;
+      measure();
+    });
     window.addEventListener("resize", measure);
     return () => { mounted = false; observer.disconnect(); window.removeEventListener("resize", measure); };
   }, []);
@@ -82,6 +90,11 @@ export default function SignalRoute() {
       const max = document.documentElement.scrollHeight - window.innerHeight;
       const progress = signalProgress(points, window.scrollY, window.innerHeight, layout.mainTop, layout.about, max);
       const distance = progress * length;
+      const main = document.querySelector<HTMLElement>("main");
+      if (main) {
+        if (progress > .982) main.dataset.signalAtContact = "true";
+        else delete main.dataset.signalAtContact;
+      }
       scene?.render(window.scrollY, distance / length, document.documentElement.dataset.theme === "dark", reduced.matches);
       frame = 0;
     };
@@ -113,7 +126,10 @@ export default function SignalRoute() {
     return () => {
       disposed = true;
       const main = document.querySelector<HTMLElement>("main");
-      if (main) delete main.dataset.signalReady;
+      if (main) {
+        delete main.dataset.signalReady;
+        delete main.dataset.signalAtContact;
+      }
       scene?.dispose();
       themeObserver.disconnect();
       document.removeEventListener("visibilitychange", visibility);
