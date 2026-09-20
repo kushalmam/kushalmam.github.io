@@ -1,4 +1,5 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import OrgMark from "./OrgMark";
 import ThemeToggle from "./ThemeToggle";
 import SignalRoute from "./SignalRoute";
@@ -10,6 +11,29 @@ import { portfolioProjects } from "../portfolioProjects";
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 const revealDelay = (delay: number): CSSProperties => ({ "--reveal-delay": `${delay}ms` } as CSSProperties);
 const contactStreamItems = ["build.", "make.", "ship.", "explore.", "talk."];
+const nameStyles = ["plain", "outline", "editorial"] as const;
+
+function LastNameCharacter(character: string, index: number) {
+  if (index !== 11) return character;
+  return <span className="name-origin-i">ı<span className="name-origin-dot" data-signal-origin="" /></span>;
+}
+
+function NameLine({ text, style, last = false }: { text: string; style: typeof nameStyles[number]; last?: boolean }) {
+  return <span className={`name-word${last ? " name-word--last" : ""}`}>
+    <AnimatePresence initial={false} mode="wait">
+      <motion.span
+        key={style}
+        className={`name-layer name-layer--${style}`}
+        initial={{ opacity: 0, rotateX: -64, y: "0.045em", filter: "blur(1px)" }}
+        animate={{ opacity: 1, rotateX: 0, y: 0, filter: "blur(0px)" }}
+        exit={{ opacity: 0, rotateX: 68, y: "-0.035em", filter: "blur(1px)" }}
+        transition={{ duration: .42, ease: [.2, .7, .2, 1] }}
+      >
+        <FlipText renderCharacter={last ? LastNameCharacter : undefined}>{text}</FlipText>
+      </motion.span>
+    </AnimatePresence>
+  </span>;
+}
 
 const projectSignals = [
   ["M0 100 C72 100 82 34 152 34 S248 100 400 100", "M0 100 C86 100 110 72 174 72 S276 100 400 100", "M0 100 C72 100 82 166 152 166 S248 100 400 100"],
@@ -28,6 +52,18 @@ function navigate(event: MouseEvent<HTMLAnchorElement>) {
 export default function EditorialPortfolio() {
   const nameRef = useRef<HTMLDivElement>(null);
   const [activeContactWord, setActiveContactWord] = useState<string>();
+  const [nameStyleIndex, setNameStyleIndex] = useState(0);
+  const nameStyle = nameStyles[nameStyleIndex];
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (media.matches) return;
+    const cycle = window.setInterval(() => setNameStyleIndex(index => (index + 1) % nameStyles.length), 5600);
+    return () => window.clearInterval(cycle);
+  }, []);
+  useEffect(() => {
+    const refreshRoute = window.setTimeout(() => window.dispatchEvent(new Event("signal-route-measure")), 460);
+    return () => window.clearTimeout(refreshRoute);
+  }, [nameStyle]);
   useLayoutEffect(() => {
     const main = document.querySelector<HTMLElement>("main");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -64,8 +100,8 @@ export default function EditorialPortfolio() {
       <section className="hero" id="top" tabIndex={-1} aria-labelledby="hero-title">
         <div className="hero-copy"><div className="hero-name" ref={nameRef}>
           <h1 id="hero-title" aria-label="Kushal Mamillapalli">
-            <span className="name-word name-word--first"><FlipText>Kushal</FlipText></span>
-            <span className="name-word name-word--last"><FlipText signalIndex={11}>Mamillapalli</FlipText></span>
+            <NameLine text="Kushal" style={nameStyle} />
+            <NameLine text="Mamillapalli" style={nameStyle} last />
           </h1>
         </div><p className="hero-role">Data Engineer</p></div>
         <div className="hero-bottom"><p>I make data <em>go places.</em></p><a href="#work" onClick={navigate}>Selected work <span aria-hidden="true">↓</span></a></div>

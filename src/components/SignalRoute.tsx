@@ -55,11 +55,11 @@ export default function SignalRoute() {
       const terminalRect = terminal.getBoundingClientRect();
       const endX = terminalRect.left - rect.left + terminalRect.width / 2;
       const endY = terminalRect.top - rect.top + terminalRect.height / 2;
-      const approachHeight = mobile ? 34 : 68;
-      const branchX = mobile ? Math.max(endX + 22, center - 8) : Math.max(endX + 44, center - 78);
-      // The final strand turns into the node before the baseline, avoiding a dangling
-      // hook under the headline. The headline itself remains above this route.
-      d += ` L ${center} ${endY - approachHeight} C ${center} ${endY - 21}, ${branchX + 26} ${endY - 9}, ${branchX} ${endY + 3} C ${endX + 15} ${endY + 8}, ${endX + 5} ${endY + 2}, ${endX} ${endY}`;
+      const approachHeight = mobile ? 76 : 126;
+      const branchX = endX + (mobile ? 16 : 24);
+      // Peel left above the changing word, then descend beside the stable "Let's"
+      // anchor. This keeps the stream's reading zone clear in every word state.
+      d += ` L ${center} ${endY - approachHeight} C ${center} ${endY - approachHeight * .9}, ${branchX + 26} ${endY - approachHeight * .78}, ${branchX} ${endY - 64} C ${branchX} ${endY - 30}, ${endX + 6} ${endY - 8}, ${endX} ${endY}`;
       const landmarks = [about, ...[...document.querySelectorAll<HTMLElement>(".project-image")].map(image => image.getBoundingClientRect().top - rect.top + image.clientHeight / 2)];
       setLayout({ d, heroD, width, mainTop: rect.top + window.scrollY, about, landmarks, height: main.offsetHeight });
     };
@@ -74,7 +74,8 @@ export default function SignalRoute() {
       measure();
     });
     window.addEventListener("resize", measure);
-    return () => { mounted = false; observer.disconnect(); window.removeEventListener("resize", measure); };
+    window.addEventListener("signal-route-measure", measure);
+    return () => { mounted = false; observer.disconnect(); window.removeEventListener("resize", measure); window.removeEventListener("signal-route-measure", measure); };
   }, []);
 
   useEffect(() => {
