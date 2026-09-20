@@ -45,7 +45,7 @@ export default function EditorialPortfolio() {
           <div className="about-affiliations">
             <div className="affiliation"><OrgMark name="spotify" /><span>Spotify<small>Data Engineer</small></span></div>
             <div className="affiliation affiliation--nyu"><OrgMark name="nyu" /><span>NYU Tandon<small>Computer Science ’26</small></span></div>
-            <div className="affiliation"><OrgMark name="arc" /><span>Team Ultraviolet<small>RoboMaster CV Lead</small></span></div>
+            <div className="affiliation"><OrgMark name="arc" /><span>ARC Robotics<small>Former RoboMaster CV Lead</small></span></div>
           </div>
           <p className="about-offscreen">Usually building Gunpla or watching a murder mystery. Sometimes on the basketball court.</p>
         </div>
