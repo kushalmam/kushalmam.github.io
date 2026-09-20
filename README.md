@@ -1,18 +1,27 @@
-# Kushal Mamillapalli — Behind the interface
+# Kushal Mamillapalli — Portfolio
 
-The homepage uses an original Blender assembly beside HTML copy. Neutral silver,
-clear acrylic, graphite, and a lime insert sit on graphite or warm-paper foundations.
-A locally rendered transparent video adds a slow ±4° turn and tiny layer shifts;
-CSS adds a 6px total drift and damped mouse parallax. Offscreen, hidden-document,
-manual pause, reduced-motion, and poster fallback behavior live in `AssemblyVisual.tsx`.
-There is no client-side 3D renderer or hosted scene dependency.
+Warm paper, muted teal typography, and a continuous sculpted signal route.
+Page order: name-led hero → About → four project cards → Contact + Résumé.
 
-Page order: hero → Spotify context → Rekindle → About/Experience → remaining
-projects → Contact. Case studies share one disclosure state across both work sections.
+`SignalRoute.tsx` measures the page after layout and font changes. Its route drives
+three depth-tested tube meshes in `src/scene/createSignalScene.ts`. Surface lighting,
+subtle scroll deformation, and nearby signal illumination use custom shaders. The
+viewport-sized renderer is lazy-loaded, caps pixel density, renders only on change,
+and releases its GPU resources on teardown. Reduced motion freezes the strands
+and removes the traveling signal. A styled SVG remains if WebGL is unavailable.
 
-The editable Blender scene and reproducible scripts live in `scripts/hero/`.
-See [the asset workflow](scripts/hero/README.md) for rendering and compression.
-Only optimized WebP posters and the WebM in `public/images/hero/` ship with the website.
+Light mode pairs warm paper with teal enamel. Dark mode uses deep green-black,
+warm ivory, and a sharper patinated-metal response. Theme selection follows the
+system until overridden, persists locally, and paints before React to avoid flashes.
+The portrait and Spotify/NYU marks reuse existing assets. See
+[the options and art-direction decisions](docs/signal-art-direction.md).
+
+Project previews were restored from commit `3c38b2c`: Rekindle’s original SVG,
+plus the MarketMind, AutoCPT, and NBAnomaly product screenshots. The shared selection
+lives in `src/portfolioProjects.ts`, also used by the no-JavaScript HTML fallback.
+
+The prior Blender assets and experiments remain in the repository as historical
+work; they are not imported by the homepage.
 
 ## Isolated Spline investigation
 

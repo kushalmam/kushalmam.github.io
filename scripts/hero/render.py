@@ -124,7 +124,8 @@ scene.render.image_settings.file_format = 'PNG'
 scene.render.image_settings.color_mode = 'RGBA'
 scene.view_settings.view_transform = 'AgX'
 scene.render.filepath = os.path.join(ROOT, 'scripts/hero/assembly-master.png')
-# One restrained 24-second cycle, also retained in the editable Blender source.
+# Anchored 28-second study. Internal operations occur every 14 seconds,
+# with rest before and after; the camera and whole-object position remain fixed.
 assembly = bpy.data.objects.new('Assembly motion', None)
 scene.collection.objects.link(assembly)
 parts = [obj for obj in scene.objects if obj.type == 'MESH']
@@ -132,17 +133,40 @@ for part in parts:
     part.parent = assembly
 layers = [obj for obj in parts if obj.name.startswith('Optical layer')]
 base_heights = {obj.name: obj.location.z for obj in layers}
+cover = bpy.data.objects['Floating cover interface']
+insert = bpy.data.objects['Lime functional insert']
+key = bpy.data.objects['Large silk key']
 scene.render.fps = 6
 scene.frame_start = 1
-scene.frame_end = 144
-for frame in range(1, 146):
-    phase = (frame - 1) / 144 * math.tau
-    # Blender's Z up-axis becomes the vertical Y axis in web coordinates.
-    assembly.rotation_euler.z = math.radians(4) * math.sin(phase)
+scene.frame_end = 168
+
+def operation(t, start, duration):
+    u = (t - start) / duration
+    return math.sin(math.pi * u) ** 4 if 0 < u < 1 else 0
+
+for frame in range(1, 170):
+    t = (frame - 1) / 6
+    phase = t / 28 * math.tau
+    assembly.rotation_euler.z = math.radians(1.4) * math.sin(phase)
+    assembly.rotation_euler.x = math.radians(.45) * math.sin(phase)
     assembly.keyframe_insert(data_path='rotation_euler', frame=frame)
+    pulse = operation(t % 14, 4, 5)
+    cover.location.z = 1.38 + .035 * pulse
+    cover.keyframe_insert(data_path='location', frame=frame)
+    insert.location.x = -.40 + .020 * pulse
+    insert.keyframe_insert(data_path='location', frame=frame)
     for index, layer in enumerate(layers):
-        layer.location.z = base_heights[layer.name] + .014 * (math.sin(phase + index*.55) - math.sin(index*.55))
+        micro = operation(t % 14, 4.2 + index*.09, 4.3)
+        layer.location.z = base_heights[layer.name] + index * .005 * micro
         layer.keyframe_insert(data_path='location', frame=frame)
+    # A soft, neutral reflection develops across the bevel, then rests.
+    light_pass = operation(t % 14, 1, 11)
+    key.location.x = 1 + .65 * light_pass
+    key.rotation_euler = (Vector((0,0,0))-key.location).to_track_quat('-Z','Y').to_euler()
+    key.keyframe_insert(data_path='location', frame=frame)
+    key.keyframe_insert(data_path='rotation_euler', frame=frame)
+    key.data.energy = 1500 + 110 * light_pass
+    key.data.keyframe_insert(data_path='energy', frame=frame)
 scene.frame_set(1)
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT, 'scripts/hero/assembly.blend'))
 bpy.ops.render.render(write_still=True)
@@ -151,6 +175,6 @@ if os.environ.get('HERO_ANIMATION') == '1':
     scene.render.resolution_x = 700
     scene.render.resolution_y = 700
     scene.cycles.samples = 8
-    scene.render.filepath = os.path.join(ROOT, 'tmp/hero-frames/frame-')
+    scene.render.filepath = os.path.join(ROOT, 'tmp/studio-frames/frame-')
     os.makedirs(os.path.dirname(scene.render.filepath), exist_ok=True)
     bpy.ops.render.render(animation=True)

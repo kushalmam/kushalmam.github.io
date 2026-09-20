@@ -42,7 +42,7 @@ function SpeechDiagram() {
       <div className="speech-signal">
         <span className="diagram-label">Speech</span>
         <div className="natural-wave" aria-hidden="true">
-          {waveform.map((height, index) => <i key={index} style={{ "--bar-index": index, height: `${height}%` } as CSSProperties} />)}
+          {waveform.map((height, index) => <i key={index} data-active={index >= 15 && index < 21 || undefined} style={{ "--bar-index": index, height: `${height}%` } as CSSProperties} />)}
           <span className="audio-playhead" />
         </div>
       </div>
@@ -94,7 +94,7 @@ export default function ProjectVisual({ project }: { project: Project }) {
   const [pageVisible, setPageVisible] = useState(() => !document.hidden);
   const [userPaused, setUserPaused] = useState(false);
   const composition = project.composition;
-  const pace = composition === "award" ? 1500 : composition === "research" ? 2400 : 1800;
+  const pace = composition === "award" ? 3200 : composition === "research" ? 4000 : 3000;
   const hostId = `visual-host-${composition}`;
   const playing = visible && !motionReduced && pageVisible && !userPaused;
 

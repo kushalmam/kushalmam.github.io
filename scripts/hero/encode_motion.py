@@ -6,9 +6,9 @@ import subprocess
 from PIL import Image
 
 root = Path(__file__).resolve().parents[2]
-frames = sorted((root / 'tmp/hero-frames').glob('frame-*.png'))
-if len(frames) != 144:
-    raise SystemExit(f'Expected 144 Blender frames, found {len(frames)}')
+frames = sorted((root / 'tmp/studio-frames').glob('frame-*.png'))
+if len(frames) != 168:
+    raise SystemExit(f'Expected 168 Blender frames, found {len(frames)}')
 output = root / 'public/images/hero/assembly-motion.webm'
 temporary = root / 'tmp/assembly-motion.webm'
 encoder = subprocess.Popen([
@@ -31,4 +31,4 @@ finally:
 if encoder.wait() != 0:
     raise SystemExit('Video encoding failed')
 temporary.replace(output)
-print(f'{output.name}: {output.stat().st_size:,} bytes, 24 seconds, 24 fps')
+print(f'{output.name}: {output.stat().st_size:,} bytes, 28 seconds, 24 fps')
