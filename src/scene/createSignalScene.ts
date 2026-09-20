@@ -1,11 +1,12 @@
 import * as THREE from "three";
 
 type RoutePoint = { x: number; y: number };
-type Options = { canvas: HTMLCanvasElement; points: RoutePoint[]; width: number; mainTop: number; about: number; onLost: () => void };
+type Options = { canvas: HTMLCanvasElement; points: RoutePoint[]; width: number; mainTop: number; about: number; landmarks?: number[]; onLost: () => void };
 
 const vertexShader = /* glsl */`
   uniform float uScroll;
   uniform float uMotion;
+  uniform float uProgress;
   varying vec3 vNormal;
   varying vec3 vPosition;
   varying vec2 vUv;
@@ -14,6 +15,9 @@ const vertexShader = /* glsl */`
     // A small, scroll-driven flex. No perpetual idle loop.
     p.x += sin(p.y * .006 + uScroll * .002) * 2.5 * uMotion;
     p.z += sin(p.y * .009 + uScroll * .003) * 3.0 * uMotion;
+    float packet = exp(-pow((uv.x - uProgress) / .012, 2.0)) * uMotion;
+    p.x += cos(uv.x * 64.0) * packet * 1.4;
+    p.z += packet * 2.2;
     vPosition = p;
     vNormal = normal;
     vUv = uv;
@@ -55,7 +59,7 @@ const fragmentShader = /* glsl */`
 `;
 
 /** Viewport-sized renderer; page coordinates keep geometry anchored to the layout. */
-export function createSignalScene({ canvas, points, width, mainTop, about, onLost }: Options) {
+export function createSignalScene({ canvas, points, width, mainTop, about, landmarks, onLost }: Options) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "low-power" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
   renderer.setSize(width, window.innerHeight, false);
@@ -79,7 +83,8 @@ export function createSignalScene({ canvas, points, width, mainTop, about, onLos
       const nx = -dy / norm, ny = dx / norm;
       const t = i / (rings - 1);
       const opening = Math.exp(-Math.pow((p.y - about - 170) / 240, 2));
-      const spacing = (mobile ? 4 : 7) + opening * (mobile ? 3 : 14);
+      const chapterSpread = (landmarks ?? []).reduce((spread, landmark) => spread + Math.exp(-Math.pow((p.y - landmark) / 115, 2)), 0);
+      const spacing = (mobile ? 4 : 7) + opening * (mobile ? 3 : 14) + chapterSpread * (mobile ? 3 : 10);
       const phase = t * Math.PI * 8 + strand * Math.PI * 2 / 3;
       const offset = Math.cos(phase) * spacing;
       const z = Math.sin(phase) * spacing;
@@ -120,9 +125,9 @@ export function createSignalScene({ canvas, points, width, mainTop, about, onLos
       const point = points[index];
       materials.forEach(material => {
         material.uniforms.uDark.value = dark ? 1 : 0;
-        material.uniforms.uProgress.value = progress;
         material.uniforms.uScroll.value = scroll;
         material.uniforms.uMotion.value = reduced ? 0 : 1;
+        material.uniforms.uProgress.value = progress;
         material.uniforms.uSignal.value.set(point.x, -point.y, 0);
       });
       renderer.render(scene, camera);
