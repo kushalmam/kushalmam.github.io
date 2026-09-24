@@ -130,7 +130,7 @@ export default function EditorialPortfolio() {
       </section>
       <section className="contact section" id="contact" tabIndex={-1} aria-labelledby="contact-title" data-stream-active={activeContactWord ?? undefined}>
         <h2 id="contact-title" aria-label="Let’s build, make, ship, explore, and talk." data-reveal><TextStream
-          prefix={<>Let<span className="signal-terminal">’</span>s</>}
+          prefix={<>Let<span className="signal-terminal">’<span className="signal-terminal-socket" data-signal-terminal="" /></span>s</>}
           items={contactStreamItems}
           className="contact-stream"
           onActiveItemChange={setActiveContactWord}

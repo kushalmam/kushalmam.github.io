@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { signalProgress } from "./signalProgress";
+import { contactApproach } from "./contactApproach";
 
 /** The measured route anchors both the 3D braid and its no-WebGL fallback. */
 export default function SignalRoute() {
@@ -17,7 +18,7 @@ export default function SignalRoute() {
     const measure = () => {
       if (!mounted || !layoutReady || document.fonts.status !== "loaded") return;
       const origin = document.querySelector<HTMLElement>("[data-signal-origin]");
-      const terminal = document.querySelector<HTMLElement>(".signal-terminal");
+      const terminal = document.querySelector<HTMLElement>("[data-signal-terminal]");
       const topSection = document.getElementById("top");
       const aboutSection = document.getElementById("about");
       const workSection = document.getElementById("work");
@@ -56,10 +57,7 @@ export default function SignalRoute() {
       const endX = terminalRect.left - rect.left + terminalRect.width / 2;
       const endY = terminalRect.top - rect.top + terminalRect.height / 2;
       const approachHeight = mobile ? 240 : 430;
-      const landingX = endX + (mobile ? 12 : 20);
-      // Complete the broad turn above the reading area. By the time the cable is
-      // visible beside the headline, the active strand is already on its calm descent.
-      d += ` L ${center} ${endY - approachHeight} C ${center} ${endY - approachHeight * .54}, ${landingX + 74} ${endY - approachHeight * .66}, ${landingX} ${endY - approachHeight * .36} C ${landingX} ${endY - approachHeight * .12}, ${landingX} ${endY - 36}, ${endX} ${endY}`;
+      d += ` ${contactApproach(center, { x: endX, y: endY }, approachHeight).d}`;
       const landmarks = [about, ...[...document.querySelectorAll<HTMLElement>(".project-image")].map(image => image.getBoundingClientRect().top - rect.top + image.clientHeight / 2)];
       setLayout({ d, heroD, width, mainTop: rect.top + window.scrollY, about, landmarks, height: main.offsetHeight });
     };

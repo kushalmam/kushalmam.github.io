@@ -367,8 +367,7 @@ main[data-reveal-ready="true"] .contact h2[data-reveal] { transform: none; }
   text-shadow: 0 0 .09em color-mix(in srgb, var(--mint), transparent 28%);
   isolation: isolate;
 }
-.contact h2 .signal-terminal::after {
-  content: "";
+.contact h2 .signal-terminal-socket {
   position: absolute;
   z-index: -1;
   top: .16em;
@@ -383,8 +382,8 @@ main[data-reveal-ready="true"] .contact h2[data-reveal] { transform: none; }
   transform: translateX(-50%);
   transition: opacity .4s ease, background-color .4s ease, box-shadow .4s ease;
 }
-main[data-signal-at-contact="true"] .contact h2 .signal-terminal::after,
-.contact[data-stream-active] h2 .signal-terminal::after {
+main[data-signal-at-contact="true"] .contact h2 .signal-terminal-socket,
+.contact[data-stream-active] h2 .signal-terminal-socket {
   opacity: 1;
   background: var(--mint);
   box-shadow: 0 0 .5em var(--mint);

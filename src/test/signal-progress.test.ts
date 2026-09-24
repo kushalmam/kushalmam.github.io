@@ -11,4 +11,7 @@ it("keeps the packet on the reading line after the hero despite unequal path len
   expect(y - 1200 + 100).toBeCloseTo(450);
   expect(signalProgress(points, 0, 1000, 100, 900, 2600)).toBe(.008);
   expect(signalProgress(points, 2600, 1000, 100, 900, 2600)).toBe(1);
+  const beforeEnd = signalProgress(points, 2599, 1000, 100, 900, 2600);
+  expect(beforeEnd).toBeGreaterThan(.999);
+  expect(signalProgress(points, 2480, 1000, 100, 900, 2600)).toBeLessThan(beforeEnd);
 });
