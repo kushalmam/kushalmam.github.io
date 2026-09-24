@@ -10,8 +10,8 @@ viewport-sized renderer is lazy-loaded, caps pixel density, renders only on chan
 and releases its GPU resources on teardown. Reduced motion freezes the strands
 and removes the traveling signal. A styled SVG remains if WebGL is unavailable.
 
-Light mode pairs warm paper with teal enamel. Dark mode uses deep green-black,
-warm ivory, and a sharper patinated-metal response. Theme selection follows the
+Light mode pairs warm paper with teal enamel. Dark mode uses charcoal-black,
+warm ivory, and a sharper steel response. Theme selection follows the
 system until overridden, persists locally, and paints before React to avoid flashes.
 The portrait and Spotify/NYU marks reuse existing assets. See
 [the options and art-direction decisions](docs/signal-art-direction.md).

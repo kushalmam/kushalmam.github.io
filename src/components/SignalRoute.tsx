@@ -88,6 +88,11 @@ export default function SignalRoute() {
     let pointerStrength = 0;
     let targetPointerStrength = 0;
     let pointer = { x: 10000, y: 10000 };
+    let hoveredCard = -1;
+    let focusedCard = -1;
+    let focusStrength = 0;
+    let targetFocusStrength = 0;
+    let focusY = 10000;
     let scene: ReturnType<typeof import("../scene/createSignalScene").createSignalScene> | undefined;
     const points = Array.from({ length: 801 }, (_, i) => {
       const p = path.current!.getPointAtLength(length * i / 800);
@@ -98,6 +103,7 @@ export default function SignalRoute() {
       energy += (targetEnergy - energy) * .2;
       targetEnergy *= .86;
       pointerStrength += (targetPointerStrength - pointerStrength) * .2;
+      focusStrength += (targetFocusStrength - focusStrength) * .45;
       const max = document.documentElement.scrollHeight - window.innerHeight;
       const progress = signalProgress(points, window.scrollY, window.innerHeight, layout.mainTop, layout.about, max);
       const distance = progress * length;
@@ -107,9 +113,10 @@ export default function SignalRoute() {
         else delete main.dataset.signalAtContact;
       }
       scene?.render(window.scrollY, distance / length, document.documentElement.dataset.theme === "dark", reduced.matches,
-        energy, { x: pointer.x, y: -(pointer.y + window.scrollY - layout.mainTop) }, pointerStrength);
+        energy, { x: pointer.x, y: -(pointer.y + window.scrollY - layout.mainTop) }, pointerStrength,
+        { y: focusY, strength: focusStrength });
       frame = 0;
-      if (!reduced.matches && !document.hidden && (energy > .005 || targetEnergy > .005 || Math.abs(pointerStrength - targetPointerStrength) > .005)) {
+      if (!reduced.matches && !document.hidden && (energy > .005 || targetEnergy > .005 || Math.abs(pointerStrength - targetPointerStrength) > .005 || Math.abs(focusStrength - targetFocusStrength) > .005)) {
         frame = requestAnimationFrame(paint);
       }
     };
@@ -147,6 +154,32 @@ export default function SignalRoute() {
       targetPointerStrength = 0;
       schedule();
     };
+    const syncFocus = () => {
+      const index = hoveredCard >= 0 ? hoveredCard : focusedCard;
+      targetFocusStrength = index >= 0 ? 1 : 0;
+      if (index >= 0) focusY = -layout.landmarks[index + 1];
+      schedule();
+    };
+    const projectCards = [...document.querySelectorAll<HTMLElement>(".project-card")];
+    const cardListeners = projectCards.map((card, index) => {
+      const enter = (event: PointerEvent) => { if (event.pointerType === "mouse") { hoveredCard = index; syncFocus(); } };
+      const leave = () => { if (hoveredCard === index) { hoveredCard = -1; syncFocus(); } };
+      const focus = () => { focusedCard = index; syncFocus(); };
+      const blur = () => { if (focusedCard === index) { focusedCard = -1; syncFocus(); } };
+      card.addEventListener("pointerenter", enter);
+      card.addEventListener("pointerleave", leave);
+      card.addEventListener("focusin", focus);
+      card.addEventListener("focusout", blur);
+      return () => {
+        card.removeEventListener("pointerenter", enter);
+        card.removeEventListener("pointerleave", leave);
+        card.removeEventListener("focusin", focus);
+        card.removeEventListener("focusout", blur);
+      };
+    });
+    focusedCard = projectCards.findIndex(card => card.contains(document.activeElement));
+    hoveredCard = projectCards.findIndex(card => card.matches(":hover"));
+    if (focusedCard >= 0 || hoveredCard >= 0) syncFocus();
     window.addEventListener("scroll", scroll, { passive: true });
     window.addEventListener("resize", schedule);
     window.addEventListener("pointermove", pointerMove, { passive: true });
@@ -178,6 +211,7 @@ export default function SignalRoute() {
       window.removeEventListener("resize", schedule);
       window.removeEventListener("pointermove", pointerMove);
       window.removeEventListener("pointerout", pointerOut);
+      cardListeners.forEach(remove => remove());
       reduced.removeEventListener("change", schedule);
       cancelAnimationFrame(frame);
     };

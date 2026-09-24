@@ -706,7 +706,7 @@ h1>span {
 .static-fallback a {
   text-decoration: underline;
 }
-/* Daylight enamel / evening patina. The grid stays below the reading plane. */
+/* Daylight enamel / charcoal studio. The grid stays below the reading plane. */
 :root {
   --paper: #f3f1e9;
   --ink: #244e49;
@@ -722,18 +722,18 @@ h1>span {
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --paper: #111c1b;
-  --ink: #e2e5d6;
-  --muted: #a3b5aa;
-  --grid: rgba(185, 215, 194, .055);
-  --line: #334742;
-  --mint: #a1edbf;
-  --cta-base: #31594e;
+  --paper: #0b0e10;
+  --ink: #e6e7df;
+  --muted: #a5aeaa;
+  --grid: rgba(199, 207, 207, .035);
+  --line: #303738;
+  --mint: #a6e7ca;
+  --cta-base: #344644;
   --cta-text: #f1f1e7;
-  --mount-book: #393b32;
-  --mount-market: #223d34;
-  --mount-clinical: #283840;
-  --mount-sport: #3e352c;
+  --mount-book: #343431;
+  --mount-market: #293330;
+  --mount-clinical: #2b3337;
+  --mount-sport: #36312d;
 }
 body {
   background-color: var(--paper);
@@ -837,13 +837,13 @@ main[data-reveal-ready="true"] [data-reveal][data-revealed="true"] {
   filter: none;
 }
 :root[data-theme="dark"] .signal-canvas {
-  filter: drop-shadow(3px 9px 6px #0009);
+  filter: drop-shadow(5px 13px 8px #000e);
 }
 :root[data-theme="dark"] .cable-body, :root[data-theme="dark"] .cable-shadow {
-  stroke: #548774;
+  stroke: #65777a;
 }
 :root[data-theme="dark"] .cable-light {
-  stroke: #a4caba;
+  stroke: #b9c8c7;
 }
 .about {
   grid-template-columns: .82fr 1.18fr;

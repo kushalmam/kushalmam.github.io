@@ -35,6 +35,8 @@ const fragmentShader = /* glsl */`
   uniform float uProgress;
   uniform float uMotion;
   uniform float uEnergy;
+  uniform float uFocusY;
+  uniform float uFocusStrength;
   uniform vec3 uSignal;
   varying vec3 vNormal;
   varying vec3 vPosition;
@@ -47,17 +49,19 @@ const fragmentShader = /* glsl */`
     float studio = pow(max(dot(n, normalize(vec3(-.32,.9,1.45))), 0.), 5.0);
     float strip = pow(max(dot(n, normalize(vec3(.22,.25,1.0))), 0.), 42.0);
     float rim = pow(max(dot(n, fill), 0.), 18.0);
-    vec3 base = mix(vec3(.09,.25,.22), vec3(.09,.17,.16), uDark);
+    vec3 base = mix(vec3(.09,.25,.22), vec3(.085,.105,.115), uDark);
     base *= 1.0 + uStrand * .035;
     vec3 color = base * (.48 + .62 * diffuse);
-    color += studio * mix(vec3(.50,.56,.48), vec3(.38,.48,.43), uDark) * .58;
-    color += strip * mix(vec3(.70,.75,.65), vec3(.62,.75,.68), uDark) * (.52 + uEnergy * .12);
-    color += rim * mix(vec3(.12,.22,.18), vec3(.16,.27,.23), uDark);
+    color += studio * mix(vec3(.50,.56,.48), vec3(.37,.43,.45), uDark) * .58;
+    color += strip * mix(vec3(.70,.75,.65), vec3(.71,.78,.78), uDark) * (.52 + uEnergy * .12);
+    color += rim * mix(vec3(.12,.22,.18), vec3(.17,.24,.25), uDark);
+    float focus = exp(-pow((vPosition.y - uFocusY) / 66.0, 2.0)) * uFocusStrength;
+    color += focus * (1.0 - uStrand * .18) * (vec3(.12,.16,.17) + studio * vec3(.23,.32,.33) + strip * vec3(.30,.44,.44));
     float collar = (1.0 - step(.5, uStrand)) * smoothstep(.931,.938,vUv.x) * (1.0 - smoothstep(.953,.960,vUv.x));
     color = mix(color, mix(vec3(.46,.52,.44), vec3(.43,.53,.48), uDark) * (.66 + .42 * diffuse) + strip * .32, collar);
     float band = exp(-pow((vUv.x - uProgress) / .0045, 2.));
     float spill = exp(-length(vPosition - uSignal) / 30.);
-    vec3 mint = vec3(.45, .93, .65);
+    vec3 mint = mix(vec3(.45, .93, .65), vec3(.55, .90, .77), uDark);
     float activeStrand = 1.0 - step(.5, uStrand);
     color += mint * (band * mix(.20, .75, activeStrand) + spill * mix(.05, .17, activeStrand)) * uMotion;
     gl_FragColor = vec4(color, 1.);
@@ -81,6 +85,8 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
   const geometries: THREE.BufferGeometry[] = [];
   const rings = points.length;
   const sides = 12;
+  const firstProject = landmarks?.[1] ?? Number.POSITIVE_INFINITY;
+  const projectLandmarks = landmarks?.slice(1) ?? [];
   for (let strand = 0; strand < 3; strand++) {
     const positions: number[] = [], normals: number[] = [], uvs: number[] = [], indices: number[] = [];
     const centers: THREE.Vector3[] = [];
@@ -93,17 +99,21 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
       const nx = -dy / norm, ny = dx / norm;
       const t = i / (rings - 1);
       const opening = Math.exp(-Math.pow((p.y - about - 170) / 240, 2));
-      const chapterSpread = (landmarks ?? []).reduce((spread, landmark) => spread + Math.exp(-Math.pow((p.y - landmark) / 115, 2)), 0);
-      const spacing = (mobile ? 4 : 7) + opening * (mobile ? 3 : 14) + chapterSpread * (mobile ? 3 : 10);
+      const projectBreath = Math.min(1.45, projectLandmarks.reduce((spread, landmark) => spread + Math.exp(-Math.pow((p.y - landmark) / 125, 2)), 0));
+      const spacing = (mobile ? 4 : 7) + opening * (mobile ? 3 : 14);
       const phase = t * Math.PI * 8 + strand * Math.PI * 2 / 3;
       const contactLead = THREE.MathUtils.smoothstep(t, .82, .94);
       const terminalFade = strand === 0 ? 0 : THREE.MathUtils.smoothstep(t, .89, .95);
       const braidedOffset = Math.cos(phase) * spacing;
-      const offset = THREE.MathUtils.lerp(braidedOffset, 0, contactLead);
-      const z = THREE.MathUtils.lerp(Math.sin(phase) * spacing, strand === 0 ? 1 : -5, contactLead);
+      const projectBlend = THREE.MathUtils.smoothstep(p.y, firstProject - 480, firstProject - 270) * (1 - contactLead);
+      const lane = (strand - 1) * ((mobile ? 5 : 8) + projectBreath * (mobile ? 2 : 4));
+      const offset = THREE.MathUtils.lerp(THREE.MathUtils.lerp(braidedOffset, lane, projectBlend), 0, contactLead);
+      const layeredZ = (1 - strand) * (mobile ? 9 : 15);
+      const z = THREE.MathUtils.lerp(THREE.MathUtils.lerp(Math.sin(phase) * spacing, layeredZ, projectBlend), strand === 0 ? 1 : -5, contactLead);
       const taper = 1 - .35 * THREE.MathUtils.smoothstep(p.y, about - 100, about + 200);
       const collar = strand === 0 ? THREE.MathUtils.smoothstep(t, .931, .938) * (1 - THREE.MathUtils.smoothstep(t, .953, .960)) : 0;
-      const radius = (mobile ? 3.4 : 5.9) * taper * (1 - .24 * THREE.MathUtils.smoothstep(t, .92, 1)) * (1 - terminalFade) * (1 + collar * .28);
+      const depthScale = THREE.MathUtils.lerp(1, strand === 0 ? 1.16 : strand === 2 ? .86 : 1, projectBlend);
+      const radius = (mobile ? 3.4 : 5.9) * taper * depthScale * (1 - .24 * THREE.MathUtils.smoothstep(t, .92, 1)) * (1 - terminalFade) * (1 + collar * .28);
       centers.push(new THREE.Vector3(p.x + nx * offset, -p.y - ny * offset, z));
       radii.push(radius);
     }
@@ -136,7 +146,8 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
     const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader, side: THREE.DoubleSide, uniforms: {
       uDark: { value: 0 }, uStrand: { value: strand }, uProgress: { value: 0 }, uScroll: { value: 0 },
       uMotion: { value: 1 }, uEnergy: { value: 0 }, uPointer: { value: new THREE.Vector2(10000, 10000) },
-      uPointerStrength: { value: 0 }, uSignal: { value: new THREE.Vector3() },
+      uPointerStrength: { value: 0 }, uFocusY: { value: 10000 }, uFocusStrength: { value: 0 },
+      uSignal: { value: new THREE.Vector3() },
     } });
     scene.add(new THREE.Mesh(geometry, material));
     geometries.push(geometry); materials.push(material);
@@ -148,7 +159,7 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
     prepare() {
       return renderer.compileAsync(scene, camera);
     },
-    render(scroll: number, progress: number, dark: boolean, reduced: boolean, energy = 0, pointer = { x: 10000, y: 10000 }, pointerStrength = 0) {
+    render(scroll: number, progress: number, dark: boolean, reduced: boolean, energy = 0, pointer = { x: 10000, y: 10000 }, pointerStrength = 0, focus = { y: 10000, strength: 0 }) {
       if (disposed) return;
       camera.position.y = mainTop - scroll;
       const index = Math.min(points.length - 1, Math.round(progress * (points.length - 1)));
@@ -160,6 +171,8 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
         material.uniforms.uEnergy.value = reduced ? 0 : energy;
         material.uniforms.uPointer.value.set(pointer.x, pointer.y);
         material.uniforms.uPointerStrength.value = reduced ? 0 : pointerStrength;
+        material.uniforms.uFocusY.value = focus.y;
+        material.uniforms.uFocusStrength.value = reduced ? 0 : focus.strength;
         material.uniforms.uProgress.value = progress;
         material.uniforms.uSignal.value.set(point.x, -point.y, 0);
       });

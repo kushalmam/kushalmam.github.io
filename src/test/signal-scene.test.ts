@@ -22,7 +22,7 @@ it("anchors the camera during scrolling, handles reduced motion, and disposes ea
     points: Array.from({ length: 101 }, (_, i) => ({ x: 100 + Math.sin(i / 10) * 30, y: i * 30 })),
   });
   expect(calls.size).toHaveBeenCalledWith(1000, window.innerHeight, false);
-  signal.render(500, .4, true, false, .75, { x: 210, y: -480 }, .8);
+  signal.render(500, .4, true, false, .75, { x: 210, y: -480 }, .8, { y: -900, strength: .7 });
   const [scene, camera] = calls.render.mock.lastCall as [THREE.Scene, THREE.OrthographicCamera];
   expect(camera.position.y).toBe(-400);
   const meshes = scene.children as THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial>[];
@@ -39,12 +39,15 @@ it("anchors the camera during scrolling, handles reduced motion, and disposes ea
     expect(mesh.material.uniforms.uEnergy.value).toBe(.75);
     expect(mesh.material.uniforms.uPointer.value).toEqual(new THREE.Vector2(210, -480));
     expect(mesh.material.uniforms.uPointerStrength.value).toBe(.8);
+    expect(mesh.material.uniforms.uFocusY.value).toBe(-900);
+    expect(mesh.material.uniforms.uFocusStrength.value).toBe(.7);
   }
-  signal.render(750, .6, false, true, .75, { x: 210, y: -480 }, .8);
+  signal.render(750, .6, false, true, .75, { x: 210, y: -480 }, .8, { y: -900, strength: .7 });
   expect(meshes[0].material.uniforms.uMotion.value).toBe(0);
   expect(meshes[0].material.uniforms.uDark.value).toBe(0);
   expect(meshes[0].material.uniforms.uEnergy.value).toBe(0);
   expect(meshes[0].material.uniforms.uPointerStrength.value).toBe(0);
+  expect(meshes[0].material.uniforms.uFocusStrength.value).toBe(0);
   canvas.dispatchEvent(new Event("webglcontextlost", { cancelable: true }));
   expect(lost).toHaveBeenCalledOnce();
   signal.dispose(); signal.dispose();
@@ -53,4 +56,25 @@ it("anchors the camera during scrolling, handles reduced motion, and disposes ea
   const count = calls.render.mock.calls.length;
   signal.render(900, .8, false, false);
   expect(calls.render).toHaveBeenCalledTimes(count);
+});
+
+it.each([375, 1000])("keeps the three work strands in ordered lanes beside all four projects at %ipx", width => {
+  const signal = createSignalScene({
+    canvas: document.createElement("canvas"), width, mainTop: 0, about: 300,
+    landmarks: [300, 900, 980, 1500, 1580], onLost: vi.fn(),
+    points: Array.from({ length: 101 }, (_, i) => ({ x: width / 2, y: i * 30 })),
+  });
+  signal.render(900, .4, true, false);
+  const [scene] = calls.render.mock.lastCall as [THREE.Scene];
+  const meshes = scene.children as THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial>[];
+  for (const ring of [30, 33, 50, 53]) {
+    const centers = meshes.map(mesh => {
+      const positions = mesh.geometry.getAttribute("position");
+      const first = ring * 13;
+      return (positions.getX(first) + positions.getX(first + 6)) / 2;
+    });
+    expect(centers[0]).toBeGreaterThan(centers[1]);
+    expect(centers[1]).toBeGreaterThan(centers[2]);
+  }
+  signal.dispose();
 });
