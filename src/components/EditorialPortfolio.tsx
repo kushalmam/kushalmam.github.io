@@ -114,9 +114,9 @@ export default function EditorialPortfolio() {
         </div>
       </section>
       <section className="work section" id="work" tabIndex={-1} aria-labelledby="work-title">
-        <div className="work-heading"><h2 id="work-title" data-reveal>Selected work<span>.</span></h2></div>
+        <div className="work-heading"><h2 id="work-title">Selected work<span>.</span></h2></div>
         <div className="project-grid">{portfolioProjects.map((project, index) => <article className={`project-card project-card--${index}`} key={project.name}>
-          <a href={project.href} target="_blank" rel="noopener noreferrer" aria-label={`View ${project.name} on GitHub`} data-reveal style={revealDelay(index * 85)}>
+          <a href={project.href} target="_blank" rel="noopener noreferrer" aria-label={`View ${project.name} on GitHub`}>
             <div className="project-image"><img src={asset(`images/projects/${project.image}`)} alt={project.alt} loading="lazy" width="1400" height="800" /><span className="project-open" aria-hidden="true">↗</span></div>
             <div className="project-caption"><h3>{project.name}</h3><p>{project.description}</p></div>
           </a>

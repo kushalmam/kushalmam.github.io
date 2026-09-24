@@ -45,7 +45,8 @@ export default function SignalRoute() {
       } else {
         const portrait = document.querySelector(".about-portrait")!.getBoundingClientRect();
         const bottom = portrait.bottom - rect.top;
-        d += ` C ${rail} ${about + 150}, ${width * .07} ${bottom + 60}, ${width * .24} ${bottom + 90} C ${width * .40} ${bottom + 120}, ${center} ${work - 110}, ${center} ${work + 5}`;
+        const turn = bottom + 32;
+        d += ` L ${rail} ${turn} C ${rail} ${turn + 70}, ${center} ${work - 95}, ${center} ${work + 5}`;
       }
       const cards = [...document.querySelectorAll<HTMLElement>(".project-card")];
       cards.forEach((card, i) => {
