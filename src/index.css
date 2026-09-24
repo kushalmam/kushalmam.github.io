@@ -938,44 +938,6 @@ main[data-reveal-ready="true"] [data-reveal][data-revealed="true"] {
 .project-card--3 .project-image {
   background: var(--mount-sport);
 }
-.project-card--0 { --project-signal: #77977c; }
-.project-card--1 { --project-signal: #aa8060; }
-.project-card--2 { --project-signal: #688c99; }
-.project-card--3 { --project-signal: #a16e56; }
-.project-signal {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  color: var(--project-signal);
-  opacity: .27;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-  transition: opacity .4s ease;
-}
-.project-signal path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.2;
-  vector-effect: non-scaling-stroke;
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset 1.4s cubic-bezier(.2,.7,.2,1);
-}
-.project-card a:hover .project-signal,
-.project-card a:focus-visible .project-signal {
-  opacity: .44;
-}
-.project-card a:hover .project-signal path,
-.project-card a:focus-visible .project-signal path {
-  stroke-dashoffset: -320;
-}
-:root[data-theme="dark"] .project-signal {
-  mix-blend-mode: screen;
-  opacity: .33;
-}
 .project-card--0 img {
   width: 94%;
   height: auto;
@@ -1130,10 +1092,6 @@ main[data-reveal-ready="true"] [data-reveal][data-revealed="true"] {
 @media(prefers-reduced-motion:reduce) {
   .signal-route,
   .signal-canvas {
-    transition: none;
-  }
-  .project-signal,
-  .project-signal path {
     transition: none;
   }
 }
