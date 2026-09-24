@@ -82,6 +82,12 @@ export default function SignalRoute() {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0;
     let disposed = false;
+    let lastScroll = window.scrollY;
+    let energy = 0;
+    let targetEnergy = 0;
+    let pointerStrength = 0;
+    let targetPointerStrength = 0;
+    let pointer = { x: 10000, y: 10000 };
     let scene: ReturnType<typeof import("../scene/createSignalScene").createSignalScene> | undefined;
     const points = Array.from({ length: 801 }, (_, i) => {
       const p = path.current!.getPointAtLength(length * i / 800);
@@ -89,6 +95,9 @@ export default function SignalRoute() {
     });
     setReady(false);
     const paint = () => {
+      energy += (targetEnergy - energy) * .2;
+      targetEnergy *= .86;
+      pointerStrength += (targetPointerStrength - pointerStrength) * .2;
       const max = document.documentElement.scrollHeight - window.innerHeight;
       const progress = signalProgress(points, window.scrollY, window.innerHeight, layout.mainTop, layout.about, max);
       const distance = progress * length;
@@ -97,8 +106,12 @@ export default function SignalRoute() {
         if (progress > .982) main.dataset.signalAtContact = "true";
         else delete main.dataset.signalAtContact;
       }
-      scene?.render(window.scrollY, distance / length, document.documentElement.dataset.theme === "dark", reduced.matches);
+      scene?.render(window.scrollY, distance / length, document.documentElement.dataset.theme === "dark", reduced.matches,
+        energy, { x: pointer.x, y: -(pointer.y + window.scrollY - layout.mainTop) }, pointerStrength);
       frame = 0;
+      if (!reduced.matches && !document.hidden && (energy > .005 || targetEnergy > .005 || Math.abs(pointerStrength - targetPointerStrength) > .005)) {
+        frame = requestAnimationFrame(paint);
+      }
     };
     import("../scene/createSignalScene").then(async ({ createSignalScene }) => {
       if (disposed || !canvas.current) return;
@@ -117,12 +130,38 @@ export default function SignalRoute() {
       } catch { setReady(false); setFallback(true); }
     }).catch(() => { if (!disposed) { setReady(false); setFallback(true); } });
     const schedule = () => { if (!document.hidden && !frame) frame = requestAnimationFrame(paint); };
-    window.addEventListener("scroll", schedule, { passive: true });
+    const scroll = () => {
+      const next = window.scrollY;
+      targetEnergy = Math.max(targetEnergy, Math.min(1, Math.abs(next - lastScroll) / 105));
+      lastScroll = next;
+      schedule();
+    };
+    const pointerMove = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse" || reduced.matches) return;
+      pointer = { x: event.clientX, y: event.clientY };
+      targetPointerStrength = 1;
+      schedule();
+    };
+    const pointerOut = (event: PointerEvent) => {
+      if (event.relatedTarget) return;
+      targetPointerStrength = 0;
+      schedule();
+    };
+    window.addEventListener("scroll", scroll, { passive: true });
     window.addEventListener("resize", schedule);
+    window.addEventListener("pointermove", pointerMove, { passive: true });
+    window.addEventListener("pointerout", pointerOut);
     reduced.addEventListener("change", schedule);
     const themeObserver = new MutationObserver(schedule);
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    const visibility = () => { if (!document.hidden) schedule(); };
+    const visibility = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+        targetEnergy = 0;
+        targetPointerStrength = 0;
+      } else schedule();
+    };
     document.addEventListener("visibilitychange", visibility);
     paint();
     return () => {
@@ -135,8 +174,10 @@ export default function SignalRoute() {
       scene?.dispose();
       themeObserver.disconnect();
       document.removeEventListener("visibilitychange", visibility);
-      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("scroll", scroll);
       window.removeEventListener("resize", schedule);
+      window.removeEventListener("pointermove", pointerMove);
+      window.removeEventListener("pointerout", pointerOut);
       reduced.removeEventListener("change", schedule);
       cancelAnimationFrame(frame);
     };
