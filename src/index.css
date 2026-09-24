@@ -79,10 +79,10 @@ main {
   gap: 36px;
   font-size: 14px;
 }
-.site-header nav a,footer a,.contact nav a {
+.site-header nav a {
   transition: opacity .2s;
 }
-.site-header nav a:hover,footer a:hover,.contact nav a:hover {
+.site-header nav a:hover {
   opacity: .55;
 }
 .skip-link {
@@ -350,7 +350,7 @@ h1>span {
 }
 .contact {
   margin: 0 10%;
-  padding: 110px 0 65px;
+  padding: 110px 0 48px;
 }
 .contact h2 {
   font-size: clamp(70px,11vw,152px);
@@ -402,6 +402,7 @@ main[data-signal-at-contact="true"] .contact h2 .signal-terminal-socket,
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   margin-top: 65px;
 }
 .resume-link__content {
@@ -414,19 +415,22 @@ main[data-signal-at-contact="true"] .contact h2 .signal-terminal-socket,
   font-size: 10px;
   font-family: 'IBM Plex Mono',monospace;
 }
-.contact nav {
+.contact-links {
   display: flex;
-  gap: 30px;
-  font-size: 13px;
+  gap: 8px;
 }
-footer {
-  margin: 0 10%;
-  padding: 25px 0 30px;
-  border-top: 1px solid var(--line);
+.social-link {
+  min-width: 174px;
+}
+.social-link__content {
   display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--muted);
+  align-items: center;
+  gap: 10px;
+}
+.social-mark {
+  width: 18px;
+  height: 18px;
+  flex: none;
 }
 .signal-route {
   position: absolute;
@@ -590,18 +594,15 @@ footer {
   }
   .contact-bottom {
     margin-top: 40px;
-    align-items: start;
+    align-items: stretch;
     flex-direction: column;
-    gap: 32px;
+    gap: 10px;
   }
-  .contact nav {
-    font-size: 12px;
+  .contact-bottom .arrow-fill-btn {
+    width: 100%;
   }
-  footer {
-    margin: 0 8% 0 62px;
-    font-size: 9px;
-    gap: 20px;
-    line-height: 1.6;
+  .contact-links {
+    flex-direction: column;
   }
   .cable-shadow {
     stroke-width: 18px;
@@ -1033,9 +1034,6 @@ main[data-reveal-ready="true"] [data-reveal][data-revealed="true"] {
 .email-link {
   border-color: var(--line);
 }
-footer {
-  font-size: 11px;
-}
 @media(max-width:1000px) and (min-width:700px) {
   .about {
     gap: 9%;
@@ -1127,9 +1125,6 @@ footer {
   }
   .contact {
     padding-top: 100px;
-  }
-  footer {
-    font-size: 9px;
   }
 }
 @media(prefers-reduced-motion:reduce) {

@@ -5,6 +5,7 @@ import ThemeToggle from "./ThemeToggle";
 import SignalRoute from "./SignalRoute";
 import TextStream from "./TextStream";
 import ArrowFillButton from "./ArrowFillButton";
+import SocialMark from "./SocialMark";
 import FlipText from "./FlipText";
 import { portfolioProjects } from "../portfolioProjects";
 
@@ -136,9 +137,14 @@ export default function EditorialPortfolio() {
           onActiveItemChange={setActiveContactWord}
         /></h2>
         <a className="email-link" href="mailto:kushalmam06@gmail.com" data-reveal style={revealDelay(100)}>kushalmam06@gmail.com <span aria-hidden="true">↗</span></a>
-        <div className="contact-bottom" data-reveal style={revealDelay(180)}><ArrowFillButton className="resume-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" href={asset("documents/kushal-mamillapalli-resume.pdf")} target="_blank" rel="noopener noreferrer"><span className="resume-link__content"><span>Résumé</span><span className="resume-link__format">PDF ↗</span></span></ArrowFillButton><nav aria-label="Professional links"><a href="https://linkedin.com/in/kushal-mamillapalli" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="https://github.com/Techdude01" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav></div>
+        <div className="contact-bottom" data-reveal style={revealDelay(180)}>
+          <ArrowFillButton className="resume-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" href={asset("documents/kushal-mamillapalli-resume.pdf")} target="_blank" rel="noopener noreferrer"><span className="resume-link__content"><span>Résumé</span><span className="resume-link__format">PDF ↗</span></span></ArrowFillButton>
+          <nav className="contact-links" aria-label="Professional links">
+            <ArrowFillButton className="social-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" href="https://linkedin.com/in/kushal-mamillapalli" target="_blank" rel="noopener noreferrer"><span className="social-link__content"><SocialMark name="linkedin" />LinkedIn</span></ArrowFillButton>
+            <ArrowFillButton className="social-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" href="https://github.com/Techdude01" target="_blank" rel="noopener noreferrer"><span className="social-link__content"><SocialMark name="github" />GitHub</span></ArrowFillButton>
+          </nav>
+        </div>
       </section>
     </main>
-    <footer><span>© {new Date().getFullYear()} Kushal Mamillapalli</span><a href="#top" onClick={navigate}>Back to top ↑</a></footer>
   </>;
 }
