@@ -37,7 +37,7 @@ export default function SignalRoute() {
       const startX = originRect.left - rect.left + originRect.width / 2;
       const startY = originRect.top - rect.top + originRect.height / 2;
       let d = mobile
-        ? `M ${startX} ${startY} C ${width * .99} ${startY - 35}, ${width * .99} 320, ${width * .74} 365 C ${width * .55} 405, ${rail} 370, ${rail} ${hero - 15} L ${rail} ${about}`
+        ? `M ${startX} ${startY} C ${width * .99} ${startY - 35}, ${width * .99} 320, ${width * .74} 365 C ${width * .55} 405, ${rail} 370, ${rail} ${hero - 150} L ${rail} ${about}`
         : `M ${startX} ${startY} C ${width * .71} ${startY - 90}, ${width * .94} ${startY - 70}, ${width * .90} 365 C ${width * .85} 610, ${width * .28} 515, ${width * .17} 610 C ${rail} 670, ${rail} ${hero - 15}, ${rail} ${about}`;
       const heroD = d;
       if (mobile) {
