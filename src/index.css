@@ -157,6 +157,11 @@ h1>span {
   cursor: default;
   transform-style: preserve-3d;
 }
+.flip-text__glyph {
+  display: inline-block;
+  pointer-events: none;
+  transform-style: preserve-3d;
+}
 .name-origin-i {
   position: relative;
   display: inline-block;

@@ -5,7 +5,7 @@ import "./text-stream.css";
 type Props = { items: string[]; prefix: ReactNode; paused?: boolean; className?: string; onActiveItemChange?: (item: string) => void };
 
 /**
- * Scroll-momentum loop adapted from ObsidianUI's official Text Stream source:
+ * Continuous upward loop adapted from ObsidianUI's official Text Stream source:
  * https://www.obsidianui.dev/docs/text-stream
  * The centered mask and per-line focus falloff are tuned for this site's contact title.
  */
@@ -15,7 +15,7 @@ export default function TextStream({ items, prefix, paused = false, className = 
   const contentRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const [copyCount, setCopyCount] = useState(1);
-  const [inView, setInView] = useState(false);
+  const [inView, setInView] = useState(() => !("IntersectionObserver" in window));
   const [reduceMotion, setReduceMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const activeItemRef = useRef<string>();
 
@@ -40,10 +40,8 @@ export default function TextStream({ items, prefix, paused = false, className = 
     const viewport = viewportRef.current;
     if (!track || !content || !viewport || paused || !inView || reduceMotion || !items.length) return;
 
-    const baseSpeed = .38;
-    const metrics = { y: 0, distance: 0, velocity: baseSpeed, targetVelocity: baseSpeed, direction: 1 };
-    let lastScroll = window.scrollY;
-    let timeout = 0;
+    const pixelsPerSecond = .38 * 60 * 1.4;
+    const metrics = { y: 0, distance: 0 };
     const start = () => {
       const distance = content.offsetHeight;
       if (!distance || !viewport.offsetHeight) return;
@@ -78,26 +76,11 @@ export default function TextStream({ items, prefix, paused = false, className = 
       }
     };
     const tick = (_time: number, deltaTime: number) => {
-      if (!metrics.distance) return;
-      const frameFactor = deltaTime / (1000 / 60);
-      metrics.velocity = gsap.utils.interpolate(metrics.velocity, metrics.targetVelocity, .12);
-      metrics.y += metrics.velocity * frameFactor;
+      if (!metrics.distance || document.hidden) return;
+      metrics.y -= pixelsPerSecond * Math.min(deltaTime, 50) / 1000;
       metrics.y = gsap.utils.wrap(-metrics.distance, 0, metrics.y);
       gsap.set(track, { y: metrics.y });
       softenRows();
-    };
-    const applyScrollMotion = (delta: number) => {
-      if (!delta) return;
-      metrics.direction = delta > 0 ? -1 : 1;
-      metrics.targetVelocity = metrics.direction * Math.min(3.6, baseSpeed + Math.pow(Math.abs(delta), 1.2) * .004);
-      window.clearTimeout(timeout);
-      timeout = window.setTimeout(() => { metrics.targetVelocity = metrics.direction * baseSpeed; }, 140);
-    };
-    const onWheel = (event: WheelEvent) => applyScrollMotion(event.deltaY);
-    const onScroll = () => {
-      const next = window.scrollY;
-      applyScrollMotion(next - lastScroll);
-      lastScroll = next;
     };
 
     start();
@@ -107,14 +90,9 @@ export default function TextStream({ items, prefix, paused = false, className = 
     resizeObserver?.observe(content);
     resizeObserver?.observe(viewport);
     window.addEventListener("resize", start);
-    window.addEventListener("wheel", onWheel, { passive: true });
-    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       resizeObserver?.disconnect();
       window.removeEventListener("resize", start);
-      window.removeEventListener("wheel", onWheel);
-      window.removeEventListener("scroll", onScroll);
-      window.clearTimeout(timeout);
       gsap.ticker.remove(tick);
     };
   }, [inView, items, onActiveItemChange, paused, reduceMotion]);

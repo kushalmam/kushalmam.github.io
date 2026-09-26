@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 type Props = {
   children: string;
@@ -12,16 +12,19 @@ type Props = {
  * https://www.obsidianui.dev/docs/flip-text
  */
 export default function FlipText({ children, className = "", renderCharacter }: Props) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [turns, setTurns] = useState<Record<number, number>>({});
+  const reduced = useReducedMotion();
 
   return <span className={`flip-text ${className}`}>
-    {children.split("").map((char, index) => <motion.span
+    {children.split("").map((char, index) => <span
       key={`${char}-${index}`}
       className="flip-text__character"
-      onMouseEnter={() => setHoveredIndex(index)}
-      onMouseLeave={() => setHoveredIndex(null)}
-      animate={{ rotateX: hoveredIndex === index ? 360 : 0, y: hoveredIndex === index ? -6 : 0 }}
+      onMouseEnter={() => { if (!reduced) setTurns(previous => ({ ...previous, [index]: (previous[index] ?? 0) + 1 })); }}
+    ><motion.span
+      className="flip-text__glyph"
+      initial={false}
+      animate={{ rotateX: reduced ? 0 : (turns[index] ?? 0) * 360 }}
       transition={{ duration: .4, ease: "easeOut" }}
-    >{renderCharacter?.(char, index) ?? (char === " " ? "\u00A0" : char)}</motion.span>)}
+    >{renderCharacter?.(char, index) ?? (char === " " ? "\u00A0" : char)}</motion.span></span>)}
   </span>;
 }
