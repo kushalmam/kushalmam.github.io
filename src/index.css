@@ -1123,3 +1123,15 @@ main[data-reveal-ready="true"] [data-reveal][data-revealed="true"] {
     transition: none;
   }
 }
+
+/* Match desktop projection to the visible canvas, including browser chrome. */
+.signal-canvas { height: 100dvh; }
+@media (max-width: 699px) {
+  .signal-canvas {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 100%;
+  }
+  .signal-canvas, :root[data-theme="dark"] .signal-canvas { filter: none; }
+}

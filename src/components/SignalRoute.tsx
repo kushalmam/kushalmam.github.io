@@ -33,9 +33,19 @@ export default function SignalRoute() {
       const work = top(workSection);
       const rail = mobile ? 22 : width * .075;
       const center = mobile ? rail : width / 2;
-      const originRect = origin.getBoundingClientRect();
-      const startX = originRect.left - rect.left + originRect.width / 2;
-      const startY = originRect.top - rect.top + originRect.height / 2;
+      // Layout offsets exclude reveal/letter transforms: sockets must stay put
+      // when the contact heading finishes its entrance animation.
+      const anchorCenter = (element: HTMLElement) => {
+        // The terminal socket uses translateX(-50%) to center on its left edge.
+        let x = element === terminal ? 0 : element.offsetWidth / 2;
+        let y = element.offsetHeight / 2;
+        for (let node: HTMLElement | null = element; node && node !== main; node = node.offsetParent as HTMLElement | null) {
+          x += node.offsetLeft;
+          y += node.offsetTop;
+        }
+        return { x, y };
+      };
+      const { x: startX, y: startY } = anchorCenter(origin);
       let d = mobile
         ? `M ${startX} ${startY} C ${width * .99} ${startY - 35}, ${width * .99} 320, ${width * .74} 365 C ${width * .55} 405, ${rail} 370, ${rail} ${hero - 150} L ${rail} ${about}`
         : `M ${startX} ${startY} C ${width * .71} ${startY - 90}, ${width * .94} ${startY - 70}, ${width * .90} 365 C ${width * .85} 610, ${width * .28} 515, ${width * .17} 610 C ${rail} 670, ${rail} ${hero - 15}, ${rail} ${about}`;
@@ -54,9 +64,7 @@ export default function SignalRoute() {
         const y = card.getBoundingClientRect().top - rect.top + 70;
         d += ` L ${center} ${y}`;
       });
-      const terminalRect = terminal.getBoundingClientRect();
-      const endX = terminalRect.left - rect.left + terminalRect.width / 2;
-      const endY = terminalRect.top - rect.top + terminalRect.height / 2;
+      const { x: endX, y: endY } = anchorCenter(terminal);
       const approachHeight = mobile ? 240 : 430;
       d += ` ${contactApproach(center, { x: endX, y: endY }, approachHeight).d}`;
       const landmarks = [about, ...[...document.querySelectorAll<HTMLElement>(".project-image")].map(image => image.getBoundingClientRect().top - rect.top + image.clientHeight / 2)];
@@ -95,8 +103,9 @@ export default function SignalRoute() {
     let targetFocusStrength = 0;
     let focusY = 10000;
     let scene: ReturnType<typeof import("../scene/createSignalScene").createSignalScene> | undefined;
-    const points = Array.from({ length: 801 }, (_, i) => {
-      const p = path.current!.getPointAtLength(length * i / 800);
+    const segments = layout.width < 700 ? 400 : 800;
+    const points = Array.from({ length: segments + 1 }, (_, i) => {
+      const p = path.current!.getPointAtLength(length * i / segments);
       return { x: p.x, y: p.y };
     });
     setReady(false);
@@ -130,7 +139,7 @@ export default function SignalRoute() {
     import("../scene/createSignalScene").then(async ({ createSignalScene }) => {
       if (disposed || !canvas.current) return;
       try {
-        scene = createSignalScene({ canvas: canvas.current, points, width: layout.width, mainTop: layout.mainTop, about: layout.about, landmarks: layout.landmarks, onLost: () => { setReady(false); setFallback(true); scene?.dispose(); scene = undefined; } });
+        scene = createSignalScene({ canvas: canvas.current, points, width: layout.width, height: layout.height, mainTop: layout.mainTop, about: layout.about, landmarks: layout.landmarks, onLost: () => { setReady(false); setFallback(true); scene?.dispose(); scene = undefined; } });
         await scene.prepare();
         if (disposed) return;
         paint();
@@ -190,6 +199,7 @@ export default function SignalRoute() {
     if (focusedCard >= 0 || hoveredCard >= 0) syncFocus();
     window.addEventListener("scroll", scroll, { passive: true });
     window.addEventListener("resize", schedule);
+    window.visualViewport?.addEventListener("resize", schedule);
     window.addEventListener("pointermove", pointerMove, { passive: true });
     window.addEventListener("pointerout", pointerOut);
     reduced.addEventListener("change", schedule);
@@ -217,6 +227,7 @@ export default function SignalRoute() {
       document.removeEventListener("visibilitychange", visibility);
       window.removeEventListener("scroll", scroll);
       window.removeEventListener("resize", schedule);
+      window.visualViewport?.removeEventListener("resize", schedule);
       window.removeEventListener("pointermove", pointerMove);
       window.removeEventListener("pointerout", pointerOut);
       cardListeners.forEach(remove => remove());

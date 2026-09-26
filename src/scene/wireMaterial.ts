@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 /** Keep interaction uniforms available before Three compiles the physical shader. */
-export function createWireMaterial(strand: number) {
+export function createWireMaterial(strand: number, mobile = false) {
   const uniforms = {
     uDark: { value: 0 }, uStrand: { value: strand }, uProgress: { value: 0 }, uScroll: { value: 0 },
     uMotion: { value: 1 }, uEnergy: { value: 0 }, uPointer: { value: new THREE.Vector2(10000, 10000) },
@@ -10,7 +10,7 @@ export function createWireMaterial(strand: number) {
   };
   const material = Object.assign(new THREE.MeshPhysicalMaterial({
     color: "#34695e", metalness: .58, roughness: .34,
-    anisotropy: .35, clearcoat: .32, clearcoatRoughness: .3,
+    anisotropy: mobile ? 0 : .35, clearcoat: mobile ? 0 : .32, clearcoatRoughness: .3,
     side: THREE.FrontSide,
   }), { uniforms });
   material.customProgramCacheKey = () => "sculpted-wire-pbr-v1";
@@ -67,11 +67,12 @@ const declarations = /* glsl */`
 `;
 const deformation = /* glsl */`
   vec3 wireDeform(vec3 p) {
-    float flow = uMotion * (1.2 + uEnergy * 2.3);
+    float pinned = smoothstep(0., .035, uv.x) * (1. - smoothstep(.965, 1., uv.x));
+    float flow = pinned * uMotion * (1.2 + uEnergy * 2.3);
     vec2 away = p.xy - uPointer;
     // Smooth bounded displacement, including at the exact cursor position.
     float proximity = exp(-dot(away, away) / 10000.);
-    p.xy += away * proximity * uPointerStrength * uMotion * .18;
+    p.xy += away * proximity * uPointerStrength * uMotion * pinned * .18;
     p.x += sin(p.y * .006 + uScroll * .002) * flow;
     p.z += sin(p.y * .009 + uScroll * .003) * flow * .8;
     return p;

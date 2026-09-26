@@ -1,28 +1,29 @@
 import * as THREE from "three";
 
 type RoutePoint = { x: number; y: number };
-type Options = { canvas: HTMLCanvasElement; points: RoutePoint[]; width: number; mainTop: number; about: number; landmarks?: number[]; onLost: () => void };
+type Options = { canvas: HTMLCanvasElement; points: RoutePoint[]; width: number; mainTop: number; about: number; landmarks?: number[]; height?: number; onLost: () => void };
 
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { createWireMaterial, type WireMaterial } from "./wireMaterial";
 
 /** Viewport-sized renderer; page coordinates keep geometry anchored to the layout. */
-export function createSignalScene({ canvas, points, width, mainTop, about, landmarks, onLost }: Options) {
+export function createSignalScene({ canvas, points, width, mainTop, about, landmarks, height, onLost }: Options) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "low-power" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
-  renderer.setSize(width, window.innerHeight, false);
+  const mobile = width < 700;
+  let surfaceHeight = mobile ? (height ?? window.innerHeight) : (canvas.clientHeight || window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? Math.min(1, 4096 / surfaceHeight) : 1.6));
+  renderer.setSize(width, surfaceHeight, false);
   renderer.setClearColor(0, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.15;
-  const camera = new THREE.OrthographicCamera(0, width, 0, -window.innerHeight, .1, 1000);
+  const camera = new THREE.OrthographicCamera(0, width, 0, -surfaceHeight, .1, 1000);
   camera.position.z = 500;
   const scene = new THREE.Scene();
-  const mobile = width < 700;
   const materials: WireMaterial[] = [];
   const geometries: THREE.BufferGeometry[] = [];
   const rings = points.length;
-  const sides = mobile ? 16 : 24;
+  const sides = mobile ? 12 : 24;
   const firstProject = landmarks?.[1] ?? Number.POSITIVE_INFINITY;
   const projectLandmarks = landmarks?.slice(1) ?? [];
   for (let strand = 0; strand < 3; strand++) {
@@ -45,7 +46,8 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
       const braidedOffset = Math.cos(phase) * spacing;
       const projectBlend = THREE.MathUtils.smoothstep(p.y, firstProject - 480, firstProject - 270) * (1 - contactLead);
       const lane = (strand - 1) * ((mobile ? 5 : 8) + projectBreath * (mobile ? 2 : 4));
-      const offset = THREE.MathUtils.lerp(THREE.MathUtils.lerp(braidedOffset, lane, projectBlend), 0, contactLead);
+      const startBlend = THREE.MathUtils.smoothstep(t, 0, .035);
+      const offset = startBlend * THREE.MathUtils.lerp(THREE.MathUtils.lerp(braidedOffset, lane, projectBlend), 0, contactLead);
       const layeredZ = (1 - strand) * (mobile ? 9 : 15);
       const z = THREE.MathUtils.lerp(THREE.MathUtils.lerp(Math.sin(phase) * spacing, layeredZ, projectBlend), strand === 0 ? 1 : -5, contactLead);
       const taper = 1 - .35 * THREE.MathUtils.smoothstep(p.y, about - 100, about + 200);
@@ -82,7 +84,7 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
     geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
     geometry.setIndex(indices);
     geometry.computeTangents();
-    const material = createWireMaterial(strand);
+    const material = createWireMaterial(strand, mobile);
     scene.add(new THREE.Mesh(geometry, material));
     geometries.push(geometry); materials.push(material);
   }
@@ -105,7 +107,16 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
     },
     render(scroll: number, progress: number, dark: boolean, reduced: boolean, energy = 0, pointer = { x: 10000, y: 10000 }, pointerStrength = 0, focus = { y: 10000, strength: 0 }) {
       if (disposed) return;
-      camera.position.y = mainTop - scroll;
+      // Phones use a document-positioned canvas: native scrolling moves pixels
+      // together with the text, even when JS misses a frame during touch inertia.
+      const nextHeight = mobile ? (height ?? window.innerHeight) : (canvas.clientHeight || window.innerHeight);
+      if (nextHeight !== surfaceHeight) {
+        surfaceHeight = nextHeight;
+        renderer.setSize(width, surfaceHeight, false);
+        camera.bottom = -surfaceHeight;
+        camera.updateProjectionMatrix();
+      }
+      camera.position.y = mobile ? 0 : mainTop - scroll;
       const index = Math.min(points.length - 1, Math.round(progress * (points.length - 1)));
       const point = points[index];
       materials.forEach(material => {
@@ -113,7 +124,7 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
         material.metalness = dark ? .92 : .58;
         material.roughness = dark ? .28 : .34;
         material.envMapIntensity = dark ? 1.15 : .85;
-        material.clearcoat = dark ? .12 : .32;
+        material.clearcoat = mobile ? 0 : (dark ? .12 : .32);
         material.uniforms.uDark.value = dark ? 1 : 0;
         material.uniforms.uScroll.value = scroll;
         material.uniforms.uMotion.value = reduced ? 0 : 1;

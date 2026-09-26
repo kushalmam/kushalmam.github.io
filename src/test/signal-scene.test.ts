@@ -82,12 +82,52 @@ it.each([375, 1000])("keeps the three work strands in ordered lanes beside all f
   for (const ring of [30, 33, 50, 53]) {
     const centers = meshes.map(mesh => {
       const positions = mesh.geometry.getAttribute("position");
-      const sides = width < 700 ? 16 : 24;
+      const sides = width < 700 ? 12 : 24;
       const first = ring * (sides + 1);
       return (positions.getX(first) + positions.getX(first + sides / 2)) / 2;
     });
     expect(centers[0]).toBeGreaterThan(centers[1]);
     expect(centers[1]).toBeGreaterThan(centers[2]);
   }
+  signal.dispose();
+});
+
+it("keeps the mobile camera anchored to the document and centers its endpoint rings", () => {
+  const points = Array.from({ length: 101 }, (_, i) => ({ x: 180, y: i * 30 }));
+  const signal = createSignalScene({ canvas: document.createElement("canvas"), points,
+    width: 390, height: 3200, mainTop: 82, about: 700, onLost: vi.fn() });
+  signal.render(1500, .5, true, false);
+  const [scene, camera] = calls.render.mock.lastCall as [THREE.Scene, THREE.OrthographicCamera];
+  expect(camera.position.y).toBe(0);
+  expect(camera.bottom).toBe(-3200);
+  expect(calls.size).toHaveBeenCalledWith(390, 3200, false);
+  const mesh = scene.children[0] as THREE.Mesh<THREE.BufferGeometry, WireMaterial>;
+  const positions = mesh.geometry.getAttribute("position");
+  for (const ring of [0, 100]) {
+    const a = ring * 13, b = a + 6;
+    expect((positions.getX(a) + positions.getX(b)) / 2).toBeCloseTo(points[ring].x, 4);
+    expect((positions.getY(a) + positions.getY(b)) / 2).toBeCloseTo(-points[ring].y, 4);
+  }
+  expect(mesh.material.anisotropy).toBe(0);
+  expect(mesh.material.clearcoat).toBe(0);
+  signal.render(2000, .8, true, false);
+  expect(camera.position.y).toBe(0);
+  signal.dispose();
+});
+
+it("resizes desktop projection with the canvas without rebuilding the geometry", () => {
+  const canvas = document.createElement("canvas");
+  let height = 700;
+  Object.defineProperty(canvas, "clientHeight", { get: () => height });
+  const signal = createSignalScene({ canvas, width: 1000, mainTop: 100, about: 700, onLost: vi.fn(),
+    points: Array.from({ length: 101 }, (_, i) => ({ x: 100, y: i * 30 })) });
+  signal.render(0, 0, false, false);
+  const [scene, camera] = calls.render.mock.lastCall as [THREE.Scene, THREE.OrthographicCamera];
+  const geometry = (scene.children[0] as THREE.Mesh).geometry;
+  height = 820;
+  signal.render(300, .2, false, false);
+  expect(camera.bottom).toBe(-820);
+  expect(calls.size).toHaveBeenLastCalledWith(1000, 820, false);
+  expect((scene.children[0] as THREE.Mesh).geometry).toBe(geometry);
   signal.dispose();
 });

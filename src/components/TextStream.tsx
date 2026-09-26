@@ -41,35 +41,23 @@ export default function TextStream({ items, prefix, paused = false, className = 
     if (!track || !content || !viewport || paused || !inView || reduceMotion || !items.length) return;
 
     const pixelsPerSecond = .38 * 60 * 1.4;
-    const metrics = { y: 0, distance: 0 };
+    const metrics = { y: 0, distance: 0, viewportHeight: 0 };
     const start = () => {
       const distance = content.offsetHeight;
       if (!distance || !viewport.offsetHeight) return;
       metrics.distance = distance;
+      metrics.viewportHeight = viewport.offsetHeight;
       setCopyCount(Math.max(3, Math.ceil(viewport.offsetHeight / distance) + 2));
       metrics.y = gsap.utils.wrap(-distance, 0, metrics.y);
       gsap.set(track, { y: metrics.y });
     };
     const softenRows = () => {
-      const bounds = viewport.getBoundingClientRect();
-      const center = bounds.top + bounds.height / 2;
-      const halfHeight = bounds.height / 2;
-      let nearestItem: HTMLElement | undefined;
-      let nearestDistance = Infinity;
-      track.querySelectorAll<HTMLElement>(".text-stream__item").forEach(item => {
-        const rect = item.getBoundingClientRect();
-        const distance = Math.abs(rect.top + rect.height / 2 - center);
-        const position = Math.min(1, distance / halfHeight);
-        const edge = gsap.utils.clamp(0, 1, (position - .56) / .44);
-        const eased = edge * edge * (3 - 2 * edge);
-        item.style.opacity = `${1 - eased * .82}`;
-        item.style.filter = `blur(${eased * 3.25}px)`;
-        if (distance < nearestDistance) {
-          nearestDistance = distance;
-          nearestItem = item;
-        }
-      });
-      const activeItem = nearestItem?.dataset.streamItem;
+      // Copies have equal-height rows. Derive the centered item without forcing
+      // layout and repainting per-row blur filters on every animation frame.
+      const rowHeight = metrics.distance / items.length;
+      if (!rowHeight) return;
+      const index = Math.floor((metrics.viewportHeight / 2 - metrics.y) / rowHeight);
+      const activeItem = items[((index % items.length) + items.length) % items.length];
       if (activeItem && activeItem !== activeItemRef.current) {
         activeItemRef.current = activeItem;
         onActiveItemChange?.(activeItem);

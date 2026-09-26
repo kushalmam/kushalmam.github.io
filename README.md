@@ -55,3 +55,9 @@ The résumé and portrait use Vite's configured base path, including `/portfolio
 The obsolete Spline and Babylon previews have been removed. The homepage hero is
 the single source of truth for the wire. Both themes use ACES tone mapping; the
 signal emission is restrained to preserve the material highlights.
+
+On phones, the wire canvas scrolls natively with the document, uses 400 segments
+per strand and 12 sides, omits clearcoat/anisotropy and the canvas shadow, and caps
+resolution at 1× (4096 pixels tall). Desktop projection follows the canvas's actual
+height. Endpoint geometry and deformation stay pinned to untransformed layout
+sockets. Contact text uses its CSS mask rather than per-frame row blur/layout reads.
