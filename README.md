@@ -18,8 +18,11 @@ system until overridden, persists locally, and paints before React to avoid flas
 The portrait and Spotify/NYU marks reuse existing assets. See
 [the options and art-direction decisions](docs/signal-art-direction.md).
 
-Project previews were restored from commit `3c38b2c`: Rekindle’s original SVG,
-plus the MarketMind, AutoCPT, and NBAnomaly product screenshots. The shared selection
+Project previews use the MarketMind, AutoCPT, and NBAnomaly product screenshots
+without decorative frames. Rekindle uses a frontend-rendered PNG illustrating its
+offline recommendation simulation as a conceptual two-tower retrieval diagram.
+The editable HTML/CSS source is `scripts/assets/rekindle-preview.html` (1400 × 800);
+only its exported PNG is included in the production site. The shared selection
 lives in `src/portfolioProjects.ts`, also used by the no-JavaScript HTML fallback.
 
 ```sh
