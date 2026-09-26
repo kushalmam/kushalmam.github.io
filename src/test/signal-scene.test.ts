@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import * as THREE from "three";
+import type { WireMaterial } from "../scene/wireMaterial";
 import { createSignalScene } from "../scene/createSignalScene";
 
 const calls = vi.hoisted(() => ({ render: vi.fn(), dispose: vi.fn(), size: vi.fn() }));
@@ -25,15 +26,26 @@ it("anchors the camera during scrolling, handles reduced motion, and disposes ea
   signal.render(500, .4, true, false, .75, { x: 210, y: -480 }, .8, { y: -900, strength: .7 });
   const [scene, camera] = calls.render.mock.lastCall as [THREE.Scene, THREE.OrthographicCamera];
   expect(camera.position.y).toBe(-400);
-  const meshes = scene.children as THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial>[];
+  const meshes = scene.children as THREE.Mesh<THREE.BufferGeometry, WireMaterial>[];
   expect(meshes).toHaveLength(3);
   const disposals = meshes.flatMap(mesh => [vi.spyOn(mesh.geometry, "dispose"), vi.spyOn(mesh.material, "dispose")]);
   for (const mesh of meshes) {
     expect([...mesh.geometry.getAttribute("position").array].every(Number.isFinite)).toBe(true);
     const normals = mesh.geometry.getAttribute("normal");
+    const positions = mesh.geometry.getAttribute("position");
+    const indices = mesh.geometry.index!;
+    const a = new THREE.Vector3().fromBufferAttribute(positions, indices.getX(0));
+    const b = new THREE.Vector3().fromBufferAttribute(positions, indices.getX(1));
+    const c = new THREE.Vector3().fromBufferAttribute(positions, indices.getX(2));
+    const outward = new THREE.Vector3().fromBufferAttribute(normals, indices.getX(0));
+    expect(b.sub(a).cross(c.sub(a)).dot(outward)).toBeGreaterThan(0);
+    expect([...mesh.geometry.getAttribute("tangent").array].every(Number.isFinite)).toBe(true);
     for (const index of [0, Math.floor(normals.count / 2), normals.count - 1]) {
       expect(Math.hypot(normals.getX(index), normals.getY(index), normals.getZ(index))).toBeCloseTo(1, 4);
     }
+    expect(mesh.material.isMeshPhysicalMaterial).toBe(true);
+    expect(mesh.material.metalness).toBe(.92);
+    expect(mesh.material.anisotropy).toBeGreaterThan(0);
     expect(mesh.material.uniforms.uDark.value).toBe(1);
     expect(mesh.material.uniforms.uProgress.value).toBe(.4);
     expect(mesh.material.uniforms.uEnergy.value).toBe(.75);
@@ -66,12 +78,13 @@ it.each([375, 1000])("keeps the three work strands in ordered lanes beside all f
   });
   signal.render(900, .4, true, false);
   const [scene] = calls.render.mock.lastCall as [THREE.Scene];
-  const meshes = scene.children as THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial>[];
+  const meshes = scene.children as THREE.Mesh<THREE.BufferGeometry, WireMaterial>[];
   for (const ring of [30, 33, 50, 53]) {
     const centers = meshes.map(mesh => {
       const positions = mesh.geometry.getAttribute("position");
-      const first = ring * 13;
-      return (positions.getX(first) + positions.getX(first + 6)) / 2;
+      const sides = width < 700 ? 16 : 24;
+      const first = ring * (sides + 1);
+      return (positions.getX(first) + positions.getX(first + sides / 2)) / 2;
     });
     expect(centers[0]).toBeGreaterThan(centers[1]);
     expect(centers[1]).toBeGreaterThan(centers[2]);

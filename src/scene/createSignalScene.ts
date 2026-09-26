@@ -3,72 +3,8 @@ import * as THREE from "three";
 type RoutePoint = { x: number; y: number };
 type Options = { canvas: HTMLCanvasElement; points: RoutePoint[]; width: number; mainTop: number; about: number; landmarks?: number[]; onLost: () => void };
 
-const vertexShader = /* glsl */`
-  uniform float uScroll;
-  uniform float uMotion;
-  uniform float uProgress;
-  uniform float uEnergy;
-  uniform vec2 uPointer;
-  uniform float uPointerStrength;
-  varying vec3 vNormal;
-  varying vec3 vPosition;
-  varying vec2 vUv;
-  void main() {
-    vec3 p = position;
-    float flow = uMotion * (1.2 + uEnergy * 2.3);
-    float xPhase = p.y * .006 + uScroll * .002;
-    float zPhase = p.y * .009 + uScroll * .003;
-    p.x += sin(xPhase) * flow;
-    p.z += sin(zPhase) * flow * .8;
-    vec2 away = p.xy - uPointer;
-    float proximity = exp(-dot(away, away) / 18000.0);
-    p.xy += away / max(length(away), 1.0) * proximity * uPointerStrength * uMotion * 4.0;
-    vPosition = p;
-    vNormal = normalize(vec3(normal.x, normal.y - normal.x * cos(xPhase) * .006 * flow - normal.z * cos(zPhase) * .009 * flow * .8, normal.z));
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-  }
-`;
-const fragmentShader = /* glsl */`
-  uniform float uDark;
-  uniform float uStrand;
-  uniform float uProgress;
-  uniform float uMotion;
-  uniform float uEnergy;
-  uniform float uFocusY;
-  uniform float uFocusStrength;
-  uniform vec3 uSignal;
-  varying vec3 vNormal;
-  varying vec3 vPosition;
-  varying vec2 vUv;
-  void main() {
-    vec3 n = normalize(vNormal);
-    vec3 key = normalize(vec3(-.7, .85, 1.35));
-    vec3 fill = normalize(vec3(.8, -.35, 1.0));
-    float diffuse = max(dot(n, key), 0.0);
-    float studio = pow(max(dot(n, normalize(vec3(-.32,.9,1.45))), 0.), 5.0);
-    float strip = pow(max(dot(n, normalize(vec3(.22,.25,1.0))), 0.), 42.0);
-    float rim = pow(max(dot(n, fill), 0.), 18.0);
-    vec3 base = mix(vec3(.09,.25,.22), vec3(.085,.105,.115), uDark);
-    base *= 1.0 + uStrand * .035;
-    vec3 color = base * (.48 + .62 * diffuse);
-    color += studio * mix(vec3(.50,.56,.48), vec3(.37,.43,.45), uDark) * .58;
-    color += strip * mix(vec3(.70,.75,.65), vec3(.71,.78,.78), uDark) * (.52 + uEnergy * .12);
-    color += rim * mix(vec3(.12,.22,.18), vec3(.17,.24,.25), uDark);
-    float focus = exp(-pow((vPosition.y - uFocusY) / 66.0, 2.0)) * uFocusStrength;
-    color += focus * (1.0 - uStrand * .18) * (vec3(.12,.16,.17) + studio * vec3(.23,.32,.33) + strip * vec3(.30,.44,.44));
-    float collar = (1.0 - step(.5, uStrand)) * smoothstep(.931,.938,vUv.x) * (1.0 - smoothstep(.953,.960,vUv.x));
-    color = mix(color, mix(vec3(.46,.52,.44), vec3(.43,.53,.48), uDark) * (.66 + .42 * diffuse) + strip * .32, collar);
-    float band = exp(-pow((vUv.x - uProgress) / .0045, 2.));
-    float spill = exp(-length(vPosition - uSignal) / 30.);
-    vec3 mint = mix(vec3(.45, .93, .65), vec3(.55, .90, .77), uDark);
-    float activeStrand = 1.0 - step(.5, uStrand);
-    color += mint * (band * mix(.20, .75, activeStrand) + spill * mix(.05, .17, activeStrand)) * uMotion;
-    gl_FragColor = vec4(color, 1.);
-    #include <tonemapping_fragment>
-    #include <colorspace_fragment>
-  }
-`;
+import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
+import { createWireMaterial, type WireMaterial } from "./wireMaterial";
 
 /** Viewport-sized renderer; page coordinates keep geometry anchored to the layout. */
 export function createSignalScene({ canvas, points, width, mainTop, about, landmarks, onLost }: Options) {
@@ -77,14 +13,16 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
   renderer.setSize(width, window.innerHeight, false);
   renderer.setClearColor(0, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
   const camera = new THREE.OrthographicCamera(0, width, 0, -window.innerHeight, .1, 1000);
   camera.position.z = 500;
   const scene = new THREE.Scene();
   const mobile = width < 700;
-  const materials: THREE.ShaderMaterial[] = [];
+  const materials: WireMaterial[] = [];
   const geometries: THREE.BufferGeometry[] = [];
   const rings = points.length;
-  const sides = 12;
+  const sides = mobile ? 16 : 24;
   const firstProject = landmarks?.[1] ?? Number.POSITIVE_INFINITY;
   const projectLandmarks = landmarks?.slice(1) ?? [];
   for (let strand = 0; strand < 3; strand++) {
@@ -100,8 +38,8 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
       const t = i / (rings - 1);
       const opening = Math.exp(-Math.pow((p.y - about - 170) / 240, 2));
       const projectBreath = Math.min(1.45, projectLandmarks.reduce((spread, landmark) => spread + Math.exp(-Math.pow((p.y - landmark) / 125, 2)), 0));
-      const spacing = (mobile ? 4 : 7) + opening * (mobile ? 3 : 14);
-      const phase = t * Math.PI * 8 + strand * Math.PI * 2 / 3;
+      const spacing = ((mobile ? 4 : 7) + opening * (mobile ? 3 : 14)) * (1 + .07 * Math.sin(t * 27 + strand * 1.8));
+      const phase = t * Math.PI * 8 + strand * Math.PI * 2 / 3 + .13 * Math.sin(t * 19 + strand);
       const contactLead = THREE.MathUtils.smoothstep(t, .82, .94);
       const terminalFade = strand === 0 ? 0 : THREE.MathUtils.smoothstep(t, .89, .95);
       const braidedOffset = Math.cos(phase) * spacing;
@@ -115,7 +53,7 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
       const depthScale = THREE.MathUtils.lerp(1, strand === 0 ? 1.16 : strand === 2 ? .86 : 1, projectBlend);
       const radius = (mobile ? 3.4 : 5.9) * taper * depthScale * (1 - .24 * THREE.MathUtils.smoothstep(t, .92, 1)) * (1 - terminalFade) * (1 + collar * .28);
       centers.push(new THREE.Vector3(p.x + nx * offset, -p.y - ny * offset, z));
-      radii.push(radius);
+      radii.push(radius * (1 + .018 * Math.sin(t * 73 + strand)));
     }
     for (let i = 0; i < rings; i++) {
       const before = centers[Math.max(0, i - 1)], after = centers[Math.min(rings - 1, i + 1)];
@@ -134,7 +72,7 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
         uvs.push(t, j / sides);
         if (i < rings - 1 && j < sides) {
           const a = i * (sides + 1) + j, b = a + sides + 1;
-          indices.push(a, b, a + 1, b, b + 1, a + 1);
+          indices.push(a, a + 1, b, b, a + 1, b + 1);
         }
       }
     }
@@ -143,21 +81,27 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
     geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
     geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
     geometry.setIndex(indices);
-    const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader, side: THREE.DoubleSide, uniforms: {
-      uDark: { value: 0 }, uStrand: { value: strand }, uProgress: { value: 0 }, uScroll: { value: 0 },
-      uMotion: { value: 1 }, uEnergy: { value: 0 }, uPointer: { value: new THREE.Vector2(10000, 10000) },
-      uPointerStrength: { value: 0 }, uFocusY: { value: 10000 }, uFocusStrength: { value: 0 },
-      uSignal: { value: new THREE.Vector3() },
-    } });
+    geometry.computeTangents();
+    const material = createWireMaterial(strand);
     scene.add(new THREE.Mesh(geometry, material));
     geometries.push(geometry); materials.push(material);
   }
   const lost = (event: Event) => { event.preventDefault(); onLost(); };
   canvas.addEventListener("webglcontextlost", lost);
   let disposed = false;
+  let environment: THREE.WebGLRenderTarget | undefined;
   return {
-    prepare() {
-      return renderer.compileAsync(scene, camera);
+    async prepare() {
+      const hdr = await new HDRLoader().loadAsync(`${import.meta.env.BASE_URL}environments/wire-studio.hdr`);
+      if (disposed) { hdr.dispose(); return; }
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      try {
+        environment = pmrem.fromEquirectangular(hdr);
+        scene.environment = environment.texture;
+        // Layout changes can dispose this scene while Three polls compileAsync.
+        // Compile synchronously after HDR loading so teardown cannot race that poll.
+        renderer.compile(scene, camera);
+      } finally { hdr.dispose(); pmrem.dispose(); }
     },
     render(scroll: number, progress: number, dark: boolean, reduced: boolean, energy = 0, pointer = { x: 10000, y: 10000 }, pointerStrength = 0, focus = { y: 10000, strength: 0 }) {
       if (disposed) return;
@@ -165,6 +109,11 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
       const index = Math.min(points.length - 1, Math.round(progress * (points.length - 1)));
       const point = points[index];
       materials.forEach(material => {
+        material.color.set(dark ? "#889b9d" : "#34695e");
+        material.metalness = dark ? .92 : .58;
+        material.roughness = dark ? .28 : .34;
+        material.envMapIntensity = dark ? 1.15 : .85;
+        material.clearcoat = dark ? .12 : .32;
         material.uniforms.uDark.value = dark ? 1 : 0;
         material.uniforms.uScroll.value = scroll;
         material.uniforms.uMotion.value = reduced ? 0 : 1;
@@ -184,6 +133,7 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
       canvas.removeEventListener("webglcontextlost", lost);
       geometries.forEach(geometry => geometry.dispose());
       materials.forEach(material => material.dispose());
+      environment?.dispose();
       renderer.dispose();
     },
   };

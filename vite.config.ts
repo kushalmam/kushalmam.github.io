@@ -8,15 +8,6 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   base,
-  build: {
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, "index.html"),
-        splineStudy: path.resolve(__dirname, "spline-study.html"),
-        wireStudy: path.resolve(__dirname, "wire-study.html"),
-      },
-    },
-  },
   server: {
     host: "::",
     port: 8080,

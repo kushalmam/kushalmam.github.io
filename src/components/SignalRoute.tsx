@@ -89,6 +89,8 @@ export default function SignalRoute() {
     let pointerStrength = 0;
     let targetPointerStrength = 0;
     let pointer = { x: 10000, y: 10000 };
+    let targetPointer = { ...pointer };
+    let lastPaint = performance.now();
     let hoveredCard = -1;
     let focusedCard = -1;
     let focusStrength = 0;
@@ -101,9 +103,15 @@ export default function SignalRoute() {
     });
     setReady(false);
     const paint = () => {
+      const now = performance.now();
+      const dt = Math.min((now - lastPaint) / 1000, .05);
+      lastPaint = now;
+      const pointerDamping = 1 - Math.exp(-12 * dt);
+      pointer.x += (targetPointer.x - pointer.x) * pointerDamping;
+      pointer.y += (targetPointer.y - pointer.y) * pointerDamping;
       energy += (targetEnergy - energy) * .2;
       targetEnergy *= .86;
-      pointerStrength += (targetPointerStrength - pointerStrength) * .2;
+      pointerStrength += (targetPointerStrength - pointerStrength) * pointerDamping;
       focusStrength += (targetFocusStrength - focusStrength) * .45;
       const max = document.documentElement.scrollHeight - window.innerHeight;
       const progress = signalProgress(points, window.scrollY, window.innerHeight, layout.mainTop, layout.about, max);
@@ -117,7 +125,7 @@ export default function SignalRoute() {
         energy, { x: pointer.x, y: -(pointer.y + window.scrollY - layout.mainTop) }, pointerStrength,
         { y: focusY, strength: focusStrength });
       frame = 0;
-      if (!reduced.matches && !document.hidden && (energy > .005 || targetEnergy > .005 || Math.abs(pointerStrength - targetPointerStrength) > .005 || Math.abs(focusStrength - targetFocusStrength) > .005)) {
+      if (!reduced.matches && !document.hidden && (Math.hypot(pointer.x - targetPointer.x, pointer.y - targetPointer.y) > .1 || energy > .005 || targetEnergy > .005 || Math.abs(pointerStrength - targetPointerStrength) > .005 || Math.abs(focusStrength - targetFocusStrength) > .005)) {
         frame = requestAnimationFrame(paint);
       }
     };
@@ -135,8 +143,8 @@ export default function SignalRoute() {
             setReady(true);
           }
         });
-      } catch { setReady(false); setFallback(true); }
-    }).catch(() => { if (!disposed) { setReady(false); setFallback(true); } });
+      } catch (error) { console.warn("Wire renderer unavailable; using SVG fallback.", error); scene?.dispose(); scene = undefined; if (!disposed) { setReady(false); setFallback(true); } }
+    }).catch(error => { console.warn("Wire module unavailable; using SVG fallback.", error); if (!disposed) { setReady(false); setFallback(true); } });
     const schedule = () => { if (!document.hidden && !frame) frame = requestAnimationFrame(paint); };
     const scroll = () => {
       const next = window.scrollY;
@@ -146,7 +154,8 @@ export default function SignalRoute() {
     };
     const pointerMove = (event: PointerEvent) => {
       if (event.pointerType !== "mouse" || reduced.matches) return;
-      pointer = { x: event.clientX, y: event.clientY };
+      targetPointer = { x: event.clientX, y: event.clientY };
+      if (pointerStrength < .005) pointer = { ...targetPointer };
       targetPointerStrength = 1;
       schedule();
     };

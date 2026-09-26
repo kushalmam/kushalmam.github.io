@@ -5,7 +5,6 @@
     "": {
       "name": "kushal-fol",
       "dependencies": {
-        "@babylonjs/core": "^9.27.0",
         "@fontsource-variable/archivo": "^5.3.0",
         "@fontsource/ibm-plex-mono": "^5.3.0",
         "@fontsource/ibm-plex-sans": "^5.3.0",
@@ -45,8 +44,6 @@
     "@babel/helper-validator-identifier": ["@babel/helper-validator-identifier@7.28.5", "", {}, "sha512-qSs4ifwzKJSV39ucNjsvc6WVHs6b7S03sOh2OcHF9UHfVPqWWALUsNUVzhSBiItjRZoLHx7nIarVjqKVusUZ1Q=="],
 
     "@babel/runtime": ["@babel/runtime@7.28.2", "", {}, "sha512-KHp2IflsnGywDjBWDkR9iEqiWSpc8GIi0lgTT3mOElT0PP1tG26P4tmFI2YvAdzgq9RGyoHZQEIEdZy6Ec5xCA=="],
-
-    "@babylonjs/core": ["@babylonjs/core@9.27.0", "", {}, "sha512-6faNPzU3NrMa8J91gj4eP3yzPiq68cA5Nj5e6S/Se7Ps+a/TQAfa+dyovmxs/YC8yS8OiUSyFfFs1CQKQPTL9A=="],
 
     "@dimforge/rapier3d-compat": ["@dimforge/rapier3d-compat@0.12.0", "", {}, "sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow=="],
 
