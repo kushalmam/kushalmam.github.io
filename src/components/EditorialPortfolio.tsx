@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useLayoutEffect, useState, type CSSProperties, type MouseEvent } from "react";
+import { motion } from "motion/react";
 import OrgMark from "./OrgMark";
 import ThemeToggle from "./ThemeToggle";
 import SignalRoute from "./SignalRoute";
@@ -16,23 +16,23 @@ const nameStyles = ["plain", "outline", "editorial"] as const;
 
 function LastNameCharacter(character: string, index: number) {
   if (index !== 11) return character;
-  return <span className="name-origin-i">ı<span className="name-origin-dot" data-signal-origin="" /></span>;
+  return <span className="name-origin-i">ı</span>;
 }
 
 function NameLine({ text, style, last = false }: { text: string; style: typeof nameStyles[number]; last?: boolean }) {
   return <span className={`name-word${last ? " name-word--last" : ""}`}>
-    <AnimatePresence initial={false} mode="wait">
-      <motion.span
-        key={style}
-        className={`name-layer name-layer--${style}`}
-        initial={{ opacity: 0, rotateX: -64, y: "0.045em", filter: "blur(1px)" }}
-        animate={{ opacity: 1, rotateX: 0, y: 0, filter: "blur(0px)" }}
-        exit={{ opacity: 0, rotateX: 68, y: "-0.035em", filter: "blur(1px)" }}
-        transition={{ duration: .42, ease: [.2, .7, .2, 1] }}
-      >
-        <FlipText renderCharacter={last ? LastNameCharacter : undefined}>{text}</FlipText>
-      </motion.span>
-    </AnimatePresence>
+    {nameStyles.map(variant => <motion.span
+      key={variant}
+      className={`name-layer name-layer--${variant}`}
+      aria-hidden={variant !== style}
+      initial={false}
+      animate={{ opacity: variant === style ? 1 : 0, rotateX: variant === style ? 0 : -64 }}
+      transition={{ duration: .42, ease: [.2, .7, .2, 1] }}
+      style={{ pointerEvents: variant === style ? "auto" : "none" }}
+    >
+      <FlipText renderCharacter={last ? LastNameCharacter : undefined}>{text}</FlipText>
+    </motion.span>)}
+    {last && <span className="name-origin-dot" data-signal-origin="" aria-hidden="true" />}
   </span>;
 }
 
@@ -44,7 +44,6 @@ function navigate(event: MouseEvent<HTMLAnchorElement>) {
 }
 
 export default function EditorialPortfolio() {
-  const nameRef = useRef<HTMLDivElement>(null);
   const [activeContactWord, setActiveContactWord] = useState<string>();
   const [nameStyleIndex, setNameStyleIndex] = useState(0);
   const nameStyle = nameStyles[nameStyleIndex];
@@ -54,10 +53,6 @@ export default function EditorialPortfolio() {
     const cycle = window.setInterval(() => setNameStyleIndex(index => (index + 1) % nameStyles.length), 5600);
     return () => window.clearInterval(cycle);
   }, []);
-  useEffect(() => {
-    const refreshRoute = window.setTimeout(() => window.dispatchEvent(new Event("signal-route-measure")), 460);
-    return () => window.clearTimeout(refreshRoute);
-  }, [nameStyle]);
   useLayoutEffect(() => {
     const main = document.querySelector<HTMLElement>("main");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -92,7 +87,7 @@ export default function EditorialPortfolio() {
     <main id="main" tabIndex={-1}>
       <SignalRoute />
       <section className="hero" id="top" tabIndex={-1} aria-labelledby="hero-title">
-        <div className="hero-copy"><div className="hero-name" ref={nameRef}>
+        <div className="hero-copy"><div className="hero-name">
           <h1 id="hero-title" aria-label="Kushal Mamillapalli">
             <NameLine text="Kushal" style={nameStyle} />
             <NameLine text="Mamillapalli" style={nameStyle} last />

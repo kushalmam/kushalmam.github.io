@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -11,11 +12,30 @@ import EditorialPortfolio from "../components/EditorialPortfolio";
 vi.mock("../components/SignalRoute", () => ({ default: () => null }));
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   localStorage.clear();
   delete document.documentElement.dataset.theme;
 });
 
 describe("portfolio interactions without WebGL", () => {
+  it("keeps one persistent wire anchor outside every animated name layer", () => {
+    vi.useFakeTimers();
+    const { container } = render(<EditorialPortfolio />);
+    const anchor = container.querySelector("[data-signal-origin]");
+    expect(anchor).not.toBeNull();
+    expect(anchor?.closest(".name-layer")).toBeNull();
+    const layers = [...container.querySelectorAll(".name-word--last .name-layer")];
+    expect(layers).toHaveLength(3);
+    for (const style of ["outline", "editorial", "plain"]) {
+      act(() => vi.advanceTimersByTime(5600));
+      expect(container.querySelector("[data-signal-origin]")).toBe(anchor);
+      expect(container.querySelectorAll("[data-signal-origin]")).toHaveLength(1);
+      expect([...container.querySelectorAll(".name-word--last .name-layer")]).toEqual(layers);
+      expect(container.querySelector(".name-word--last [aria-hidden='false']"))
+        .toHaveClass(`name-layer--${style}`);
+    }
+  });
+
   it("offers four direct project links with real image previews", () => {
     render(<EditorialPortfolio />);
     for (const name of ["Rekindle", "MarketMind", "AutoCPT", "NBAnomaly"]) {

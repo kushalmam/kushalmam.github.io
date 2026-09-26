@@ -132,11 +132,20 @@ h1>span {
   display: block;
 }
 .name-word {
-  display: block;
+  position: relative;
+  display: grid;
   width: fit-content;
   perspective: 900px;
   transform-origin: 50% 75%;
   backface-visibility: hidden;
+}
+.name-layer {
+  grid-area: 1 / 1;
+  display: block;
+  transform-origin: right top;
+}
+.name-word--last .name-layer {
+  justify-self: end;
 }
 .flip-text {
   display: inline-flex;
@@ -157,22 +166,17 @@ h1>span {
 .name-origin-dot {
   position: absolute;
   top: .035em;
-  left: 50%;
+  right: .099em;
   width: .092em;
   aspect-ratio: 1;
   border-radius: 50%;
   background: currentColor;
   box-shadow: 0 0 0 .035em var(--paper), 0 0 .14em var(--mint);
-  transform: translateX(-50%);
 }
 .name-layer--outline {
   color: transparent;
   -webkit-text-stroke: clamp(1px, .11vw, 2px) var(--ink);
   letter-spacing: -.065em;
-}
-.name-layer--outline .name-origin-dot {
-  background: var(--paper);
-  border: max(1px, .012em) solid var(--ink);
 }
 .name-layer--editorial {
   color: var(--ink);
@@ -180,9 +184,6 @@ h1>span {
   font-style: italic;
   font-weight: 400;
   letter-spacing: -.055em;
-}
-.name-layer--editorial .name-origin-dot {
-  background: var(--mint);
 }
 .name-period {
   color: #789b8d;

@@ -3,7 +3,8 @@
 Warm paper, muted teal typography, and a continuous sculpted signal route.
 Page order: name-led hero → About → four project cards → Contact + Résumé.
 
-`SignalRoute.tsx` measures the page after layout and font changes. Its route drives
+`SignalRoute.tsx` measures the page after fonts load and when layout dimensions change.
+The name styles share a fixed grid and stationary dot; font cycling never rebuilds the wire. Its route drives
 three depth-tested tube meshes in `src/scene/createSignalScene.ts`. A physical metal/enamel material uses a prefiltered HDR studio environment, filtered
 longitudinal brushing, and directional reflections. Custom shader extensions preserve
 scroll deformation, cursor bending with corrected normals, and signal illumination. The

@@ -60,21 +60,19 @@ export default function SignalRoute() {
       const approachHeight = mobile ? 240 : 430;
       d += ` ${contactApproach(center, { x: endX, y: endY }, approachHeight).d}`;
       const landmarks = [about, ...[...document.querySelectorAll<HTMLElement>(".project-image")].map(image => image.getBoundingClientRect().top - rect.top + image.clientHeight / 2)];
-      setLayout({ d, heroD, width, mainTop: rect.top + window.scrollY, about, landmarks, height: main.offsetHeight });
+      const next = { d, heroD, width, mainTop: rect.top + window.scrollY, about, landmarks, height: main.offsetHeight };
+      // Ignore observer callbacks that did not actually change the measured route.
+      setLayout(previous => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
     };
     const observer = new ResizeObserver(measure);
     observer.observe(main);
-    document.fonts.ready.then(async () => {
-      const nameAnimations = [...document.querySelectorAll<HTMLElement>(".name-word")]
-        .flatMap(word => word.getAnimations().map(animation => animation.finished));
-      await Promise.allSettled(nameAnimations);
+    document.fonts.ready.then(() => {
       if (!mounted) return;
       layoutReady = true;
       measure();
     });
     window.addEventListener("resize", measure);
-    window.addEventListener("signal-route-measure", measure);
-    return () => { mounted = false; observer.disconnect(); window.removeEventListener("resize", measure); window.removeEventListener("signal-route-measure", measure); };
+    return () => { mounted = false; observer.disconnect(); window.removeEventListener("resize", measure); };
   }, []);
 
   useEffect(() => {
