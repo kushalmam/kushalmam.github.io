@@ -19,11 +19,11 @@ afterEach(() => { vi.restoreAllMocks(); vi.clearAllMocks(); });
 it("anchors the camera during scrolling, handles reduced motion, and disposes each GPU resource once", () => {
   const canvas = document.createElement("canvas");
   const lost = vi.fn();
-  const signal = createSignalScene({ canvas, width: 1000, mainTop: 100, about: 700, onLost: lost,
+  const signal = createSignalScene({ canvas, width: 1000, mainTop: 100, about: 700, contactStart: 2400, onLost: lost,
     points: Array.from({ length: 101 }, (_, i) => ({ x: 100 + Math.sin(i / 10) * 30, y: i * 30 })),
   });
   expect(calls.size).toHaveBeenCalledWith(1000, window.innerHeight, false);
-  signal.render(500, .4, true, false, .75, { x: 210, y: -480 }, .8, { y: -900, strength: .7 });
+  signal.render(500, .4, false, .75, { x: 210, y: -480 }, .8, { y: -900, strength: .7 });
   const [scene, camera] = calls.render.mock.lastCall as [THREE.Scene, THREE.OrthographicCamera];
   expect(camera.position.y).toBe(-400);
   const meshes = scene.children as THREE.Mesh<THREE.BufferGeometry, WireMaterial>[];
@@ -44,9 +44,9 @@ it("anchors the camera during scrolling, handles reduced motion, and disposes ea
       expect(Math.hypot(normals.getX(index), normals.getY(index), normals.getZ(index))).toBeCloseTo(1, 4);
     }
     expect(mesh.material.isMeshPhysicalMaterial).toBe(true);
-    expect(mesh.material.metalness).toBe(.92);
+    expect(mesh.material.metalness).toBe(.58);
     expect(mesh.material.anisotropy).toBeGreaterThan(0);
-    expect(mesh.material.uniforms.uDark.value).toBe(1);
+    expect(mesh.material.uniforms.uContactStart.value).toBe(2400);
     expect(mesh.material.uniforms.uProgress.value).toBe(.4);
     expect(mesh.material.uniforms.uEnergy.value).toBe(.75);
     expect(mesh.material.uniforms.uPointer.value).toEqual(new THREE.Vector2(210, -480));
@@ -54,9 +54,8 @@ it("anchors the camera during scrolling, handles reduced motion, and disposes ea
     expect(mesh.material.uniforms.uFocusY.value).toBe(-900);
     expect(mesh.material.uniforms.uFocusStrength.value).toBe(.7);
   }
-  signal.render(750, .6, false, true, .75, { x: 210, y: -480 }, .8, { y: -900, strength: .7 });
+  signal.render(750, .6, true, .75, { x: 210, y: -480 }, .8, { y: -900, strength: .7 });
   expect(meshes[0].material.uniforms.uMotion.value).toBe(0);
-  expect(meshes[0].material.uniforms.uDark.value).toBe(0);
   expect(meshes[0].material.uniforms.uEnergy.value).toBe(0);
   expect(meshes[0].material.uniforms.uPointerStrength.value).toBe(0);
   expect(meshes[0].material.uniforms.uFocusStrength.value).toBe(0);
@@ -66,7 +65,7 @@ it("anchors the camera during scrolling, handles reduced motion, and disposes ea
   disposals.forEach(dispose => expect(dispose).toHaveBeenCalledOnce());
   expect(calls.dispose).toHaveBeenCalledOnce();
   const count = calls.render.mock.calls.length;
-  signal.render(900, .8, false, false);
+  signal.render(900, .8, false);
   expect(calls.render).toHaveBeenCalledTimes(count);
 });
 
@@ -76,7 +75,7 @@ it.each([375, 1000])("keeps the three work strands in ordered lanes beside all f
     landmarks: [300, 900, 980, 1500, 1580], onLost: vi.fn(),
     points: Array.from({ length: 101 }, (_, i) => ({ x: width / 2, y: i * 30 })),
   });
-  signal.render(900, .4, true, false);
+  signal.render(900, .4, false);
   const [scene] = calls.render.mock.lastCall as [THREE.Scene];
   const meshes = scene.children as THREE.Mesh<THREE.BufferGeometry, WireMaterial>[];
   for (const ring of [30, 33, 50, 53]) {
@@ -96,7 +95,7 @@ it("keeps the mobile camera anchored to the document and centers its endpoint ri
   const points = Array.from({ length: 101 }, (_, i) => ({ x: 180, y: i * 30 }));
   const signal = createSignalScene({ canvas: document.createElement("canvas"), points,
     width: 390, height: 3200, mainTop: 82, about: 700, onLost: vi.fn() });
-  signal.render(1500, .5, true, false);
+  signal.render(1500, .5, false);
   const [scene, camera] = calls.render.mock.lastCall as [THREE.Scene, THREE.OrthographicCamera];
   expect(camera.position.y).toBe(0);
   expect(camera.bottom).toBe(-3200);
@@ -110,7 +109,7 @@ it("keeps the mobile camera anchored to the document and centers its endpoint ri
   }
   expect(mesh.material.anisotropy).toBe(0);
   expect(mesh.material.clearcoat).toBe(0);
-  signal.render(2000, .8, true, false);
+  signal.render(2000, .8, false);
   expect(camera.position.y).toBe(0);
   signal.dispose();
 });
@@ -121,11 +120,11 @@ it("resizes desktop projection with the canvas without rebuilding the geometry",
   Object.defineProperty(canvas, "clientHeight", { get: () => height });
   const signal = createSignalScene({ canvas, width: 1000, mainTop: 100, about: 700, onLost: vi.fn(),
     points: Array.from({ length: 101 }, (_, i) => ({ x: 100, y: i * 30 })) });
-  signal.render(0, 0, false, false);
+  signal.render(0, 0, false);
   const [scene, camera] = calls.render.mock.lastCall as [THREE.Scene, THREE.OrthographicCamera];
   const geometry = (scene.children[0] as THREE.Mesh).geometry;
   height = 820;
-  signal.render(300, .2, false, false);
+  signal.render(300, .2, false);
   expect(camera.bottom).toBe(-820);
   expect(calls.size).toHaveBeenLastCalledWith(1000, 820, false);
   expect((scene.children[0] as THREE.Mesh).geometry).toBe(geometry);

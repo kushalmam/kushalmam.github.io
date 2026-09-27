@@ -1,13 +1,13 @@
 import * as THREE from "three";
 
 type RoutePoint = { x: number; y: number };
-type Options = { canvas: HTMLCanvasElement; points: RoutePoint[]; width: number; mainTop: number; about: number; landmarks?: number[]; height?: number; onLost: () => void };
+type Options = { canvas: HTMLCanvasElement; points: RoutePoint[]; width: number; mainTop: number; about: number; contactStart?: number; landmarks?: number[]; height?: number; onLost: () => void };
 
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { createWireMaterial, type WireMaterial } from "./wireMaterial";
 
 /** Viewport-sized renderer; page coordinates keep geometry anchored to the layout. */
-export function createSignalScene({ canvas, points, width, mainTop, about, landmarks, height, onLost }: Options) {
+export function createSignalScene({ canvas, points, width, mainTop, about, contactStart = 1e9, landmarks, height, onLost }: Options) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "low-power" });
   const mobile = width < 700;
   let surfaceHeight = mobile ? (height ?? window.innerHeight) : (canvas.clientHeight || window.innerHeight);
@@ -84,7 +84,7 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
     geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
     geometry.setIndex(indices);
     geometry.computeTangents();
-    const material = createWireMaterial(strand, mobile);
+    const material = createWireMaterial(strand, mobile, contactStart);
     scene.add(new THREE.Mesh(geometry, material));
     geometries.push(geometry); materials.push(material);
   }
@@ -105,7 +105,7 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
         renderer.compile(scene, camera);
       } finally { hdr.dispose(); pmrem.dispose(); }
     },
-    render(scroll: number, progress: number, dark: boolean, reduced: boolean, energy = 0, pointer = { x: 10000, y: 10000 }, pointerStrength = 0, focus = { y: 10000, strength: 0 }) {
+    render(scroll: number, progress: number, reduced: boolean, energy = 0, pointer = { x: 10000, y: 10000 }, pointerStrength = 0, focus = { y: 10000, strength: 0 }) {
       if (disposed) return;
       // Phones use a document-positioned canvas: native scrolling moves pixels
       // together with the text, even when JS misses a frame during touch inertia.
@@ -120,12 +120,6 @@ export function createSignalScene({ canvas, points, width, mainTop, about, landm
       const index = Math.min(points.length - 1, Math.round(progress * (points.length - 1)));
       const point = points[index];
       materials.forEach(material => {
-        material.color.set(dark ? "#889b9d" : "#34695e");
-        material.metalness = dark ? .92 : .58;
-        material.roughness = dark ? .28 : .34;
-        material.envMapIntensity = dark ? 1.15 : .85;
-        material.clearcoat = mobile ? 0 : (dark ? .12 : .32);
-        material.uniforms.uDark.value = dark ? 1 : 0;
         material.uniforms.uScroll.value = scroll;
         material.uniforms.uMotion.value = reduced ? 0 : 1;
         material.uniforms.uEnergy.value = reduced ? 0 : energy;

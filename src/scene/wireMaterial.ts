@@ -1,9 +1,9 @@
 import * as THREE from "three";
 
 /** Keep interaction uniforms available before Three compiles the physical shader. */
-export function createWireMaterial(strand: number, mobile = false) {
+export function createWireMaterial(strand: number, mobile = false, contactStart = 1e9) {
   const uniforms = {
-    uDark: { value: 0 }, uStrand: { value: strand }, uProgress: { value: 0 }, uScroll: { value: 0 },
+    uContactStart: { value: contactStart }, uStrand: { value: strand }, uProgress: { value: 0 }, uScroll: { value: 0 },
     uMotion: { value: 1 }, uEnergy: { value: 0 }, uPointer: { value: new THREE.Vector2(10000, 10000) },
     uPointerStrength: { value: 0 }, uFocusY: { value: 10000 }, uFocusStrength: { value: 0 },
     uSignal: { value: new THREE.Vector3() },
@@ -35,6 +35,11 @@ export function createWireMaterial(strand: number, mobile = false) {
       vWireUv = uv;
     `);
     shader.fragmentShader = declarations + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", `
+      #include <color_fragment>
+      float contactBlend = smoothstep(uContactStart, uContactStart + 225., -vWirePosition.y);
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.52, .70, .63), contactBlend);
+    `);
     shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>", `
       #include <roughnessmap_fragment>
       // Fine longitudinal brushing, filtered before it becomes subpixel shimmer.
@@ -47,10 +52,11 @@ export function createWireMaterial(strand: number, mobile = false) {
       float band = exp(-pow((vWireUv.x - uProgress) / .0045, 2.));
       float spill = exp(-length(vWirePosition - uSignal) / 30.);
       float activeStrand = 1. - step(.5, uStrand);
-      vec3 mint = mix(vec3(.22,.65,.39), vec3(.35,.8,.6), uDark);
+      vec3 mint = mix(vec3(.22,.65,.39), vec3(.35,.8,.6), contactBlend);
       float focus = exp(-pow((vWirePosition.y - uFocusY) / 66., 2.)) * uFocusStrength;
       totalEmissiveRadiance += (mint * (band * mix(.18, 1.4, activeStrand)
         + spill * mix(.04,.15,activeStrand)) + vec3(.06,.12,.10) * focus) * uMotion;
+      totalEmissiveRadiance += vec3(.025, .055, .04) * contactBlend;
     `);
   };
   return material;
@@ -58,7 +64,7 @@ export function createWireMaterial(strand: number, mobile = false) {
 export type WireMaterial = ReturnType<typeof createWireMaterial>;
 
 const declarations = /* glsl */`
-  uniform float uDark, uStrand, uProgress, uScroll, uMotion, uEnergy;
+  uniform float uContactStart, uStrand, uProgress, uScroll, uMotion, uEnergy;
   uniform vec2 uPointer;
   uniform float uPointerStrength, uFocusY, uFocusStrength;
   uniform vec3 uSignal;

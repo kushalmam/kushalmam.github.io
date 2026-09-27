@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useState, type CSSProperties, type MouseEvent } from "react";
 import { motion } from "motion/react";
 import OrgMark from "./OrgMark";
-import ThemeToggle from "./ThemeToggle";
 import SignalRoute from "./SignalRoute";
 import TextStream from "./TextStream";
 import ArrowFillButton from "./ArrowFillButton";
@@ -82,7 +81,7 @@ export default function EditorialPortfolio() {
     <a className="skip-link" href="#main" onClick={navigate}>Skip to content</a>
     <header className="site-header">
       <a className="wordmark" href="#top" onClick={navigate} aria-label="Kushal Mamillapalli home">km<span>·</span></a>
-      <div className="header-actions"><nav aria-label="Main navigation"><a href="#about" onClick={navigate}>About</a><a href="#work" onClick={navigate}>Work</a><a className="header-contact" href="#contact" onClick={navigate}>Contact <span aria-hidden="true">↗</span></a></nav><ThemeToggle /></div>
+      <div className="header-actions"><nav aria-label="Main navigation"><a href="#about" onClick={navigate}>About</a><a href="#work" onClick={navigate}>Work</a><a className="header-contact" href="#contact" onClick={navigate}>Contact <span aria-hidden="true">↗</span></a></nav></div>
     </header>
     <main id="main" tabIndex={-1}>
       <SignalRoute />
@@ -126,10 +125,10 @@ export default function EditorialPortfolio() {
         /></h2>
         <a className="email-link" href="mailto:kushalmam06@gmail.com" data-reveal style={revealDelay(100)}>kushalmam06@gmail.com <span aria-hidden="true">↗</span></a>
         <div className="contact-bottom" data-reveal style={revealDelay(180)}>
-          <ArrowFillButton className="resume-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" href={asset("documents/kushal-mamillapalli-resume.pdf")} target="_blank" rel="noopener noreferrer"><span className="resume-link__content"><span>Résumé</span><span className="resume-link__format">PDF ↗</span></span></ArrowFillButton>
+          <ArrowFillButton className="resume-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" hoverFillTextColor="var(--contact-paper)" href={asset("documents/kushal-mamillapalli-resume.pdf")} target="_blank" rel="noopener noreferrer"><span className="resume-link__content"><span>Résumé</span><span className="resume-link__format">PDF ↗</span></span></ArrowFillButton>
           <nav className="contact-links" aria-label="Professional links">
-            <ArrowFillButton className="social-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" href="https://linkedin.com/in/kushal-mamillapalli" target="_blank" rel="noopener noreferrer"><span className="social-link__content"><SocialMark name="linkedin" />LinkedIn</span></ArrowFillButton>
-            <ArrowFillButton className="social-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" href="https://github.com/Techdude01" target="_blank" rel="noopener noreferrer"><span className="social-link__content"><SocialMark name="github" />GitHub</span></ArrowFillButton>
+            <ArrowFillButton className="social-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" hoverFillTextColor="var(--contact-paper)" href="https://linkedin.com/in/kushal-mamillapalli" target="_blank" rel="noopener noreferrer"><span className="social-link__content"><SocialMark name="linkedin" />LinkedIn</span></ArrowFillButton>
+            <ArrowFillButton className="social-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" hoverFillTextColor="var(--contact-paper)" href="https://github.com/Techdude01" target="_blank" rel="noopener noreferrer"><span className="social-link__content"><SocialMark name="github" />GitHub</span></ArrowFillButton>
           </nav>
         </div>
       </section>

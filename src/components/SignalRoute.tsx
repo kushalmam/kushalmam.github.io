@@ -8,7 +8,7 @@ export default function SignalRoute() {
   const [ready, setReady] = useState(false);
   const [fallback, setFallback] = useState(false);
   const path = useRef<SVGPathElement>(null);
-  const [layout, setLayout] = useState({ d: "", heroD: "", width: 1, height: 1, mainTop: 0, about: 0, landmarks: [] as number[] });
+  const [layout, setLayout] = useState({ d: "", heroD: "", width: 1, height: 1, mainTop: 0, about: 0, contactStart: 0, landmarks: [] as number[] });
 
   useEffect(() => {
     const main = document.querySelector("main");
@@ -31,6 +31,7 @@ export default function SignalRoute() {
       const hero = topSection.offsetHeight;
       const about = top(aboutSection) + 68;
       const work = top(workSection);
+      const contactStart = top(contactSection);
       const rail = mobile ? 22 : width * .075;
       const center = mobile ? rail : width / 2;
       // Layout offsets exclude reveal/letter transforms: sockets must stay put
@@ -68,7 +69,7 @@ export default function SignalRoute() {
       const approachHeight = mobile ? 240 : 430;
       d += ` ${contactApproach(center, { x: endX, y: endY }, approachHeight).d}`;
       const landmarks = [about, ...[...document.querySelectorAll<HTMLElement>(".project-image")].map(image => image.getBoundingClientRect().top - rect.top + image.clientHeight / 2)];
-      const next = { d, heroD, width, mainTop: rect.top + window.scrollY, about, landmarks, height: main.offsetHeight };
+      const next = { d, heroD, width, mainTop: rect.top + window.scrollY, about, contactStart, landmarks, height: main.offsetHeight };
       // Ignore observer callbacks that did not actually change the measured route.
       setLayout(previous => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
     };
@@ -128,7 +129,7 @@ export default function SignalRoute() {
         if (progress > .982) main.dataset.signalAtContact = "true";
         else delete main.dataset.signalAtContact;
       }
-      scene?.render(window.scrollY, distance / length, document.documentElement.dataset.theme === "dark", reduced.matches,
+      scene?.render(window.scrollY, distance / length, reduced.matches,
         energy, { x: pointer.x, y: -(pointer.y + window.scrollY - layout.mainTop) }, pointerStrength,
         { y: focusY, strength: focusStrength });
       frame = 0;
@@ -139,7 +140,7 @@ export default function SignalRoute() {
     import("../scene/createSignalScene").then(async ({ createSignalScene }) => {
       if (disposed || !canvas.current) return;
       try {
-        scene = createSignalScene({ canvas: canvas.current, points, width: layout.width, height: layout.height, mainTop: layout.mainTop, about: layout.about, landmarks: layout.landmarks, onLost: () => { setReady(false); setFallback(true); scene?.dispose(); scene = undefined; } });
+        scene = createSignalScene({ canvas: canvas.current, points, width: layout.width, height: layout.height, mainTop: layout.mainTop, about: layout.about, contactStart: layout.contactStart, landmarks: layout.landmarks, onLost: () => { setReady(false); setFallback(true); scene?.dispose(); scene = undefined; } });
         await scene.prepare();
         if (disposed) return;
         paint();
@@ -203,8 +204,6 @@ export default function SignalRoute() {
     window.addEventListener("pointermove", pointerMove, { passive: true });
     window.addEventListener("pointerout", pointerOut);
     reduced.addEventListener("change", schedule);
-    const themeObserver = new MutationObserver(schedule);
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     const visibility = () => {
       if (document.hidden) {
         cancelAnimationFrame(frame);
@@ -223,7 +222,6 @@ export default function SignalRoute() {
         delete main.dataset.signalAtContact;
       }
       scene?.dispose();
-      themeObserver.disconnect();
       document.removeEventListener("visibilitychange", visibility);
       window.removeEventListener("scroll", scroll);
       window.removeEventListener("resize", schedule);
@@ -239,6 +237,12 @@ export default function SignalRoute() {
   return <><canvas ref={canvas} className="signal-canvas" data-ready={ready} aria-hidden="true" /><svg className="signal-route" data-layout-ready={Boolean(layout.d)} data-rendered={ready} data-fallback={fallback} viewBox={`0 0 ${layout.width} ${layout.height}`} aria-hidden="true">
     <defs>
       <filter id="cable-shadow" x="-40%" y="-10%" width="180%" height="130%"><feDropShadow dx="3" dy="9" stdDeviation="7" floodColor="#244d47" floodOpacity=".18" /></filter>
+      <linearGradient id="cable-gradient" gradientUnits="userSpaceOnUse" x1="0" y1={layout.contactStart} x2="0" y2={layout.contactStart + 225}>
+        <stop stopColor="#547d70" /><stop offset="1" stopColor="#b8d0c1" />
+      </linearGradient>
+      <linearGradient id="cable-light-gradient" gradientUnits="userSpaceOnUse" x1="0" y1={layout.contactStart} x2="0" y2={layout.contactStart + 225}>
+        <stop stopColor="#91aea0" /><stop offset="1" stopColor="#e1f3e7" />
+      </linearGradient>
     </defs>
     <path className="cable-shadow" d={layout.d} />
     <path ref={path} className="cable-body" d={layout.d} />

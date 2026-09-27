@@ -4,18 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f3f1e9" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="color-scheme" content="light" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-    <script>
-      (() => {
-        let theme;
-        try { theme = localStorage.getItem("portfolio-theme"); } catch {}
-        if (theme !== "light" && theme !== "dark") theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        document.documentElement.dataset.theme = theme;
-        document.querySelector('meta[name="theme-color"]').content = theme === "dark" ? "#111c1b" : "#f3f1e9";
-      })();
-    </script>
     <meta name="robots" content="index, follow" />
 
     <link rel="canonical" href="https://kushalmam.github.io/" />
@@ -100,10 +91,6 @@
         font:
           1rem/1.7 system-ui,
           sans-serif;
-      }
-      [data-theme="dark"] .static-fallback {
-        color: #f1f1e8;
-        background: #0b0d0c;
       }
       .static-fallback h1 {
         font:

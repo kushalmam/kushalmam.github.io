@@ -13,8 +13,6 @@ vi.mock("../components/SignalRoute", () => ({ default: () => null }));
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
-  localStorage.clear();
-  delete document.documentElement.dataset.theme;
 });
 
 describe("portfolio interactions without WebGL", () => {
@@ -47,18 +45,10 @@ describe("portfolio interactions without WebGL", () => {
     expect(document.querySelectorAll(".project-card")).toHaveLength(4);
   });
 
-  it("persists the chosen theme and follows changes from another tab", () => {
+  it("uses one authored sequence of section colors without a theme switch", () => {
     render(<EditorialPortfolio />);
-    const toggle = screen.getByRole("switch", { name: "Dark theme" });
-    expect(toggle).toHaveAttribute("aria-checked", "false");
-    fireEvent.click(toggle);
-    expect(document.documentElement.dataset.theme).toBe("dark");
-    expect(localStorage.getItem("portfolio-theme")).toBe("dark");
-    cleanup();
-    render(<EditorialPortfolio />);
-    expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "true");
-    fireEvent(window, new StorageEvent("storage", { key: "portfolio-theme", newValue: "light" }));
-    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(screen.queryByRole("switch", { name: "Dark theme" })).not.toBeInTheDocument();
+    expect(document.querySelectorAll("main > section")).toHaveLength(4);
   });
 
   it("moves focus to the destination landmark after section navigation", async () => {

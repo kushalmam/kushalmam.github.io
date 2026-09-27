@@ -12,9 +12,9 @@ viewport-sized renderer is lazy-loaded, caps pixel density, renders only on chan
 and releases its GPU resources on teardown. Reduced motion freezes the strands
 and removes the traveling signal. A styled SVG remains if WebGL is unavailable.
 
-Light mode pairs warm paper with teal enamel. Dark mode uses charcoal-black,
-warm ivory, and a sharper steel response. Theme selection follows the
-system until overridden, persists locally, and paints before React to avoid flashes.
+The construction grid is confined to the hero and fades into clear warm paper.
+The work section cools toward sage; Contact transitions into deep green. The
+wire brightens with the background change, including in the SVG fallback.
 The portrait and Spotify/NYU marks reuse existing assets. See
 [the options and art-direction decisions](docs/signal-art-direction.md).
 
@@ -40,15 +40,14 @@ bun run preview
 - `src/content.ts`: project evidence, source links, and experience history.
 - `src/components/EditorialPortfolio.tsx`: page composition, introduction, and project selection.
 - `src/index.css`: the design protocol, component styles, and responsive layouts.
-- `src/components/SiteHeader.tsx`: native anchor navigation.
-- `src/components/ThemeToggle.tsx`: accessible light/dark switch and persistence.
+- `src/components/SiteHeader.tsx`: alternate native anchor navigation component.
 - `src/components/OrgMark.tsx`: single-colour org logos for the experience rows.
 - `scripts/hero/`: editable sculpture, rendering script, and responsive image exporter.
 - `src/scene/createSignalScene.ts`: live hero braid geometry, renderer lifecycle, and disposal.
 - `src/scene/wireMaterial.ts`: physical metal/enamel shading, brushing, cursor deformation, and signal emission.
 - `public/environments/wire-studio.hdr`: original bundled HDR studio lighting; regenerate with `uv run scripts/generate-wire-studio.py`.
 - `scripts/staticFallback.ts`: build-time HTML from the same project and experience data.
-- `index.html`: metadata, pre-paint theme initialization, and fallback insertion point.
+- `index.html`: metadata and fallback insertion point.
 - `public/documents/`: résumé PDF; `public/images/`: optimized portrait.
 
 The build inserts readable content into the root before React mounts. Project and
@@ -56,7 +55,7 @@ experience edits therefore reach the JavaScript and no-JavaScript versions toget
 The résumé and portrait use Vite's configured base path, including `/portfolio/`.
 
 The obsolete Spline and Babylon previews have been removed. The homepage hero is
-the single source of truth for the wire. Both themes use ACES tone mapping; the
+the single source of truth for the wire. Its renderer uses ACES tone mapping; the
 signal emission is restrained to preserve the material highlights.
 
 On phones, the wire canvas scrolls natively with the document, uses 400 segments

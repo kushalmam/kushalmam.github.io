@@ -1,4 +1,3 @@
-import ThemeToggle from "./ThemeToggle";
 import { useEffect, useState, type MouseEvent } from "react";
 
 export default function SiteHeader() {
@@ -85,7 +84,6 @@ export default function SiteHeader() {
             Contact
           </a>
         </nav>
-        <ThemeToggle />
       </div>
     </header>
   );

@@ -58,6 +58,7 @@ main {
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  background: var(--paper);
 }
 .site-header {
   height: 104px;
@@ -105,6 +106,17 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 88px 88px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 220px), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 220px), transparent 100%);
 }
 .hero-copy {
   position: relative;
@@ -233,6 +245,16 @@ h1>span {
 }
 .section {
   position: relative;
+}
+.section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.section > * {
+  position: relative;
   z-index: 1;
 }
 .about {
@@ -300,8 +322,8 @@ h1>span {
   line-height: 1.5;
 }
 .contact {
-  margin: 0 10%;
-  padding: 110px 0 48px;
+  margin: 0;
+  padding: 255px 10% 75px;
 }
 .contact h2 {
   font-size: clamp(70px,11vw,152px);
@@ -406,11 +428,11 @@ main[data-signal-at-contact="true"] .contact h2 .signal-terminal-socket,
   filter: url(#cable-shadow);
 }
 .cable-body {
-  stroke: #547d70;
+  stroke: url(#cable-gradient);
   stroke-width: 27px;
 }
 .cable-light {
-  stroke: #91aea0;
+  stroke: url(#cable-light-gradient);
   stroke-width: 10px;
   opacity: .58;
 }
@@ -526,8 +548,8 @@ main[data-signal-at-contact="true"] .contact h2 .signal-terminal-socket,
     font-size: 12px;
   }
   .contact {
-    margin: 0 8% 0 62px;
-    padding: 105px 0 45px;
+    margin: 0;
+    padding: 245px 8% 65px 62px;
   }
   .contact h2 {
     font-size: 65px;
@@ -644,31 +666,20 @@ h1>span {
 .static-fallback a {
   text-decoration: underline;
 }
-/* Daylight enamel / charcoal studio. The grid stays below the reading plane. */
+/* An editorial color journey: construction grid, clear paper, cool work, deep contact. */
 :root {
   --paper: #f3f1e9;
+  --work-paper: #e7ede9;
+  --contact-paper: #112a24;
   --ink: #244e49;
   --muted: #63766c;
-  --grid: rgba(57, 87, 72, .065);
+  --grid: rgba(57, 87, 72, .08);
   --line: #d2d8cd;
   color: var(--ink);
   background: var(--paper);
 }
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --paper: #0b0e10;
-  --ink: #e6e7df;
-  --muted: #a5aeaa;
-  --grid: rgba(199, 207, 207, .035);
-  --line: #303738;
-  --mint: #a6e7ca;
-  --cta-base: #344644;
-  --cta-text: #f1f1e7;
-}
 body {
   background-color: var(--paper);
-  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 88px 88px;
   color: var(--ink);
 }
 ::selection {
@@ -704,42 +715,6 @@ body {
   color: var(--paper);
   opacity: 1;
 }
-.theme-toggle {
-  border: 0;
-  background: none;
-  color: var(--ink);
-  padding: 0;
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-}
-.theme-toggle-track {
-  width: 20px;
-  height: 20px;
-  display: block;
-  position: relative;
-}
-.theme-toggle-track svg {
-  position: absolute;
-  inset: 0;
-  width: 20px;
-  height: 20px;
-  stroke-width: 1.4;
-}
-.theme-toggle-track svg:last-child {
-  display: none;
-}
-.theme-toggle[aria-checked="true"] svg:first-of-type {
-  display: none;
-}
-.theme-toggle[aria-checked="true"] svg:last-child {
-  display: block;
-}
-.theme-toggle-knob {
-  display: none;
-}
 .signal-canvas {
   position: fixed;
   inset: 0;
@@ -766,14 +741,24 @@ main[data-reveal-ready="true"] [data-reveal][data-revealed="true"] {
   transform: none;
   filter: none;
 }
-:root[data-theme="dark"] .signal-canvas {
-  filter: drop-shadow(5px 13px 8px #000e);
+.work::before {
+  background: linear-gradient(to bottom, var(--paper), var(--work-paper) 190px);
 }
-:root[data-theme="dark"] .cable-body, :root[data-theme="dark"] .cable-shadow {
-  stroke: #65777a;
+.contact {
+  --paper: var(--contact-paper);
+  --ink: #edf3eb;
+  --muted: #b4c5bb;
+  --line: #6f887c;
+  --mint: #b4ffd0;
+  --cta-base: #d9ecdc;
+  --cta-text: var(--contact-paper);
+  color: var(--ink);
 }
-:root[data-theme="dark"] .cable-light {
-  stroke: #b9c8c7;
+.contact::before {
+  background: linear-gradient(to bottom, var(--work-paper) 0, #afc5b6 65px, #466e5d 140px, var(--contact-paper) 225px);
+}
+.contact h2 span {
+  color: var(--mint);
 }
 .about {
   grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
@@ -867,9 +852,6 @@ main[data-reveal-ready="true"] [data-reveal][data-revealed="true"] {
 .project-caption>p:last-child {
   font-size: 14px;
 }
-.contact {
-  padding-top: 135px;
-}
 .email-link {
   border-color: var(--line);
 }
@@ -906,7 +888,7 @@ main[data-reveal-ready="true"] [data-reveal][data-revealed="true"] {
 }
 @media(max-width:699px) {
   .contact h2 { font-size: clamp(42px, 10vw, 65px); }
-  body {
+  .hero::before {
     background-size: 64px 64px;
   }
   .site-header {
@@ -927,9 +909,6 @@ main[data-reveal-ready="true"] [data-reveal][data-revealed="true"] {
   }
   .site-header nav .header-contact span {
     display: none;
-  }
-  .theme-toggle {
-    width: 24px;
   }
   .about {
     padding: 55px 9% 105px 62px;
@@ -977,9 +956,6 @@ main[data-reveal-ready="true"] [data-reveal][data-revealed="true"] {
   .project-grid {
     row-gap: 44px;
   }
-  .contact {
-    padding-top: 100px;
-  }
 }
 @media(prefers-reduced-motion:reduce) {
   .signal-route,
@@ -997,7 +973,7 @@ main[data-reveal-ready="true"] [data-reveal][data-revealed="true"] {
     width: 100%;
     height: 100%;
   }
-  .signal-canvas, :root[data-theme="dark"] .signal-canvas { filter: none; }
+  .signal-canvas { filter: none; }
 }
 
 /* Project captures stand on their own, without decorative mounts or chrome. */
