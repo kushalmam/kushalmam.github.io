@@ -16,22 +16,19 @@ afterEach(() => {
 });
 
 describe("portfolio interactions without WebGL", () => {
-  it("keeps one persistent wire anchor outside every animated name layer", () => {
+  it("keeps one persistent name dot while the name cleans itself up", () => {
     vi.useFakeTimers();
     const { container } = render(<EditorialPortfolio />);
-    const anchor = container.querySelector("[data-signal-origin]");
+    const heading = screen.getByRole("heading", { level: 1, name: "Kushal Mamillapalli" });
+    const anchor = container.querySelector("[data-name-dot]");
     expect(anchor).not.toBeNull();
-    expect(anchor?.closest(".name-layer")).toBeNull();
-    const layers = [...container.querySelectorAll(".name-word--last .name-layer")];
-    expect(layers).toHaveLength(3);
-    for (const style of ["outline", "editorial", "plain"]) {
-      act(() => vi.advanceTimersByTime(5600));
-      expect(container.querySelector("[data-signal-origin]")).toBe(anchor);
-      expect(container.querySelectorAll("[data-signal-origin]")).toHaveLength(1);
-      expect([...container.querySelectorAll(".name-word--last .name-layer")]).toEqual(layers);
-      expect(container.querySelector(".name-word--last [aria-hidden='false']"))
-        .toHaveClass(`name-layer--${style}`);
-    }
+    expect(heading).toContainElement(anchor as HTMLElement);
+    const letters = heading.querySelectorAll("[data-cut]");
+    expect(letters).toHaveLength("KushalMamillapalli".length);
+    expect(letters[0]).toHaveAttribute("data-cut", "0");
+    act(() => vi.advanceTimersByTime(7200));
+    expect(container.querySelectorAll("[data-name-dot]")).toHaveLength(1);
+    expect(container.querySelector("[data-name-dot]")).toBe(anchor);
   });
 
   it("offers four direct project links with real image previews", () => {
@@ -53,7 +50,7 @@ describe("portfolio interactions without WebGL", () => {
 
   it("moves focus to the destination landmark after section navigation", async () => {
     render(<EditorialPortfolio />);
-    const workLink = screen.getByRole("link", { name: "Work" });
+    const workLink = screen.getByRole("link", { name: "Transform — Work" });
     workLink.focus();
     fireEvent.click(workLink, { ctrlKey: true });
     expect(workLink).toHaveFocus();

@@ -1,40 +1,20 @@
-import { useEffect, useLayoutEffect, useState, type CSSProperties, type MouseEvent } from "react";
-import { motion } from "motion/react";
+import { useState, type CSSProperties, type MouseEvent } from "react";
 import OrgMark from "./OrgMark";
-import SignalRoute from "./SignalRoute";
 import TextStream from "./TextStream";
-import ArrowFillButton from "./ArrowFillButton";
 import SocialMark from "./SocialMark";
-import FlipText from "./FlipText";
+import DegradedName from "./DegradedName";
 import { portfolioProjects } from "../portfolioProjects";
+import { useScrollScenes } from "./useScrollScenes";
+import { usePipelineGuide } from "./usePipelineGuide";
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
-const revealDelay = (delay: number): CSSProperties => ({ "--reveal-delay": `${delay}ms` } as CSSProperties);
 const contactStreamItems = ["build.", "make.", "ship.", "explore.", "talk."];
-const nameStyles = ["plain", "outline", "editorial"] as const;
-
-function LastNameCharacter(character: string, index: number) {
-  if (index !== 11) return character;
-  return <span className="name-origin-i">ı</span>;
-}
-
-function NameLine({ text, style, last = false }: { text: string; style: typeof nameStyles[number]; last?: boolean }) {
-  return <span className={`name-word${last ? " name-word--last" : ""}`}>
-    {nameStyles.map(variant => <motion.span
-      key={variant}
-      className={`name-layer name-layer--${variant}`}
-      aria-hidden={variant !== style}
-      initial={false}
-      animate={{ opacity: variant === style ? 1 : 0, rotateX: variant === style ? 0 : -64 }}
-      transition={{ duration: .42, ease: [.2, .7, .2, 1] }}
-      style={{ pointerEvents: variant === style ? "auto" : "none" }}
-    >
-      <FlipText renderCharacter={last ? LastNameCharacter : undefined}>{text}</FlipText>
-    </motion.span>)}
-    {last && <span className="name-origin-dot" data-signal-origin="" aria-hidden="true" />}
-  </span>;
-}
-
+const stages = [
+  { stage: "Ingest", section: "Intro", href: "#top" },
+  { stage: "Route", section: "About", href: "#about" },
+  { stage: "Transform", section: "Work", href: "#work" },
+  { stage: "Output", section: "Contact", href: "#contact" },
+];
 
 function navigate(event: MouseEvent<HTMLAnchorElement>) {
   if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -42,95 +22,88 @@ function navigate(event: MouseEvent<HTMLAnchorElement>) {
   document.getElementById(id)?.focus({ preventScroll: true });
 }
 
+const index = (value: number) => String(value + 1).padStart(2, "0");
+
 export default function EditorialPortfolio() {
   const [activeContactWord, setActiveContactWord] = useState<string>();
-  const [nameStyleIndex, setNameStyleIndex] = useState(0);
-  const nameStyle = nameStyles[nameStyleIndex];
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (media.matches) return;
-    const cycle = window.setInterval(() => setNameStyleIndex(index => (index + 1) % nameStyles.length), 5600);
-    return () => window.clearInterval(cycle);
-  }, []);
-  useLayoutEffect(() => {
-    const main = document.querySelector<HTMLElement>("main");
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (!main || reducedMotion.matches || !("IntersectionObserver" in window)) return;
-
-    const targets = [...main.querySelectorAll<HTMLElement>("[data-reveal]")];
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        (entry.target as HTMLElement).dataset.revealed = "true";
-        observer.unobserve(entry.target);
-      });
-    }, { threshold: .12, rootMargin: "0px 0px -6% 0px" });
-
-    targets.forEach(target => {
-      target.dataset.revealed = "false";
-      observer.observe(target);
-    });
-    main.dataset.revealReady = "true";
-    return () => {
-      observer.disconnect();
-      delete main.dataset.revealReady;
-    };
-  }, []);
+  useScrollScenes();
+  usePipelineGuide();
 
   return <>
     <a className="skip-link" href="#main" onClick={navigate}>Skip to content</a>
     <header className="site-header">
-      <a className="wordmark" href="#top" onClick={navigate} aria-label="Kushal Mamillapalli home">km<span>·</span></a>
-      <div className="header-actions"><nav aria-label="Main navigation"><a href="#about" onClick={navigate}>About</a><a href="#work" onClick={navigate}>Work</a><a className="header-contact" href="#contact" onClick={navigate}>Contact <span aria-hidden="true">↗</span></a></nav></div>
+      <a className="wordmark" href="#top" onClick={navigate} aria-label="Kushal Mamillapalli home">km</a>
+      <nav className="stages" aria-label="Main navigation">
+        {stages.map(item => <a key={item.href} href={item.href} onClick={navigate} data-stage="">
+          {item.stage}<span className="visually-hidden"> — {item.section}</span>
+        </a>)}
+      </nav>
     </header>
+    <span className="guide-dot" data-guide-dot="" aria-hidden="true"><span className="guide-dot__label" data-guide-label="">Ingest</span></span>
+    <span className="flood" data-flood="" aria-hidden="true" />
+
     <main id="main" tabIndex={-1}>
-      <SignalRoute />
       <section className="hero" id="top" tabIndex={-1} aria-labelledby="hero-title">
-        <div className="hero-copy"><div className="hero-name">
-          <h1 id="hero-title" aria-label="Kushal Mamillapalli">
-            <NameLine text="Kushal" style={nameStyle} />
-            <NameLine text="Mamillapalli" style={nameStyle} last />
-          </h1>
-        </div><p className="hero-role">Data Engineer</p></div>
-        <div className="hero-bottom"><p>I make data <em>go places.</em></p><a href="#work" onClick={navigate}>Selected work <span aria-hidden="true">↓</span></a></div>
+        <div className="hero-name">
+          <DegradedName />
+        </div>
+        <p className="hero-role">I make data <em>go places.</em></p>
       </section>
+
       <section className="about section" id="about" tabIndex={-1} aria-labelledby="about-title">
-        <figure className="about-portrait" data-reveal><img src={asset("images/portrait.jpg")} alt="Kushal overlooking the New York skyline" width="720" height="709" loading="lazy" /></figure>
-        <div className="about-content">
-          <h2 className="about-lead" id="about-title" data-reveal style={revealDelay(60)}>Data pipelines.<br />Real impact.</h2>
-          <p className="about-text" data-reveal style={revealDelay(120)}>I build data pipelines and recommendation systems that turn messy inputs into reliable products.</p>
-          <div className="about-affiliations">
-            <div className="affiliation" data-reveal style={revealDelay(180)}><OrgMark name="spotify" /><span>Spotify<small>Data Engineer</small></span></div>
-            <div className="affiliation affiliation--nyu" data-reveal style={revealDelay(230)}><OrgMark name="nyu" /><span>NYU Tandon<small>Computer Science ’26</small></span></div>
-            <div className="affiliation" data-reveal style={revealDelay(280)}><OrgMark name="arc" /><span>ARC Robotics<small>Former RoboMaster CV Lead</small></span></div>
-          </div>
-          <p className="about-offscreen" data-reveal style={revealDelay(320)}>Usually building Gunpla or watching a murder mystery. Sometimes on the basketball court.</p>
+        <h2 className="about-lead" id="about-title"><span>Data pipelines.</span><span>Real impact.</span></h2>
+        <figure className="about-portrait">
+          <img src={asset("images/portrait.jpg")} alt="Kushal overlooking the New York skyline" width="720" height="709" loading="lazy" />
+        </figure>
+        <p className="about-text">I build recommendation systems and the infrastructure behind them, turning messy inputs into reliable products.</p>
+        <div className="about-affiliations">
+          <div className="affiliation"><OrgMark name="spotify" /><span>Spotify<small>Data Engineer</small></span></div>
+          <div className="affiliation affiliation--nyu"><OrgMark name="nyu" /><span>NYU Tandon<small>Computer Science ’26</small></span></div>
+          <div className="affiliation"><OrgMark name="arc" /><span>ARC Robotics<small>Former RoboMaster CV Lead</small></span></div>
         </div>
+        <p className="about-offscreen">Usually building Gunpla or watching a murder mystery. Sometimes on the basketball court.</p>
       </section>
+
+      <div className="bridge bridge--flood" data-flood-bridge="" aria-hidden="true" />
+
       <section className="work section" id="work" tabIndex={-1} aria-labelledby="work-title">
-        <div className="work-heading"><h2 id="work-title">Selected work<span>.</span></h2></div>
-        <div className="project-grid">{portfolioProjects.map((project, index) => <article className={`project-card project-card--${index}`} key={project.name}>
-          <a href={project.href} target="_blank" rel="noopener noreferrer" aria-label={`View ${project.name} on GitHub`}>
-            <div className="project-image"><img src={asset(`images/projects/${project.image}`)} alt={project.alt} loading="lazy" width={project.width} height={project.height} /></div>
-            <div className="project-caption"><h3>{project.name}</h3><p>{project.description}</p></div>
-          </a>
-        </article>)}</div>
+        <h2 className="work-title" id="work-title">Selected work<span>.</span></h2>
+        <ol className="project-index">
+          {portfolioProjects.map((project, position) => <li className="project-row" key={project.name}>
+            <a className="project-card" href={project.href} target="_blank" rel="noopener noreferrer" aria-label={`View ${project.name} on GitHub`}>
+              <div className="project-text">
+                <span className="project-number">{index(position)}</span>
+                <h3>{project.name}</h3>
+                <p className="project-category">{project.category}</p>
+                <p className="project-description">{project.description}</p>
+              </div>
+              <div className="project-media">
+                <img src={asset(`images/projects/${project.image}`)} alt={project.alt} loading="lazy" width={project.width} height={project.height} />
+              </div>
+            </a>
+          </li>)}
+        </ol>
       </section>
-      <section className="contact section" id="contact" tabIndex={-1} aria-labelledby="contact-title" data-stream-active={activeContactWord ?? undefined}>
-        <h2 id="contact-title" aria-label="Let’s build, make, ship, explore, and talk." data-reveal><TextStream
-          prefix={<>Let<span className="signal-terminal">’<span className="signal-terminal-socket" data-signal-terminal="" /></span>s</>}
-          items={contactStreamItems}
-          className="contact-stream"
-          onActiveItemChange={setActiveContactWord}
-        /></h2>
-        <a className="email-link" href="mailto:kushalmam06@gmail.com" data-reveal style={revealDelay(100)}>kushalmam06@gmail.com <span aria-hidden="true">↗</span></a>
-        <div className="contact-bottom" data-reveal style={revealDelay(180)}>
-          <ArrowFillButton className="resume-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" hoverFillTextColor="var(--contact-paper)" href={asset("documents/kushal-mamillapalli-resume.pdf")} target="_blank" rel="noopener noreferrer"><span className="resume-link__content"><span>Résumé</span><span className="resume-link__format">PDF ↗</span></span></ArrowFillButton>
-          <nav className="contact-links" aria-label="Professional links">
-            <ArrowFillButton className="social-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" hoverFillTextColor="var(--contact-paper)" href="https://linkedin.com/in/kushal-mamillapalli" target="_blank" rel="noopener noreferrer"><span className="social-link__content"><SocialMark name="linkedin" />LinkedIn</span></ArrowFillButton>
-            <ArrowFillButton className="social-link" bgColor="var(--cta-base)" textColor="var(--cta-text)" hoverFillTextColor="var(--contact-paper)" href="https://github.com/Techdude01" target="_blank" rel="noopener noreferrer"><span className="social-link__content"><SocialMark name="github" />GitHub</span></ArrowFillButton>
-          </nav>
+
+      <div className="bridge bridge--columns" data-scene="" aria-hidden="true">
+        <div className="bridge__stage">{Array.from({ length: 12 }, (_, column) => <span key={column} style={{ "--i": column } as CSSProperties} />)}</div>
+      </div>
+
+      <section className="contact section" id="contact" tabIndex={-1} aria-labelledby="contact-title" data-scene="" data-stream-active={activeContactWord ?? undefined}>
+        <div className="contact-mask">
+          <h2 id="contact-title" aria-label="Let’s build, make, ship, explore, and talk."><TextStream
+            prefix={<>Let<span className="contact-apostrophe">’</span>s</>}
+            items={contactStreamItems}
+            className="contact-stream"
+            onActiveItemChange={setActiveContactWord}
+          /></h2>
         </div>
+        <nav className="contact-grid" aria-label="Professional links">
+          <a className="contact-cell contact-cell--email" href="mailto:kushalmam06@gmail.com"><span className="contact-cell__label">Email</span><span className="contact-cell__value">kushalmam06@gmail.com</span><span className="contact-cell__arrow" aria-hidden="true">↗</span></a>
+          <a className="contact-cell" href={asset("documents/kushal-mamillapalli-resume.pdf")} target="_blank" rel="noopener noreferrer"><span className="contact-cell__label">PDF</span><span className="contact-cell__value">Résumé</span><span className="contact-cell__arrow" aria-hidden="true">↗</span></a>
+          <a className="contact-cell" href="https://linkedin.com/in/kushal-mamillapalli" target="_blank" rel="noopener noreferrer"><span className="contact-cell__label"><SocialMark name="linkedin" /></span><span className="contact-cell__value">LinkedIn</span><span className="contact-cell__arrow" aria-hidden="true">↗</span></a>
+          <a className="contact-cell" href="https://github.com/Techdude01" target="_blank" rel="noopener noreferrer"><span className="contact-cell__label"><SocialMark name="github" /></span><span className="contact-cell__value">GitHub</span><span className="contact-cell__arrow" aria-hidden="true">↗</span></a>
+        </nav>
       </section>
     </main>
   </>;

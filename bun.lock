@@ -6,9 +6,11 @@
       "name": "kushal-fol",
       "dependencies": {
         "@fontsource-variable/archivo": "^5.3.0",
-        "@fontsource/ibm-plex-mono": "^5.3.0",
-        "@fontsource/ibm-plex-sans": "^5.3.0",
-        "@fontsource/newsreader": "^5.3.0",
+        "@fontsource/redaction": "^5.3.0",
+        "@fontsource/redaction-10": "^5.3.0",
+        "@fontsource/redaction-100": "^5.3.0",
+        "@fontsource/redaction-35": "^5.3.0",
+        "@fontsource/redaction-70": "^5.3.0",
         "gsap": "^3.15.0",
         "motion": "^13.4.0",
         "react": "^18.3.1",
@@ -113,11 +115,15 @@
 
     "@fontsource-variable/archivo": ["@fontsource-variable/archivo@5.3.0", "", {}, "sha512-HogK8FJelrD1o7TlZlkIVtHgc20bO5PZRWE7mUeUTdMN055alznQV6/00J00IBeu8FQAH4s3zW9UJNvKExXf+g=="],
 
-    "@fontsource/ibm-plex-mono": ["@fontsource/ibm-plex-mono@5.3.0", "", {}, "sha512-eTgnZjZEGk1QtD3ZstF+Vclo2HLAni8YMy34/DxllwZvyz1lR/1RF/xTiAquOBO7MvqBx8D2Ig2WCPMVfdZu7Q=="],
+    "@fontsource/redaction": ["@fontsource/redaction@5.3.0", "", {}, "sha512-mlVA74kHfyjLPjX2j+93w/0leZAQ4aouFbx6LR8fbfqpaDRFidQnpFbpb+0wVY/MS/k3IbTjQgPjdVI8ymllzw=="],
 
-    "@fontsource/ibm-plex-sans": ["@fontsource/ibm-plex-sans@5.3.0", "", {}, "sha512-CbE4CbbEEZJX860XyUiRpsksXIQR8Rp2XDva2VO53NJox9tVNtusrysd2x5YkUEY3ErQ66W1IiiQL8/wihhw5w=="],
+    "@fontsource/redaction-10": ["@fontsource/redaction-10@5.3.0", "", {}, "sha512-EukjMqtXDt9hSlOSRTNR6+bmHuYtOpbXrCGTJlw3H85754amhN4zH4sZ75Jr3wkSLR3Jp5PEDcXSkMpu9F05BQ=="],
 
-    "@fontsource/newsreader": ["@fontsource/newsreader@5.3.0", "", {}, "sha512-AFR6ZKY89GNL+9qBI2P2+66NhD5bhOj/v6fsLnFYLM4E0JnMB1yKb+Ro8cA64i1hwAWoBfTq5CHJGWH1toLDkw=="],
+    "@fontsource/redaction-100": ["@fontsource/redaction-100@5.3.0", "", {}, "sha512-BaoypxfTL+hL8M6L2iuM1jkowGsG/n7Vcy1mhL16VtRmzKtT6WoPOnfnko06WDmDVG0fh+WOtiptcEG0cA9aAA=="],
+
+    "@fontsource/redaction-35": ["@fontsource/redaction-35@5.3.0", "", {}, "sha512-c4n4fgTbYoiyODKvasBWjj1EzV9G+X2oYDgr1PPShIO3rzM50CYvlJ+VCpgBmNyw9l8D/6T1PUmn8ZGgzOlV3g=="],
+
+    "@fontsource/redaction-70": ["@fontsource/redaction-70@5.3.0", "", {}, "sha512-K8jG7NWaOIF+d4kySQBkq+FeMxIoOxwotmK3adBDd6/MTrbPcGijxI46Y5zjjDWmfY/8Rcs2YJlz6XhYjyJylQ=="],
 
     "@humanfs/core": ["@humanfs/core@0.19.1", "", {}, "sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA=="],
 
