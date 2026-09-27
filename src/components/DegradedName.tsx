@@ -32,6 +32,7 @@ export default function DegradedName() {
     let idleTimer = 0, repeatTimer = 0;
     let lastTouch = -Infinity;
     let lastPattern = -1;
+    let away = false;
 
     const stopAmbient = () => {
       window.clearTimeout(idleTimer);
@@ -91,7 +92,7 @@ export default function DegradedName() {
     // Wait until the letters have been still for two seconds. Once started,
     // ambient changes recur every four seconds until the visitor interacts.
     const queueAmbient = () => {
-      if (idleTimer || repeatTimer) return;
+      if (away || idleTimer || repeatTimer) return;
       idleTimer = window.setTimeout(() => {
         idleTimer = 0;
         randomBatch();
@@ -118,9 +119,8 @@ export default function DegradedName() {
       batch(amount, gap, letters.map((_, index) => index));
     };
     // A fresh pass also greets visitors returning to the hero or tab.
-    let away = false;
     const view = typeof IntersectionObserver === "undefined" ? undefined : new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) away = true;
+      if (!entry.isIntersecting) { away = true; stopAmbient(); }
       else if (away) { away = false; returnBatch(.9, 40); }
     });
     view?.observe(heading);

@@ -49,8 +49,6 @@ export default function EditorialPortfolio() {
       </nav>
     </header>
     <span className="guide-dot" data-guide-dot="" aria-hidden="true"><span className="guide-dot__label" data-guide-label="">Ingest</span></span>
-    <span className="flood" data-flood="" aria-hidden="true" />
-
     <main id="main" tabIndex={-1}>
       <section className="hero" id="top" tabIndex={-1} aria-labelledby="hero-title">
         <div className="hero-name">
@@ -61,8 +59,15 @@ export default function EditorialPortfolio() {
 
       <div className="bridge bridge--ingest" data-gate="" aria-hidden="true">
         <div className="ingest-stage">
-          <span className="ingest-stage__gate" />
-          <span className="ingest-stage__track" />
+          <span className="ingest-stage__door ingest-stage__door--top" />
+          <span className="ingest-stage__door ingest-stage__door--bottom" />
+          <span className="ingest-stage__grid" />
+          <span className="ingest-stage__track">
+            <span className="ingest-stage__line" />
+            <span className="ingest-stage__line ingest-stage__line--lit" />
+            <span className="ingest-stage__fill" />
+            <span className="ingest-stage__dot" />
+          </span>
         </div>
       </div>
 
@@ -80,7 +85,9 @@ export default function EditorialPortfolio() {
         <p className="about-offscreen">Usually building Gunpla or watching a murder mystery. Sometimes on the basketball court.</p>
       </section>
 
-      <div className="bridge bridge--flood" data-flood-bridge="" aria-hidden="true" />
+      <div className="bridge bridge--flood" data-flood-bridge="" aria-hidden="true">
+        <span className="flood" data-flood=""><span className="flood__disc" /></span>
+      </div>
 
       <section className="work section" id="work" tabIndex={-1} aria-labelledby="work-title">
         <h2 className="work-title" id="work-title">Selected work<span>.</span></h2>

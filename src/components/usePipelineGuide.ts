@@ -5,22 +5,34 @@ const ease = (t: number) => t * t * (3 - 2 * t);
 const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
 const GUIDE_SIZE = 22;
 const PILL_PADDING = 11;
-/** Accent per stage: ingest, route, transform (on night), output. */
-const ACCENTS = ["#2c7456", "#3452c7", "#b7a6ff", "#d9502c"];
-const PAPERS = ["#efece4", "#eceee9", "#eceee9", "#f2ebe2"];
 
-const rgb = (hex: string) => [1, 3, 5].map(offset => parseInt(hex.slice(offset, offset + 2), 16));
-function mixStops(stops: string[], position: number) {
-  const index = Math.min(stops.length - 2, Math.floor(position));
-  const t = clamp(position - index);
-  const [a, b] = [rgb(stops[index]), rgb(stops[index + 1])];
-  return `rgb(${a.map((value, channel) => Math.round(value + (b[channel] - value) * t)).join(" ")})`;
+/** Untransformed document offset, so held/receding sections don't skew measurements. */
+function pageOffset(element: HTMLElement) {
+  let top = 0, left = 0;
+  for (let node: HTMLElement | null = element; node; node = node.offsetParent as HTMLElement | null) {
+    top += node.offsetTop;
+    left += node.offsetLeft;
+  }
+  return { top, left };
+}
+
+/** Writes a style value only when it changed, so idle frames cost no style recalc. */
+function writer() {
+  const written = new WeakMap<HTMLElement, Map<string, string>>();
+  return (element: HTMLElement, property: string, value: string) => {
+    let values = written.get(element);
+    if (!values) written.set(element, values = new Map());
+    if (values.get(property) === value) return;
+    values.set(property, value);
+    element.style.setProperty(property, value);
+  };
 }
 
 /**
  * The accent dot over the surname's "ı" detaches as the hero leaves and wraps
- * the active pipeline stage in the header. One rAF, which stops once the dot
- * has settled.
+ * the active pipeline stage in the header. Layout is measured once per resize;
+ * each frame is arithmetic on scrollY followed by writes, so scrolling never
+ * forces a synchronous layout.
  */
 export function usePipelineGuide() {
   useEffect(() => {
@@ -30,40 +42,91 @@ export function usePipelineGuide() {
     const stages = [...document.querySelectorAll<HTMLAnchorElement>("[data-stage]")];
     const sections = stages.map(stage => document.getElementById(stage.hash.slice(1)));
     if (!guide || !origin || !hero || sections.some(section => !section)) return;
-    const main = document.getElementById("main");
+    const about = sections[1]!;
     const gate = document.querySelector<HTMLElement>("[data-gate]");
     const flood = document.querySelector<HTMLElement>("[data-flood]");
     const floodBridge = document.querySelector<HTMLElement>("[data-flood-bridge]");
     const caption = guide.querySelector<HTMLElement>("[data-guide-label]");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    // Native (and touch) scrolling runs ahead of rAF, so counter-scroll holds
+    // would shake there; only hold content where Lenis drives the scroll.
+    const touch = window.matchMedia("(pointer: coarse)");
+    // With scroll-driven animations the gate and flood run in CSS on the
+    // compositor; this only positions the flood and handles the Lenis holds.
+    const driven = typeof CSS !== "undefined" && CSS.supports?.("animation-timeline: view()");
+    const write = writer();
     let raf = 0;
     let last = performance.now();
     let stageX = NaN, stageY = NaN, stageW = NaN;
     let active = -1;
 
+    let layout = {
+      tops: [] as number[],
+      labels: [] as DOMRect[],
+      dot: { top: 0, left: 0, size: 0 },
+      heroHeight: 1,
+      gate: { top: 0, height: 0 },
+      flood: { top: 0, height: 0 },
+    };
+    const measure = () => {
+      const dot = pageOffset(origin);
+      layout = {
+        tops: sections.map(section => pageOffset(section!).top),
+        labels: stages.map(stage => stage.getBoundingClientRect()),
+        dot: { top: dot.top, left: dot.left, size: origin.offsetWidth },
+        heroHeight: Math.max(1, hero.offsetHeight),
+        gate: gate ? { top: pageOffset(gate).top, height: gate.offsetHeight } : { top: 0, height: 0 },
+        flood: floodBridge ? { top: pageOffset(floodBridge).top, height: floodBridge.offsetHeight } : { top: 0, height: 0 },
+      };    };
+
     const paint = (now: number) => {
       raf = 0;
       const dt = Math.min(.05, (now - last) / 1000);
       last = now;
-      const vh = window.innerHeight;
-      // Layout tops, so the gate and flood transforms on About don't move the boundaries.
-      const mainTop = main?.getBoundingClientRect().top ?? 0;
-      const tops = sections.map(section => main ? mainTop + section!.offsetTop : section!.getBoundingClientRect().top);
+      const scroll = window.scrollY;
+      const vh = window.innerHeight, vw = window.innerWidth;
+      const hold = !reduced.matches && !touch.matches && document.documentElement.classList.contains("lenis");
+
       let next = 0;
-      tops.forEach((top, index) => { if (top <= vh * .45) next = index; });
+      layout.tops.forEach((top, index) => { if (top - scroll <= vh * .45) next = index; });
       if (next !== active) {
         stages.forEach((stage, index) => stage.toggleAttribute("data-active", index === next));
         document.documentElement.dataset.stage = String(next);
         if (caption) caption.textContent = stages[next].firstChild?.textContent ?? "";
         active = next;
       }
-      // Continuous stage position: each boundary blends over one viewport.
-      const position = tops.slice(1).reduce((sum, top) => sum + ease(clamp((vh * .95 - top) / vh)), 0);
-      const root = document.documentElement.style;
-      root.setProperty("--accent", mixStops(ACCENTS, position));
-      root.setProperty("--paper-live", mixStops(PAPERS, position));
 
-      const label = stages[active].getBoundingClientRect();
+      // Ingest → Route: a line draws across the hero, the green grows out of
+      // it and closes over the hero, then parts along the line onto About.
+      let heroShift = 0, heroTransform = "", heroVisibility = "", aboutTransform = "", aboutOrigin = "";
+      if (gate) {
+        const span = Math.max(1, layout.gate.height - vh);
+        const into = scroll - layout.gate.top;
+        const through = reduced.matches ? 1 : clamp(into / span);
+        const grow = ease(clamp((through - .06) / .18));
+        const open = ease(clamp((through - .62) / .38));
+        if (!driven) {
+          write(gate, "--line", clamp(through / .12).toFixed(3));
+          write(gate, "--grow", grow.toFixed(3));
+          write(gate, "--scan", ease(clamp((through - .28) / .32)).toFixed(3));
+          write(gate, "--open", open.toFixed(3));
+        }
+        if (hold && through > 0 && through < 1) {
+          // The hero holds still and recedes behind the closing gate; About is
+          // pinned beneath it once closed, so the gate opens onto it in place.
+          if (grow < 1) {
+            heroShift = into;
+            heroTransform = `translate3d(0, ${into.toFixed(1)}px, 0) scale(${(1 - .05 * grow).toFixed(4)})`;
+          } else {
+            heroVisibility = "hidden";
+            const aboutTop = layout.tops[1] - scroll;
+            aboutTransform = `translate3d(0, ${(-aboutTop).toFixed(1)}px, 0) scale(${(1 - .04 * (1 - open)).toFixed(4)})`;
+            aboutOrigin = "50% 50vh";
+          }
+        }
+      }
+
+      const label = layout.labels[active];
       const targetX = label.left + label.width / 2, targetY = label.top + label.height / 2;
       const targetW = label.width + PILL_PADDING * 2;
       const k = reduced.matches || Number.isNaN(stageX) ? 1 : 1 - Math.exp(-12 * dt);
@@ -71,87 +134,69 @@ export function usePipelineGuide() {
       stageY = Number.isNaN(stageY) ? targetY : stageY + (targetY - stageY) * k;
       stageW = Number.isNaN(stageW) ? targetW : stageW + (targetW - stageW) * k;
 
-      const dot = origin.getBoundingClientRect();
-      const t = ease(clamp(window.scrollY / Math.max(1, hero.offsetHeight * .5)));
-      const x = lerp(dot.left + dot.width / 2, stageX, t);
-      const y = lerp(dot.top + dot.height / 2, stageY, t);
-      const size = lerp(dot.width, GUIDE_SIZE, t);
+      const t = ease(clamp(scroll / (layout.heroHeight * .5)));
+      const dotSize = layout.dot.size;
+      const x = lerp(layout.dot.left + dotSize / 2, stageX, t);
+      const y = lerp(layout.dot.top + dotSize / 2 - scroll + heroShift, stageY, t);
+      const size = lerp(dotSize, GUIDE_SIZE, t);
       const width = lerp(GUIDE_SIZE, stageW, t);
       const scale = size / GUIDE_SIZE;
-      guide.style.width = `${width.toFixed(2)}px`;
-      guide.style.transform = `translate3d(${(x - width * scale / 2).toFixed(2)}px, ${(y - size / 2).toFixed(2)}px, 0) scale(${scale.toFixed(4)})`;
-      guide.style.setProperty("--pill", t.toFixed(3));
+      write(guide, "width", `${width.toFixed(1)}px`);
+      write(guide, "transform", `translate3d(${(x - width * scale / 2).toFixed(1)}px, ${(y - size / 2).toFixed(1)}px, 0) scale(${scale.toFixed(3)})`);
+      write(guide, "--pill", t.toFixed(3));
 
-      // Ingest → Route: a line draws across the hero, the green grows out of
-      // it and closes over the hero, then parts along the line onto About.
-      let aboutTransform = "", aboutOrigin = "";
-      if (gate) {
-        const heroStyle = hero.style;
-        heroStyle.transform = "";
-        heroStyle.visibility = "";
-        const rect = gate.getBoundingClientRect();
-        const span = Math.max(1, rect.height - vh);
-        const through = reduced.matches ? 1 : clamp(-rect.top / span);
-        const grow = ease(clamp((through - .08) / .27));
-        const open = ease(clamp((through - .62) / .38));
-        const vars = { line: clamp(through / .12), grow, scan: ease(clamp((through - .36) / .26)), open };
-        for (const [name, value] of Object.entries(vars)) gate.style.setProperty(`--${name}`, value.toFixed(4));
-        if (!reduced.matches && through > 0 && through < 1) {
-          // The hero holds still and recedes behind the closing gate; About is
-          // pinned beneath it once closed, so the gate opens onto it in place.
-          if (grow < 1) heroStyle.transform = `translate3d(0, ${(through * span).toFixed(1)}px, 0) scale(${(1 - .05 * grow).toFixed(4)})`;
-          else {
-            heroStyle.visibility = "hidden";
-            aboutTransform = `translate3d(0, ${(vh - rect.bottom).toFixed(1)}px, 0) scale(${(1 - .04 * (1 - open)).toFixed(4)})`;
-            aboutOrigin = "50% 50vh";
+      // Route → Transform: the dot swells until the night fills the viewport.
+      if (flood && floodBridge) {
+        const { top, height } = layout.flood;
+        const bridgeTop = top - scroll;
+        const p = height ? clamp((vh - bridgeTop) / height) : 0;
+        // About holds still and recedes while the night swallows it, so the
+        // hand-off reads as a change of plane rather than more page.
+        if (hold && p > 0) aboutTransform = `translate3d(0, ${(p * height).toFixed(1)}px, 0) scale(${(1 - .07 * ease(p)).toFixed(4)})`;
+        const reach = Math.hypot(Math.max(x, vw - x), Math.max(y, vh - y));
+        write(flood, "--flood-x", `${x.toFixed(0)}px`);
+        write(flood, "--flood-y", `${y.toFixed(0)}px`);
+        write(flood, "--flood-r", `${Math.ceil(reach)}px`);
+        if (!driven) {
+          const visible = p > 0 && bridgeTop + height > 0;
+          write(flood, "visibility", visible ? "visible" : "hidden");
+          if (visible) {
+            const radius = size / 2 + (reach - size / 2) * Math.pow(p, 1.8);
+            write(flood, "--flood-scale", (radius / reach).toFixed(4));
+            write(flood, "--p", p.toFixed(3));
           }
         }
       }
 
-      // Route → Transform: the dot swells until the night fills the viewport.
-      if (flood && floodBridge) {
-        const bridge = floodBridge.getBoundingClientRect();
-        const p = bridge.height ? clamp((vh - bridge.top) / bridge.height) : 0;
-        // About holds still and recedes while the night swallows it, so the
-        // hand-off reads as a change of plane rather than more page.
-        if (p > 0) aboutTransform = `translate3d(0, ${(p * bridge.height).toFixed(1)}px, 0) scale(${(1 - .07 * ease(p)).toFixed(4)})`;
-        const visible = p > 0 && bridge.bottom > 0;
-        flood.style.visibility = visible ? "visible" : "hidden";
-        if (visible) {
-          const vw = window.innerWidth;
-          const reach = Math.hypot(Math.max(x, vw - x), Math.max(y, vh - y));
-          const radius = size / 2 + (reach - size / 2) * Math.pow(p, 1.8);
-          flood.style.clipPath = `circle(${radius.toFixed(1)}px at ${x.toFixed(1)}px ${y.toFixed(1)}px)`;
-          flood.style.setProperty("--p", p.toFixed(4));
-        }
-      }
-      sections[1]!.style.transform = aboutTransform;
-      sections[1]!.style.transformOrigin = aboutOrigin;
+      write(hero, "transform", heroTransform);
+      write(hero, "visibility", heroVisibility);
+      write(about, "transform", aboutTransform);
+      write(about, "transform-origin", aboutOrigin);
       const settling = Math.abs(targetX - stageX) > .2 || Math.abs(targetY - stageY) > .2 || Math.abs(targetW - stageW) > .2;
       if (settling) schedule();
     };
     const schedule = () => { if (!raf) raf = requestAnimationFrame(paint); };
+    const remeasure = () => { measure(); schedule(); };
 
     document.documentElement.dataset.guide = "ready";
-    const resize = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(schedule);
-    resize?.observe(document.documentElement);
+    measure();
+    const resize = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(remeasure);
+    resize?.observe(document.body);
     window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule);
-    document.fonts?.ready.then(schedule);
+    window.addEventListener("resize", remeasure);
+    document.fonts?.ready.then(remeasure);
     schedule();
     return () => {
       cancelAnimationFrame(raf);
       resize?.disconnect();
       window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
+      window.removeEventListener("resize", remeasure);
       delete document.documentElement.dataset.guide;
       delete document.documentElement.dataset.stage;
-      document.documentElement.style.removeProperty("--accent");
-      document.documentElement.style.removeProperty("--paper-live");
       hero.style.transform = "";
       hero.style.visibility = "";
-      sections[1]!.style.transform = "";
-      sections[1]!.style.transformOrigin = "";
+      about.style.transform = "";
+      about.style.transformOrigin = "";
     };
   }, []);
 }
