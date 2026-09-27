@@ -30,6 +30,8 @@ export function usePipelineGuide() {
     const stages = [...document.querySelectorAll<HTMLAnchorElement>("[data-stage]")];
     const sections = stages.map(stage => document.getElementById(stage.hash.slice(1)));
     if (!guide || !origin || !hero || sections.some(section => !section)) return;
+    const main = document.getElementById("main");
+    const gate = document.querySelector<HTMLElement>("[data-gate]");
     const flood = document.querySelector<HTMLElement>("[data-flood]");
     const floodBridge = document.querySelector<HTMLElement>("[data-flood-bridge]");
     const caption = guide.querySelector<HTMLElement>("[data-guide-label]");
@@ -44,8 +46,11 @@ export function usePipelineGuide() {
       const dt = Math.min(.05, (now - last) / 1000);
       last = now;
       const vh = window.innerHeight;
+      // Layout tops, so the gate and flood transforms on About don't move the boundaries.
+      const mainTop = main?.getBoundingClientRect().top ?? 0;
+      const tops = sections.map(section => main ? mainTop + section!.offsetTop : section!.getBoundingClientRect().top);
       let next = 0;
-      sections.forEach((section, index) => { if (section!.getBoundingClientRect().top <= vh * .45) next = index; });
+      tops.forEach((top, index) => { if (top <= vh * .45) next = index; });
       if (next !== active) {
         stages.forEach((stage, index) => stage.toggleAttribute("data-active", index === next));
         document.documentElement.dataset.stage = String(next);
@@ -53,8 +58,7 @@ export function usePipelineGuide() {
         active = next;
       }
       // Continuous stage position: each boundary blends over one viewport.
-      const position = sections.slice(1).reduce((sum, section) =>
-        sum + ease(clamp((vh * .95 - section!.getBoundingClientRect().top) / vh)), 0);
+      const position = tops.slice(1).reduce((sum, top) => sum + ease(clamp((vh * .95 - top) / vh)), 0);
       const root = document.documentElement.style;
       root.setProperty("--accent", mixStops(ACCENTS, position));
       root.setProperty("--paper-live", mixStops(PAPERS, position));
@@ -78,15 +82,39 @@ export function usePipelineGuide() {
       guide.style.transform = `translate3d(${(x - width * scale / 2).toFixed(2)}px, ${(y - size / 2).toFixed(2)}px, 0) scale(${scale.toFixed(4)})`;
       guide.style.setProperty("--pill", t.toFixed(3));
 
+      // Ingest → Route: a line draws across the hero, the green grows out of
+      // it and closes over the hero, then parts along the line onto About.
+      let aboutTransform = "", aboutOrigin = "";
+      if (gate) {
+        const heroStyle = hero.style;
+        heroStyle.transform = "";
+        heroStyle.visibility = "";
+        const rect = gate.getBoundingClientRect();
+        const span = Math.max(1, rect.height - vh);
+        const through = reduced.matches ? 1 : clamp(-rect.top / span);
+        const grow = ease(clamp((through - .08) / .27));
+        const open = ease(clamp((through - .62) / .38));
+        const vars = { line: clamp(through / .12), grow, scan: ease(clamp((through - .36) / .26)), open };
+        for (const [name, value] of Object.entries(vars)) gate.style.setProperty(`--${name}`, value.toFixed(4));
+        if (!reduced.matches && through > 0 && through < 1) {
+          // The hero holds still and recedes behind the closing gate; About is
+          // pinned beneath it once closed, so the gate opens onto it in place.
+          if (grow < 1) heroStyle.transform = `translate3d(0, ${(through * span).toFixed(1)}px, 0) scale(${(1 - .05 * grow).toFixed(4)})`;
+          else {
+            heroStyle.visibility = "hidden";
+            aboutTransform = `translate3d(0, ${(vh - rect.bottom).toFixed(1)}px, 0) scale(${(1 - .04 * (1 - open)).toFixed(4)})`;
+            aboutOrigin = "50% 50vh";
+          }
+        }
+      }
+
       // Route → Transform: the dot swells until the night fills the viewport.
       if (flood && floodBridge) {
         const bridge = floodBridge.getBoundingClientRect();
         const p = bridge.height ? clamp((vh - bridge.top) / bridge.height) : 0;
         // About holds still and recedes while the night swallows it, so the
         // hand-off reads as a change of plane rather than more page.
-        sections[1]!.style.transform = p > 0
-          ? `translate3d(0, ${(p * bridge.height).toFixed(1)}px, 0) scale(${(1 - .07 * ease(p)).toFixed(4)})`
-          : "";
+        if (p > 0) aboutTransform = `translate3d(0, ${(p * bridge.height).toFixed(1)}px, 0) scale(${(1 - .07 * ease(p)).toFixed(4)})`;
         const visible = p > 0 && bridge.bottom > 0;
         flood.style.visibility = visible ? "visible" : "hidden";
         if (visible) {
@@ -97,6 +125,8 @@ export function usePipelineGuide() {
           flood.style.setProperty("--p", p.toFixed(4));
         }
       }
+      sections[1]!.style.transform = aboutTransform;
+      sections[1]!.style.transformOrigin = aboutOrigin;
       const settling = Math.abs(targetX - stageX) > .2 || Math.abs(targetY - stageY) > .2 || Math.abs(targetW - stageW) > .2;
       if (settling) schedule();
     };
@@ -118,7 +148,10 @@ export function usePipelineGuide() {
       delete document.documentElement.dataset.stage;
       document.documentElement.style.removeProperty("--accent");
       document.documentElement.style.removeProperty("--paper-live");
+      hero.style.transform = "";
+      hero.style.visibility = "";
       sections[1]!.style.transform = "";
+      sections[1]!.style.transformOrigin = "";
     };
   }, []);
 }

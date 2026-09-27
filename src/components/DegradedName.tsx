@@ -29,10 +29,16 @@ export default function DegradedName() {
     const waveAt = letters.map(() => Infinity);
     let waveAmount = .62;
     let raf = 0, last = start;
-    // Automatic batches stand down while the visitor is playing with the name,
-    // so the only degradation they see is the one they caused.
-    let hovering = false, lastTouch = -Infinity;
-    const paused = () => hovering || performance.now() - lastTouch < 4000;
+    let idleTimer = 0, repeatTimer = 0;
+    let lastTouch = -Infinity;
+    let lastPattern = -1;
+
+    const stopAmbient = () => {
+      window.clearTimeout(idleTimer);
+      window.clearInterval(repeatTimer);
+      idleTimer = 0;
+      repeatTimer = 0;
+    };
 
     const soil = (index: number, amount: number, delay: number, now = performance.now()) => {
       if (!letters[index]) return;
@@ -52,12 +58,51 @@ export default function DegradedName() {
         if (letter.dataset.cut !== cut) letter.dataset.cut = cut;
       });
       if (busy) raf = requestAnimationFrame(paint);
+      else queueAmbient();
     };
     const schedule = () => { if (!raf) raf = requestAnimationFrame(paint); };
+
+    const batch = (amount: number, gap: number, order: number[]) => {
+      const now = performance.now();
+      waveAmount = amount;
+      order.forEach((index, position) => { waveAt[index] = now + position * gap; });
+      schedule();
+    };
+
+    const randomBatch = () => {
+      const count = letters.length;
+      const forward = Array.from({ length: count }, (_, index) => index);
+      const shuffled = [...forward];
+      for (let index = count - 1; index > 0; index--) {
+        const swap = Math.floor(Math.random() * (index + 1));
+        [shuffled[index], shuffled[swap]] = [shuffled[swap], shuffled[index]];
+      }
+      const patterns = [
+        forward,
+        [...forward].reverse(),
+        [...forward].sort((a, b) => Math.abs(a - (count - 1) / 2) - Math.abs(b - (count - 1) / 2)),
+        shuffled,
+      ];
+      const choice = (lastPattern + 1 + Math.floor(Math.random() * (patterns.length - 1))) % patterns.length;
+      lastPattern = choice;
+      batch(.55 + Math.random() * .4, 32 + Math.random() * 38, patterns[choice]);
+    };
+
+    // Wait until the letters have been still for two seconds. Once started,
+    // ambient changes recur every four seconds until the visitor interacts.
+    const queueAmbient = () => {
+      if (idleTimer || repeatTimer) return;
+      idleTimer = window.setTimeout(() => {
+        idleTimer = 0;
+        randomBatch();
+        repeatTimer = window.setInterval(randomBatch, 4000);
+      }, 2000);
+    };
 
     const onEnter = (event: PointerEvent) => {
       const index = letters.indexOf(event.currentTarget as HTMLElement);
       lastTouch = performance.now();
+      stopAmbient();
       waveAt.fill(Infinity);
       soil(index, 1, 140);
       soil(index - 1, .55, 60);
@@ -65,43 +110,33 @@ export default function DegradedName() {
       schedule();
     };
     const heading = root.current!;
-    const onHover = () => { hovering = true; lastTouch = performance.now(); };
-    const onLeave = () => { hovering = false; lastTouch = performance.now(); };
     letters.forEach(letter => letter.addEventListener("pointerenter", onEnter));
-    heading.addEventListener("pointerenter", onHover);
-    heading.addEventListener("pointerleave", onLeave);
 
-    /** A fresh batch runs through the name, left to right. */
-    const batch = (amount: number, gap: number) => {
-      if (paused()) return;
-      const now = performance.now();
-      waveAmount = amount;
-      letters.forEach((_, index) => { waveAt[index] = now + index * gap; });
-      schedule();
+    const returnBatch = (amount: number, gap: number) => {
+      if (performance.now() - lastTouch < 2000) return;
+      stopAmbient();
+      batch(amount, gap, letters.map((_, index) => index));
     };
-    // Natural triggers: an ambient trickle, coming back to the hero, coming back to the tab.
-    const ambient = window.setInterval(() => batch(.62, 48), 7200);
+    // A fresh pass also greets visitors returning to the hero or tab.
     let away = false;
     const view = typeof IntersectionObserver === "undefined" ? undefined : new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) away = true;
-      else if (away) { away = false; batch(.9, 40); }
+      else if (away) { away = false; returnBatch(.9, 40); }
     });
     view?.observe(heading);
     let hiddenAt = 0;
     const onVisibility = () => {
       if (document.hidden) hiddenAt = performance.now();
-      else if (performance.now() - hiddenAt > 2000) batch(1, 56);
+      else if (performance.now() - hiddenAt > 2000) returnBatch(1, 56);
     };
     document.addEventListener("visibilitychange", onVisibility);
     schedule();
     return () => {
       cancelAnimationFrame(raf);
-      window.clearInterval(ambient);
+      stopAmbient();
       view?.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       letters.forEach(letter => letter.removeEventListener("pointerenter", onEnter));
-      heading.removeEventListener("pointerenter", onHover);
-      heading.removeEventListener("pointerleave", onLeave);
     };
   }, [reduced]);
 

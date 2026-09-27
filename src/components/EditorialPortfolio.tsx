@@ -1,4 +1,5 @@
 import { useState, type CSSProperties, type MouseEvent } from "react";
+import { useLenis } from "lenis/react";
 import OrgMark from "./OrgMark";
 import TextStream from "./TextStream";
 import SocialMark from "./SocialMark";
@@ -16,18 +17,26 @@ const stages = [
   { stage: "Output", section: "Contact", href: "#contact" },
 ];
 
-function navigate(event: MouseEvent<HTMLAnchorElement>) {
-  if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-  const id = event.currentTarget.hash.slice(1);
-  document.getElementById(id)?.focus({ preventScroll: true });
-}
-
 const index = (value: number) => String(value + 1).padStart(2, "0");
 
 export default function EditorialPortfolio() {
   const [activeContactWord, setActiveContactWord] = useState<string>();
+  const lenis = useLenis();
   useScrollScenes();
   usePipelineGuide();
+
+  const navigate = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const hash = event.currentTarget.hash;
+    const target = document.getElementById(hash.slice(1));
+    if (!target) return;
+    if (lenis) {
+      event.preventDefault();
+      if (window.location.hash !== hash) window.history.pushState(null, "", hash);
+      lenis.scrollTo(target);
+    }
+    target.focus({ preventScroll: true });
+  };
 
   return <>
     <a className="skip-link" href="#main" onClick={navigate}>Skip to content</a>
@@ -49,6 +58,13 @@ export default function EditorialPortfolio() {
         </div>
         <p className="hero-role">I make data <em>go places.</em></p>
       </section>
+
+      <div className="bridge bridge--ingest" data-gate="" aria-hidden="true">
+        <div className="ingest-stage">
+          <span className="ingest-stage__gate" />
+          <span className="ingest-stage__track" />
+        </div>
+      </div>
 
       <section className="about section" id="about" tabIndex={-1} aria-labelledby="about-title">
         <h2 className="about-lead" id="about-title"><span>Data pipelines.</span><span>Real impact.</span></h2>

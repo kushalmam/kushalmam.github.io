@@ -6,6 +6,7 @@ import "@fontsource/redaction-70/latin-700.css";
 import "@fontsource/redaction-100/latin-700.css";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import "lenis/dist/lenis.css";
 import "./index.css";
 
 createRoot(document.getElementById("root")!).render(<App />);
