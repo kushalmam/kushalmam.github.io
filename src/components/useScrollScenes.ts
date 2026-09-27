@@ -6,7 +6,8 @@ const clamp = (value: number) => Math.min(1, Math.max(0, value));
  * Writes normalized scroll progress onto every `[data-scene]` element:
  * `--enter` 0→1 as its top travels from the viewport bottom to the top,
  * `--exit` 0→1 as its bottom does the same, and `--through` 0→1 across a
- * pinned (taller than viewport) scene. Geometry is measured on resize, so a
+ * pinned (taller than viewport) scene, and `--mid` 0→1 as the viewport's
+ * midline travels from its top to its bottom. Geometry is measured on resize, so a
  * frame only reads scrollY and writes the values that changed.
  */
 export function useScrollScenes() {
@@ -33,12 +34,14 @@ export function useScrollScenes() {
         const enter = still ? 1 : clamp((vh - top) / vh);
         const exit = still ? 0 : clamp((vh - top - height) / vh);
         const through = still ? 0 : clamp(-top / Math.max(1, height - vh));
-        const key = `${enter.toFixed(3)} ${exit.toFixed(3)} ${through.toFixed(3)}`;
+        const mid = still ? 1 : clamp((vh / 2 - top) / Math.max(1, height));
+        const key = `${enter.toFixed(3)} ${exit.toFixed(3)} ${through.toFixed(3)} ${mid.toFixed(3)}`;
         if (written.get(scene) === key) return;
         written.set(scene, key);
         scene.style.setProperty("--enter", enter.toFixed(3));
         scene.style.setProperty("--exit", exit.toFixed(3));
         scene.style.setProperty("--through", through.toFixed(3));
+        scene.style.setProperty("--mid", mid.toFixed(3));
       });
     };
     const schedule = () => { if (!raf) raf = requestAnimationFrame(paint); };

@@ -63,11 +63,14 @@ export default function EditorialPortfolio() {
           <span className="ingest-stage__door ingest-stage__door--bottom" />
           <span className="ingest-stage__grid" />
           <span className="ingest-stage__track">
-            <span className="ingest-stage__line" />
-            <span className="ingest-stage__line ingest-stage__line--lit" />
+            <span className="ingest-stage__ink">
+              <span className="ingest-stage__line" />
+              <span className="ingest-stage__line ingest-stage__line--lit" />
+            </span>
             <span className="ingest-stage__fill" />
             <span className="ingest-stage__dot" />
           </span>
+          <span className="ingest-stage__route" />
         </div>
       </div>
 
@@ -91,21 +94,25 @@ export default function EditorialPortfolio() {
 
       <section className="work section" id="work" tabIndex={-1} aria-labelledby="work-title">
         <h2 className="work-title" id="work-title">Selected work<span>.</span></h2>
-        <ol className="project-index">
-          {portfolioProjects.map((project, position) => <li className="project-row" key={project.name}>
-            <a className="project-card" href={project.href} target="_blank" rel="noopener noreferrer" aria-label={`View ${project.name} on GitHub`}>
-              <div className="project-text">
-                <span className="project-number">{index(position)}</span>
-                <h3>{project.name}</h3>
-                <p className="project-category">{project.category}</p>
-                <p className="project-description">{project.description}</p>
-              </div>
-              <div className="project-media">
-                <img src={asset(`images/projects/${project.image}`)} alt={project.alt} loading="lazy" width={project.width} height={project.height} />
-              </div>
-            </a>
-          </li>)}
-        </ol>
+        <div className="project-track" data-scene="">
+          <span className="channel" aria-hidden="true"><span className="channel__lit" /></span>
+          <ol className="project-index">
+            {portfolioProjects.map((project, position) => <li className="project-row" key={project.name}>
+              <a className="project-card" href={project.href} target="_blank" rel="noopener noreferrer" aria-label={`View ${project.name} on GitHub`}>
+                <div className="project-text">
+                  <span className="channel-node" aria-hidden="true" />
+                  <span className="project-number">{index(position)}</span>
+                  <h3>{project.name}</h3>
+                  <p className="project-category">{project.category}</p>
+                  <p className="project-description">{project.description}</p>
+                </div>
+                <div className="project-media">
+                  <img src={asset(`images/projects/${project.image}`)} alt={project.alt} loading="lazy" width={project.width} height={project.height} />
+                </div>
+              </a>
+            </li>)}
+          </ol>
+        </div>
       </section>
 
       <div className="bridge bridge--columns" data-scene="" aria-hidden="true">

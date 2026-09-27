@@ -5,6 +5,8 @@ const ease = (t: number) => t * t * (3 - 2 * t);
 const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
 const GUIDE_SIZE = 22;
 const PILL_PADDING = 11;
+const FLOOD_FULL = .84;
+const PROJECT_ACCENTS = ["#d7b6ff", "#bf9df7", "#aa86e9", "#916bd1"];
 
 /** Untransformed document offset, so held/receding sections don't skew measurements. */
 function pageOffset(element: HTMLElement) {
@@ -43,6 +45,9 @@ export function usePipelineGuide() {
     const sections = stages.map(stage => document.getElementById(stage.hash.slice(1)));
     if (!guide || !origin || !hero || sections.some(section => !section)) return;
     const about = sections[1]!;
+    const work = sections[2]!;
+    const projectTrack = work.querySelector<HTMLElement>(".project-track");
+    const projects = [...work.querySelectorAll<HTMLElement>(".project-row")];
     const gate = document.querySelector<HTMLElement>("[data-gate]");
     const flood = document.querySelector<HTMLElement>("[data-flood]");
     const floodBridge = document.querySelector<HTMLElement>("[data-flood-bridge]");
@@ -58,10 +63,11 @@ export function usePipelineGuide() {
     let raf = 0;
     let last = performance.now();
     let stageX = NaN, stageY = NaN, stageW = NaN;
-    let active = -1;
+    let active = -1, activeProject = -1;
 
     let layout = {
       tops: [] as number[],
+      projectTops: [] as number[],
       labels: [] as DOMRect[],
       dot: { top: 0, left: 0, size: 0 },
       heroHeight: 1,
@@ -70,8 +76,10 @@ export function usePipelineGuide() {
     };
     const measure = () => {
       const dot = pageOffset(origin);
+      const projectOrigin = projectTrack ? projectTrack.getBoundingClientRect().top + window.scrollY : 0;
       layout = {
         tops: sections.map(section => pageOffset(section!).top),
+        projectTops: projects.map(project => projectOrigin + project.offsetTop),
         labels: stages.map(stage => stage.getBoundingClientRect()),
         dot: { top: dot.top, left: dot.left, size: origin.offsetWidth },
         heroHeight: Math.max(1, hero.offsetHeight),
@@ -96,19 +104,29 @@ export function usePipelineGuide() {
         active = next;
       }
 
-      // Ingest → Route: a line draws across the hero, the green grows out of
-      // it and closes over the hero, then parts along the line onto About.
+      // The Transform accent follows the project crossing the viewport's
+      // reading line. CSS fades the color between each distinct purple.
+      const project = layout.projectTops.reduce((current, top, index) =>
+        top - scroll <= vh * .55 ? index : current, 0);
+      if (project !== activeProject) {
+        projects.forEach((row, index) => row.toggleAttribute("data-current", index === project));
+        activeProject = project;
+      }
+      write(document.documentElement, "--project-accent", PROJECT_ACCENTS[Math.min(project, PROJECT_ACCENTS.length - 1)]);
+
+      // Ingest → Route: a late line announces the green gate, then both fade
+      // before About settles into a clean paper surface.
       let heroShift = 0, heroTransform = "", heroVisibility = "", aboutTransform = "", aboutOrigin = "";
       if (gate) {
         const span = Math.max(1, layout.gate.height - vh);
         const into = scroll - layout.gate.top;
         const through = reduced.matches ? 1 : clamp(into / span);
-        const grow = ease(clamp((through - .06) / .18));
-        const open = ease(clamp((through - .62) / .38));
+        const grow = ease(clamp((through - .26) / .18));
+        const open = ease(clamp((through - .70) / .30));
         if (!driven) {
-          write(gate, "--line", clamp(through / .12).toFixed(3));
+          write(gate, "--gate-line", clamp((through - .10) / .14).toFixed(3));
           write(gate, "--grow", grow.toFixed(3));
-          write(gate, "--scan", ease(clamp((through - .28) / .32)).toFixed(3));
+          write(gate, "--scan", ease(clamp((through - .58) / .12)).toFixed(3));
           write(gate, "--open", open.toFixed(3));
         }
         if (hold && through > 0 && through < 1) {
@@ -161,9 +179,11 @@ export function usePipelineGuide() {
           const visible = p > 0 && bridgeTop + height > 0;
           write(flood, "visibility", visible ? "visible" : "hidden");
           if (visible) {
-            const radius = size / 2 + (reach - size / 2) * Math.pow(p, 1.8);
+            // Full by the time Work's edge arrives (see .work's overlap), so night never idles.
+            const swell = clamp(p / FLOOD_FULL);
+            const radius = size / 2 + (reach - size / 2) * Math.pow(swell, 1.8);
             write(flood, "--flood-scale", (radius / reach).toFixed(4));
-            write(flood, "--p", p.toFixed(3));
+            write(flood, "--p", swell.toFixed(3));
           }
         }
       }
@@ -184,6 +204,7 @@ export function usePipelineGuide() {
     resize?.observe(document.body);
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", remeasure);
+    reduced.addEventListener?.("change", schedule);
     document.fonts?.ready.then(remeasure);
     schedule();
     return () => {
@@ -191,8 +212,11 @@ export function usePipelineGuide() {
       resize?.disconnect();
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", remeasure);
+      reduced.removeEventListener?.("change", schedule);
       delete document.documentElement.dataset.guide;
       delete document.documentElement.dataset.stage;
+      document.documentElement.style.removeProperty("--project-accent");
+      projects.forEach(project => project.removeAttribute("data-current"));
       hero.style.transform = "";
       hero.style.visibility = "";
       about.style.transform = "";

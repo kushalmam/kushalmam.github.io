@@ -28,7 +28,6 @@
   --night-muted: #9aa09a;
   --mint: #b4e9ce;
   --accent: var(--signal);
-  --rule: rgb(17 19 18 / .07);
   --pad: clamp(20px, 4.4vw, 84px);
   --col-gap: clamp(12px, 1.4vw, 24px);
   --header-h: 72px;
@@ -111,7 +110,7 @@ svg { display: block; }
 /* Accent per stage: ingest (root default), route, transform (on night), output.
    Switched per stage and faded by the consumers, so scrolling never restyles the page. */
 html[data-stage="1"] { --accent: #3452c7; --paper-live: #eceee9; }
-html[data-stage="2"] { --accent: #b7a6ff; --paper-live: #eceee9; }
+html[data-stage="2"] { --accent: var(--project-accent, #b7a6ff); --paper-live: #eceee9; }
 html[data-stage="3"] { --accent: #d9502c; --paper-live: #f2ebe2; }
 html[data-stage="2"] .guide-dot { color: var(--night); }
 html[data-guide] .guide-dot { visibility: visible; }
@@ -122,7 +121,7 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
   transition: color .6s var(--ease), background-color .6s var(--ease);
 }
 .section, .hero { position: relative; isolation: isolate; }
-.section::before, .hero::before { content: ""; position: absolute; z-index: -1; pointer-events: none; }
+.work::before, .contact::before { content: ""; position: absolute; z-index: -1; pointer-events: none; }
 
 /* ─── Ingest · Hero ──────────────────────────────────────── */
 .hero {
@@ -168,11 +167,10 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
 
 /* ─── Ingest → Route: a green signal gate ─────────────────── */
 /* The gate overlaps the hero's last viewport and About's first, so it closes
-   over one and opens onto the other with no panel edge in between. Where
-   scroll-driven animations exist they run it (see the @supports block);
-   otherwise usePipelineGuide writes --line, --grow, --scan and --open. */
-.bridge--ingest { height: 220vh; margin: -100vh 0; z-index: 2; }
+   over one and opens onto the other with no panel edge in between. */
+.bridge--ingest { height: 190vh; margin: -100vh 0; z-index: 2; }
 .ingest-stage {
+  --junction-col: 5;
   position: sticky; top: 0;
   height: 100vh;
   overflow: hidden;
@@ -208,35 +206,45 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
     linear-gradient(rgb(255 255 255 / .07) 1px, transparent 1px);
   background-size: calc((100% - 2 * var(--pad) + var(--col-gap)) / 12) 100%, 100% 96px;
   background-position: calc(var(--pad) - var(--col-gap) / 2) 0, 0 0;
-  opacity: calc(var(--grow, 0) * var(--grow, 0) - var(--open, 0) * 2);
+  opacity: clamp(0, calc(var(--grow, 0) * (1 - var(--scan, 0) * 8)), 1);
 }
 .ingest-stage__track {
   position: absolute;
   left: var(--pad); right: var(--pad); top: 50%;
   height: 1px;
   container-type: inline-size;
-  opacity: calc(1 - var(--open, 0) * 2.5);
+  opacity: clamp(0, calc((.25 - var(--open, 0)) * 8), 1);
 }
-/* Drawn green over the hero, lit once the green surrounds it. */
+.ingest-stage__ink { position: absolute; inset: 0; opacity: clamp(0, calc((.85 - var(--grow, 0)) * 8), 1); }
 .ingest-stage__line {
   position: absolute; inset: 0;
   background: var(--signal);
   transform-origin: left;
-  scale: var(--line, 0) 1;
+  scale: var(--gate-line, 0) 1;
 }
 .ingest-stage__line--lit { background: rgb(255 255 255 / .38); opacity: var(--grow, 0); }
 .ingest-stage__fill {
-  position: absolute; inset: -1px 0;
+  position: absolute; inset: -1px auto -1px 0;
+  width: calc(var(--junction-col) * (100% + var(--col-gap)) / 12);
   background: var(--paper);
   transform-origin: left;
   scale: var(--scan, 0) 1;
 }
 .ingest-stage__dot {
+  --junction: calc(var(--junction-col) * (100cqw + var(--col-gap)) / 12);
   position: absolute; left: 0; top: 50%;
   width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
   background: var(--paper);
-  translate: calc(var(--scan, 0) * 100cqw) 0;
+  translate: calc(var(--scan, 0) * var(--junction)) 0;
   scale: var(--grow, 0);
+}
+.ingest-stage__route {
+  position: absolute; top: 0; bottom: 0;
+  left: calc(var(--pad) + var(--junction-col) * (100% - 2 * var(--pad) + var(--col-gap)) / 12);
+  width: 1px;
+  background: var(--signal);
+  scale: 1 clamp(0, calc(var(--open, 0) * 6), 1);
+  opacity: clamp(0, calc((.4 - var(--open, 0)) * 4), 1);
 }
 /* ─── Route · About ──────────────────────────────────────── */
 .about {
@@ -291,7 +299,7 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
   white-space: nowrap;
 }
 .work-title span { color: var(--accent); }
-.project-index { list-style: none; margin: 14vh 0 0; padding: 0; }
+.project-index { list-style: none; margin: 0; padding: 0; }
 .project-row { border-top: 1px solid var(--night-line); }
 .project-card {
   display: grid;
@@ -313,11 +321,40 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
   margin-left: -.04em;
   transition: color .4s var(--ease);
 }
-.project-card:hover h3 { color: var(--accent); }
+.project-card:hover h3, .project-row[data-current] h3 { color: var(--accent); }
 .project-category { margin-top: 3vh; color: var(--night-muted); }
 .project-description { margin-top: 1.4vh; max-width: 26ch; color: var(--night-muted); font-size: 17px; line-height: 1.4; }
 .project-media img { display: block; width: 100%; height: auto; border-radius: 4px; transition: filter .6s var(--ease); }
 .project-card:hover .project-media img { filter: brightness(1.06); }
+
+/* The signal survives the flood as a channel in the left margin: lit down to
+   the viewport's midline, with a node that lights as each project passes it. */
+.project-track { position: relative; margin-top: 14vh; }
+.channel {
+  position: absolute; top: 0; bottom: 0;
+  left: calc(var(--pad) / -2);
+  width: 1px;
+  background: var(--night-line);
+}
+.channel__lit {
+  position: absolute; inset: 0;
+  background: var(--accent);
+  transform-origin: top;
+  scale: 1 var(--mid, 0);
+  transition: background-color .6s var(--ease);
+}
+.project-row { position: relative; }
+.channel-node {
+  position: absolute; z-index: 1;
+  top: calc(4vh + 5px);
+  left: calc(var(--pad) / -2 - 4px);
+  width: calc(var(--pad) / 2 + 4px); height: 9px;
+  pointer-events: none;
+}
+/* A ring on the channel, and a tap routing from it into the project number. */
+.channel-node::before, .channel-node::after { content: ""; position: absolute; }
+.channel-node::before { left: 0; top: 0; width: 9px; height: 9px; border: 1px solid var(--accent); border-radius: 50%; background: var(--accent); transition: border-color .6s var(--ease), background-color .6s var(--ease); }
+.channel-node::after { left: 9px; right: 8px; top: 4px; height: 1px; background: var(--accent); transform-origin: left; transition: background-color .6s var(--ease); }
 
 /* ─── Phase 4 · Contact: paper returns, the line rises ───── */
 .contact {
@@ -352,22 +389,32 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
   border-radius: 8px;
   transition: background-color .45s var(--ease), color .45s var(--ease);
 }
+/* A small piece of the current signal line sits on the original card shape. */
+.contact-cell::before {
+  content: ""; position: absolute; top: 0; left: 22px; width: 32px; height: 2px;
+  background: var(--accent);
+  transition: width .6s var(--ease);
+}
+.contact-cell:hover, .contact-cell:focus-visible { background: var(--ink); color: var(--paper); }
+.contact-cell:hover::before, .contact-cell:focus-visible::before { width: calc(100% - 44px); }
+.contact-cell__label { display: flex; color: inherit; opacity: .6; }
+.contact-cell__value { font-size: clamp(26px, 3vw, 56px); font-weight: 640; font-stretch: 88%; letter-spacing: -.05em; line-height: 1; }
 .contact-cell--email { grid-column: 1 / 7; grid-row: span 2; }
+.contact-cell--email .contact-cell__value { font-size: clamp(24px, 3.1vw, 58px); overflow-wrap: anywhere; }
 .contact-cell:nth-child(2) { grid-column: 7 / 13; }
 .contact-cell:nth-child(3) { grid-column: 7 / 10; }
 .contact-cell:nth-child(4) { grid-column: 10 / 13; }
-.contact-cell:hover, .contact-cell:focus-visible { background: var(--ink); color: var(--paper); }
-.contact-cell__label { display: flex; color: inherit; opacity: .6; }
-.contact-cell__value { font-size: clamp(26px, 3vw, 56px); font-weight: 640; font-stretch: 88%; letter-spacing: -.05em; line-height: 1; }
-.contact-cell--email .contact-cell__value { font-size: clamp(24px, 3.1vw, 58px); overflow-wrap: anywhere; }
-.contact-cell__arrow { position: absolute; top: 18px; right: 22px; font-size: 20px; transition: transform .45s var(--ease); }
-.contact-cell:hover .contact-cell__arrow { transform: rotate(45deg); }
+.contact-cell__arrow { position: absolute; top: 18px; right: 22px; font-size: 20px; transition: transform .45s var(--ease), color .45s var(--ease); }
+.contact-cell:hover .contact-cell__arrow, .contact-cell:focus-visible .contact-cell__arrow { transform: rotate(45deg); color: var(--accent); }
 .social-mark { width: 18px; height: 18px; }
 
 
 /* ─── Route → Transform: the guide dot floods the page ───── */
 .bridge { position: relative; pointer-events: none; }
-.bridge--flood { height: 120vh; }
+/* The disc is full at 84% of the bridge, exactly when Work's (overlapping)
+   edge enters, so the night turns straight into Work and its title. */
+.bridge--flood { height: 100vh; }
+.bridge--flood + .work { margin-top: -16vh; padding-top: 3vh; }
 .about { transform-origin: 50% calc(100% - 50vh); }
 /* A night disc centred on the guide pill (--flood-x/y/r from usePipelineGuide),
    grown with scale only; it starts in the accent and darkens as it swells. */
@@ -420,7 +467,7 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
   .bridge--columns { view-timeline: --columns block; view-timeline-inset: 0; }
 
   .ingest-stage__door, .ingest-stage__line, .ingest-stage__fill, .ingest-stage__dot,
-  .ingest-stage__track, .ingest-stage__grid {
+  .ingest-stage__ink, .ingest-stage__track, .ingest-stage__grid, .ingest-stage__route {
     animation-duration: auto;
     animation-fill-mode: both;
     animation-timeline: --gate;
@@ -428,22 +475,28 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
   .ingest-stage__door {
     animation-name: gate-grow, gate-open;
     animation-timing-function: ease-in-out;
-    animation-range: contain 6% contain 24%, contain 62% contain 100%;
+    animation-range: contain 26% contain 44%, contain 70% contain 100%;
   }
-  .ingest-stage__line { animation-name: gate-line; animation-timing-function: linear; animation-range: contain 0% contain 12%; }
+  .ingest-stage__line { animation-name: gate-line; animation-timing-function: linear; animation-range: contain 10% contain 24%; }
   .ingest-stage__line--lit {
     animation-name: gate-line, gate-lit;
     animation-timing-function: linear, ease-in-out;
-    animation-range: contain 0% contain 12%, contain 6% contain 24%;
+    animation-range: contain 10% contain 24%, contain 26% contain 44%;
   }
-  .ingest-stage__fill { animation-name: gate-fill; animation-timing-function: ease-in-out; animation-range: contain 28% contain 60%; }
+  .ingest-stage__ink { animation-name: gate-fade; animation-timing-function: linear; animation-range: contain 40% contain 50%; }
+  .ingest-stage__fill { animation-name: gate-fill; animation-timing-function: ease-in-out; animation-range: contain 58% contain 70%; }
   .ingest-stage__dot {
     animation-name: gate-dot, gate-scan;
     animation-timing-function: ease-in-out;
-    animation-range: contain 6% contain 24%, contain 28% contain 60%;
+    animation-range: contain 26% contain 44%, contain 58% contain 70%;
   }
-  .ingest-stage__track { animation-name: gate-fade; animation-timing-function: linear; animation-range: contain 62% contain 77%; }
-  .ingest-stage__grid { animation-name: gate-grid; animation-timing-function: linear; animation-range: contain 6% contain 81%; }
+  .ingest-stage__track { animation-name: gate-fade; animation-timing-function: linear; animation-range: contain 70% contain 78%; }
+  .ingest-stage__grid { animation-name: gate-grid; animation-timing-function: linear; animation-range: contain 26% contain 60%; }
+  .ingest-stage__route {
+    animation-name: gate-route, gate-fade;
+    animation-timing-function: ease-in-out, linear;
+    animation-range: contain 70% contain 76%, contain 76% contain 84%;
+  }
 
   .flood, .flood__disc, .flood__disc::after {
     animation-duration: auto;
@@ -451,8 +504,29 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
     animation-range: entry 0% entry 100%;
   }
   .flood { animation-name: flood-show; animation-fill-mode: none; animation-range: cover 0% cover 100%; }
-  .flood__disc { animation-name: flood-swell; animation-fill-mode: both; animation-timing-function: cubic-bezier(.6, 0, .8, .6); }
-  .flood__disc::after { animation-name: gate-fade; animation-fill-mode: both; animation-timing-function: linear; animation-range: entry 0% entry 20%; }
+  .flood__disc { animation-name: flood-swell; animation-fill-mode: both; animation-timing-function: cubic-bezier(.6, 0, .8, .6); animation-range: entry 0% entry 84%; }
+  .flood__disc::after { animation-name: gate-fade; animation-fill-mode: both; animation-timing-function: linear; animation-range: entry 0% entry 18%; }
+
+  /* entry 50% → exit 50%: the lit tip stays on the viewport's midline. */
+  .project-track { view-timeline: --channel block; view-timeline-inset: 0; }
+  .channel__lit {
+    animation: channel-fill linear both;
+    animation-duration: auto;
+    animation-timeline: --channel;
+    animation-range: entry 50% exit 50%;
+  }
+  /* Timed off the row, not the (sometimes sticky) node: the node's centre sits
+     4vh + 9.5px below the row top, so it meets the midline at cover 54vh + 9.5px. */
+  .project-row { view-timeline: --node block; view-timeline-inset: 0; }
+  .channel-node::before, .channel-node::after {
+    animation-duration: auto;
+    animation-fill-mode: both;
+    animation-timing-function: linear;
+    animation-timeline: --node;
+    animation-range: cover calc(54vh + 6px) cover calc(54vh + 14px);
+  }
+  .channel-node::before { animation-name: node-ring; }
+  .channel-node::after { animation-name: node-tap; animation-range: cover calc(54vh + 10px) cover calc(54vh + 90px); }
 
   .bridge__stage span {
     animation-name: columns-part, gate-fade;
@@ -495,30 +569,18 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
 @keyframes gate-lit { from { opacity: 0; } to { opacity: 1; } }
 @keyframes gate-fill { from { scale: 0 1; } to { scale: 1 1; } }
 @keyframes gate-dot { from { scale: 0; } to { scale: 1; } }
-@keyframes gate-scan { from { translate: 0 0; } to { translate: 100cqw 0; } }
+@keyframes gate-scan { from { translate: 0 0; } to { translate: var(--junction) 0; } }
+@keyframes gate-route { from { scale: 1 0; } to { scale: 1 1; } }
+@keyframes channel-fill { from { scale: 1 0; } to { scale: 1 1; } }
+@keyframes node-ring { from { border-color: var(--night-muted); background-color: var(--night); } }
+@keyframes node-tap { from { scale: 0 1; } to { scale: 1 1; } }
 @keyframes gate-fade { from { opacity: 1; } to { opacity: 0; } }
-@keyframes gate-grid { 0% { opacity: 0; } 24% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes gate-grid { 0% { opacity: 0; } 24% { opacity: 1; } 65% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes flood-show { from, to { visibility: visible; } }
 @keyframes flood-swell { from { scale: .012; } to { scale: 1; } }
 @keyframes columns-part { from { scale: 1.02 1; } to { scale: .00306 1; } }
 
-/* ─── Section textures: faint, and different per stage ───── */
-.hero::before {
-  inset: 0;
-  background-image:
-    linear-gradient(90deg, var(--rule) 1px, transparent 1px),
-    linear-gradient(var(--rule) 1px, transparent 1px);
-  background-size: calc((100% - 2 * var(--pad) + var(--col-gap)) / 12) 100%, 100% 96px;
-  background-position: calc(var(--pad) - var(--col-gap) / 2) 0, 0 var(--header-h);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 60%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 60%, transparent);
-}
-.about::before {
-  inset: 34% 0 8% 45%;
-  background-image: repeating-linear-gradient(to bottom, transparent 0 47px, var(--rule) 47px 48px);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%);
-  mask-image: linear-gradient(90deg, transparent, #000 30%);
-}
+/* ─── Section textures ───────────────────────────────────── */
 .work::before {
   inset: 0;
   background-image: linear-gradient(90deg, rgb(238 234 225 / .045) 1px, transparent 1px);
@@ -538,6 +600,7 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
 @media (max-width: 1100px) {
   .about-portrait { grid-column: 1 / 6; }
   .about-text, .about-affiliations { grid-column: 7 / 13; }
+  .ingest-stage { --junction-col: 6; }
   .about-affiliations { grid-template-columns: 1fr; gap: 0; }
   .affiliation { padding: 12px 0; }
 }
@@ -570,12 +633,14 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
   .contact-cell:nth-child(4) { grid-column: 2; }
   .contact-cell__value { font-size: 28px; }
   .contact-cell--email .contact-cell__value { font-size: 22px; }
+  .channel, .channel-node { display: none; }
 }
 
 /* Touch scrolls natively, so About isn't held for the flood; instead the flood
    plays over About's last viewport and completes as Work arrives. */
 @media (pointer: coarse) {
   .bridge--flood { height: 50vh; margin-top: -50vh; }
+  .bridge--flood + .work { margin-top: -8vh; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -583,8 +648,10 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
   *, *::before, *::after { transition: none !important; animation: none !important; }
   .bridge { height: 0; margin: 0; overflow: hidden; }
   .bridge--ingest { height: 32vh; margin: 0; }
-  .ingest-stage { --line: 1; --grow: 1; --scan: 1; --open: 0; position: relative; height: 32vh; }
+  .ingest-stage { --grow: 1; --open: 0; position: relative; height: 32vh; }
+  .ingest-stage__track, .ingest-stage__grid, .ingest-stage__route { display: none; }
   .flood { display: none; }
+  .bridge--flood + .work { margin-top: 0; }
 }
 
 /* ─── Static fallback document ───────────────────────────── */
