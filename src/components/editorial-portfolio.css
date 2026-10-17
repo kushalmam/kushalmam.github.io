@@ -1,10 +1,12 @@
 /* Component-local styles for EditorialPortfolio. Shared tokens (--micro, --mono,
    --ease) live in index.css. */
 
-/* Privacy link, kept in the micro-metadata register so it stays out of the way. */
+/* Privacy link, kept in the micro-metadata register so it stays out of the way.
+   It sits inside .contact, whose own padding-bottom (8.4vh) is the page's bottom
+   breathing room — so this adds as little as possible on top of it. */
 .contact-legal {
-  margin-top: 4vh;
-  margin-bottom: 10vh;
+  margin-top: 2vh;
+  margin-bottom: 0;
   text-align: right;
   font-family: var(--mono);
   font-size: var(--micro);
