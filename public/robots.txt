@@ -10,6 +10,37 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+# Named AI agents: search and on-demand retrieval are welcome, because being
+# fetched and cited is the point of a portfolio. Training-only crawlers are
+# allowed here too — flip any of these to Disallow: / to withhold content
+# from model weights without touching Search.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
 User-agent: *
 Allow: /
 

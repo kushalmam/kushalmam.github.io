@@ -1,0 +1,33 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://kushalmam.github.io/",
+      "describedby": [
+        {
+          "href": "https://kushalmam.github.io/llms.txt",
+          "type": "text/markdown",
+          "title": "Site index for LLMs"
+        }
+      ],
+      "sitemap": [
+        {
+          "href": "https://kushalmam.github.io/sitemap.xml",
+          "type": "application/xml"
+        }
+      ],
+      "privacy-policy": [
+        {
+          "href": "https://kushalmam.github.io/privacy/",
+          "type": "text/html"
+        }
+      ],
+      "service-desc": [
+        {
+          "href": "https://kushalmam.github.io/.well-known/security.txt",
+          "type": "text/plain",
+          "title": "Security contact"
+        }
+      ]
+    }
+  ]
+}

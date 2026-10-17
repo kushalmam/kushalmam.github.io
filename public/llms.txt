@@ -1,0 +1,28 @@
+# Kushal Mamillapalli — Data Engineer
+
+> Portfolio of Kushal Mamillapalli, a data engineer at Spotify building production personalization pipelines, backend systems, and applied ML infrastructure. One page, four selected projects, three with public repositories.
+
+## Profile
+
+- [Portfolio](https://kushalmam.github.io/): data pipelines and recommendation systems, from retrieval through to the serving path.
+- [Résumé (PDF)](https://kushalmam.github.io/documents/kushal-mamillapalli-resume.pdf): current role, education, and project history.
+- [Privacy](https://kushalmam.github.io/privacy/): what this site does and does not collect.
+
+## Projects
+
+- [Rekindle](https://github.com/Techdude01/rekindle): next-review ranking pipeline. Offline NDCG@10 of 0.0104 against a 0.0071 baseline over 29,416 eligible warm test events, evaluated chronologically with models frozen before replay.
+- [MarketMind](https://github.com/Techdude01/MarketMind-yHack26): market research workspace that connects a market agent to live signals.
+- [AutoCPT](https://github.com/Techdude01/AutoCPT): browser speech transcription resolved into suggested CPT codes. HackNYU 2025 winner.
+- [NBAnomaly](https://github.com/Techdude01/NBAnomaly): football player anomaly detection over per-match statistics.
+
+## Contact
+
+- Email: kushalmam06@gmail.com
+- [GitHub](https://github.com/Techdude01)
+- [LinkedIn](https://linkedin.com/in/kushal-mamillapalli)
+
+## Optional
+
+- [sitemap.xml](https://kushalmam.github.io/sitemap.xml)
+- [API catalog](https://kushalmam.github.io/.well-known/api-catalog)
+- [security.txt](https://kushalmam.github.io/.well-known/security.txt)

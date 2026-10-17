@@ -1,0 +1,4 @@
+Contact: mailto:kushalmam06@gmail.com
+Expires: 2027-10-01T00:00:00Z
+Preferred-Languages: en
+Canonical: https://kushalmam.github.io/.well-known/security.txt
