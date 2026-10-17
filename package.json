@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "images": "bun run scripts/optimize-images.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",

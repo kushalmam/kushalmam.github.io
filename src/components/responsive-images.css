@@ -1,0 +1,7 @@
+/* <picture> is a wrapper, never a layout box: the <img> inside stays the
+   block-level element that .about-portrait img and .project-media img size.
+   Only EditorialPortfolio renders <picture>, so the rule lives with it. */
+.about-portrait picture,
+.project-media picture {
+  display: block;
+}

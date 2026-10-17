@@ -7,6 +7,8 @@ import DegradedName from "./DegradedName";
 import { portfolioProjects } from "../portfolioProjects";
 import { useScrollScenes } from "./useScrollScenes";
 import { usePipelineGuide } from "./usePipelineGuide";
+import { PORTRAIT_SIZES, PROJECT_SIZES, variantSrcSet } from "../imageVariants";
+import "./responsive-images.css";
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 const contactStreamItems = ["build.", "make.", "ship.", "explore.", "talk."];
@@ -77,7 +79,11 @@ export default function EditorialPortfolio() {
       <section className="about section" id="about" tabIndex={-1} aria-labelledby="about-title">
         <h2 className="about-lead" id="about-title"><span>Data pipelines.</span><span>Real impact.</span></h2>
         <figure className="about-portrait">
-          <img src={asset("images/portrait.jpg")} alt="Kushal overlooking the New York skyline" width="720" height="709" loading="lazy" />
+          <picture>
+            <source type="image/avif" srcSet={variantSrcSet("images/portrait.jpg", 720, "avif", asset)} sizes={PORTRAIT_SIZES} />
+            <source type="image/webp" srcSet={variantSrcSet("images/portrait.jpg", 720, "webp", asset)} sizes={PORTRAIT_SIZES} />
+            <img src={asset("images/portrait.jpg")} alt="Kushal overlooking the New York skyline" width="720" height="709" loading="lazy" decoding="async" />
+          </picture>
         </figure>
         <p className="about-text">I build recommendation systems and the infrastructure behind them, turning messy inputs into reliable products.</p>
         <div className="about-affiliations">
@@ -107,7 +113,11 @@ export default function EditorialPortfolio() {
                   <p className="project-description">{project.description}</p>
                 </div>
                 <div className="project-media">
-                  <img src={asset(`images/projects/${project.image}`)} alt={project.alt} loading="lazy" width={project.width} height={project.height} />
+                  <picture>
+                    <source type="image/avif" srcSet={variantSrcSet(`images/projects/${project.image}`, project.width, "avif", asset)} sizes={PROJECT_SIZES} />
+                    <source type="image/webp" srcSet={variantSrcSet(`images/projects/${project.image}`, project.width, "webp", asset)} sizes={PROJECT_SIZES} />
+                    <img src={asset(`images/projects/${project.image}`)} alt={project.alt} loading="lazy" decoding="async" width={project.width} height={project.height} />
+                  </picture>
                 </div>
               </a>
             </li>)}
