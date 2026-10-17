@@ -33,6 +33,8 @@ bun run lint
 bun run test
 bun run build
 bun run preview
+bun run images       # regenerate AVIF/WebP variants (see Asset pipeline)
+bun run icons        # regenerate install icons from favicon.svg
 ```
 
 ## Where to make changes
@@ -47,6 +49,7 @@ bun run preview
 - `src/scene/wireMaterial.ts`: physical metal/enamel shading, brushing, cursor deformation, and signal emission.
 - `public/environments/wire-studio.hdr`: original bundled HDR studio lighting; regenerate with `uv run scripts/generate-wire-studio.py`.
 - `scripts/staticFallback.ts`: build-time HTML from the same project and experience data.
+- `src/feed.ts`: RSS 2.0 feed, generated at build time from `src/portfolioProjects.ts`.
 - `index.html`: metadata and fallback insertion point.
 - `public/documents/`: résumé PDF; `public/images/`: optimized portrait.
 

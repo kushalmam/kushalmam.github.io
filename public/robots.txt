@@ -43,5 +43,13 @@ Allow: /
 
 User-agent: *
 Allow: /
+# Content Signals (IETF aipref / IAB Tech Lab proposal, not yet a settled
+# standard). This is the site-wide preference and it matches the explicit
+# per-agent groups above: everything is allowed, including training, because
+# being fetched and cited is the point of a portfolio.
+#
+# To withhold content from model weights without touching Search, flip
+# ai-train=no here — that is the only word that has to change.
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
 
 Sitemap: https://kushalmam.github.io/sitemap.xml

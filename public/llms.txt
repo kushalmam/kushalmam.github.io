@@ -23,6 +23,7 @@
 
 ## Optional
 
+- [Feed (RSS)](https://kushalmam.github.io/feed.xml): selected work, one entry per project.
 - [sitemap.xml](https://kushalmam.github.io/sitemap.xml)
 - [API catalog](https://kushalmam.github.io/.well-known/api-catalog)
 - [security.txt](https://kushalmam.github.io/.well-known/security.txt)
