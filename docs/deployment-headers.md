@@ -13,18 +13,28 @@ Everything else the audit raised is fixed in-repo. `public/_headers` contains th
 correct headers, but **GitHub Pages silently ignores that file** — it is a
 Cloudflare Pages / Netlify convention and nothing else reads it.
 
-## What to do
+## Two ways to make it live, and only one reads `_headers`
 
-Put a proxy that respects `_headers` in front of the custom domain:
+`_headers` is parsed by the *hosting* product, not by a proxy. So the choice of
+setup matters:
 
-1. Point `kushalmam.github.io`'s custom domain at Cloudflare.
-2. Either deploy the same `dist/` to Cloudflare Pages (which reads `public/_headers`
-   verbatim), or keep GitHub Pages as the origin and set the same headers as
-   Cloudflare Transform Rules.
-3. Verify with `curl -sI https://kushalmam.github.io/` that
-   `x-content-type-options`, `content-security-policy`, `strict-transport-security`,
-   `referrer-policy`, `permissions-policy`, and `link` are present, and that
-   `/assets/*` returns `cache-control: public, max-age=31536000, immutable`.
+| Setup | Is `public/_headers` read? | What to do instead |
+| --- | --- | --- |
+| Deploy `dist/` to **Cloudflare Pages** (or Netlify) and point the domain there | Yes — verbatim | Nothing. Push, then verify. |
+| Keep **GitHub Pages** as the origin, put **Cloudflare** in front as a proxy | No | Replicate the same values as a Cloudflare **Transform Rule**, or in a **Worker** that adds the headers to the response. |
+
+The first option is less work and is the one the file is written for. The second
+keeps the current deploys exactly as they are and moves the headers to the edge.
+
+Either way, verify with:
+
+```sh
+curl -sI https://kushalmam.github.io/ | grep -iE 'x-content-type|content-security|strict-transport|referrer-policy|permissions-policy|^link'
+curl -sI https://kushalmam.github.io/assets/index-*.js | grep -i cache-control
+```
+
+Expect `cache-control: public, max-age=31536000, immutable` on the hashed asset
+(not Pages' fixed `max-age=600`), and the six headers above on the document.
 
 ## Two cautions
 
