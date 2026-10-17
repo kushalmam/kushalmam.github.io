@@ -79,3 +79,10 @@
 /site.webmanifest
   Content-Type: application/manifest+json; charset=utf-8
   Cache-Control: public, max-age=3600
+
+# GitHub Pages already gets these two right (text/plain and manifest+json), but
+# it serves feed.xml as application/xml. Every reader accepts that; this pins the
+# registered type so the proxy path is exact.
+/feed.xml
+  Content-Type: application/rss+xml; charset=utf-8
+  Cache-Control: public, max-age=3600
