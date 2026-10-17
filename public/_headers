@@ -1,0 +1,55 @@
+# Response headers for a proxy that can set them (Cloudflare Pages, Netlify).
+#
+# ⚠️  GitHub Pages ignores this file. The site is currently served straight from
+#     GitHub Pages, so none of the headers below are live. They take effect when
+#     the domain is fronted by Cloudflare Pages, Cloudflare (Transform Rules), or
+#     Netlify. See docs/deployment-headers.md.
+#
+#     Two `required` spec items — x-content-type-options and frame-ancestors —
+#     cannot be satisfied on GitHub Pages at all, because it offers no way to set
+#     response headers. That is the single reason this file exists.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), usb=(), xr-spatial-tracking=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  # frame-ancestors is the clickjacking control and is only expressible in CSP.
+  # The rest of the policy is deliberately omitted: the site inlines a <style>
+  # block and a JSON-LD data block, and no browser here can tell us whether
+  # `script-src 'self'` blocks the data block. Enable STRICT_POLICY (below) only
+  # after checking structured data in Search Console / Rich Results Test.
+  Content-Security-Policy: frame-ancestors 'none'; base-uri 'self'; object-src 'none'
+  # Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+  Link: </llms.txt>; rel="describedby"; type="text/markdown"; title="Site index for LLMs", </.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json", </sitemap.xml>; rel="sitemap"; type="application/xml"
+
+# Vite fingerprints everything under /assets with a content hash, so the body
+# can never change for a given URL. Cache it for a year and never revalidate.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML is not fingerprinted: always revalidate, and let the ETag make it cheap.
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Unhashed assets and documents: fresh for an hour, stale served while revalidating.
+/images/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/documents/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/environments/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+# GitHub Pages serves extensionless files as application/octet-stream, which
+# breaks parsers that key off the type. Pin the correct types.
+/.well-known/security.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600
+/.well-known/api-catalog
+  Content-Type: application/linkset+json; charset=utf-8
+  Cache-Control: public, max-age=3600
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600
