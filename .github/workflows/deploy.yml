@@ -38,7 +38,9 @@ jobs:
 
       - name: Prepare GitHub Pages artifact
         run: |
-          cp dist/index.html dist/404.html
+          # public/404.html ships a real "not found" page; only fall back to the
+          # app shell when none is present.
+          [ -f dist/404.html ] || cp dist/index.html dist/404.html
           touch dist/.nojekyll
 
       - name: Configure GitHub Pages
