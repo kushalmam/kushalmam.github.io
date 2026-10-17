@@ -9,6 +9,7 @@ import { useScrollScenes } from "./useScrollScenes";
 import { usePipelineGuide } from "./usePipelineGuide";
 import { PORTRAIT_SIZES, PROJECT_SIZES, variantSrcSet } from "../imageVariants";
 import "./responsive-images.css";
+import "./editorial-portfolio.css";
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 const contactStreamItems = ["build.", "make.", "ship.", "explore.", "talk."];
@@ -144,6 +145,7 @@ export default function EditorialPortfolio() {
           <a className="contact-cell" href="https://linkedin.com/in/kushal-mamillapalli" target="_blank" rel="noopener noreferrer"><span className="contact-cell__label"><SocialMark name="linkedin" /></span><span className="contact-cell__value">LinkedIn</span><span className="contact-cell__arrow" aria-hidden="true">↗</span></a>
           <a className="contact-cell" href="https://github.com/Techdude01" target="_blank" rel="noopener noreferrer"><span className="contact-cell__label"><SocialMark name="github" /></span><span className="contact-cell__value">GitHub</span><span className="contact-cell__arrow" aria-hidden="true">↗</span></a>
         </nav>
+        <p className="contact-legal"><a href={asset("privacy/")}>Privacy</a></p>
       </section>
     </main>
   </>;
