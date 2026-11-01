@@ -1,7 +1,7 @@
 const canvas=document.querySelector('#field'),ctx=canvas.getContext('2d'),stage=document.querySelector('.stage'),journey=document.querySelector('.journey');
 const opening=document.querySelector('.opening'),about=document.querySelector('.about'),contact=document.querySelector('.contact-ending');
 const themeToggle=document.querySelector('.theme-toggle'),root=document.documentElement;
-function setTheme(mode,persist=true){root.dataset.mode=mode;themeToggle.setAttribute('aria-pressed',String(mode==='light'));themeToggle.setAttribute('aria-label',`Switch to ${mode==='light'?'dark':'light'} mode`);themeToggle.querySelector('.theme-label').textContent=mode==='light'?'Dark':'Light';themeToggle.querySelector('[aria-hidden="true"]').textContent=mode==='light'?'◑':'◐';if(persist){try{localStorage.setItem('hero-study-mode',mode)}catch{}}ambient=null;atlas=null;atlasCell=0;sculptureGlyphs.clear();cubeCharacterAtlas=null;if(portrait)cachePortrait();document.querySelectorAll('.hobby-art').forEach(target=>buildHobbyArt(target,0));needsDraw=true;update()}
+function setTheme(mode,persist=true){root.dataset.mode=mode;themeToggle.setAttribute('aria-pressed',String(mode==='light'));themeToggle.setAttribute('aria-label',`Switch to ${mode==='light'?'dark':'light'} mode`);themeToggle.querySelector('.theme-label').textContent=mode==='light'?'Dark':'Light';themeToggle.querySelector('[aria-hidden="true"]').textContent=mode==='light'?'◑':'◐';if(persist){try{localStorage.setItem('hero-study-mode',mode)}catch{}}ambient=null;atlas=null;atlasCell=0;ripples=[];veilPresence=0;sculptureGlyphs.clear();cubeCharacterAtlas=null;if(portrait)cachePortrait();document.querySelectorAll('.hobby-art').forEach(target=>buildHobbyArt(target,0));needsDraw=true;update()}
 themeToggle.addEventListener('click',()=>setTheme(root.dataset.mode==='light'?'dark':'light'));
 let contactWordClock=0,contactInteraction=false,contactMasks=null,smoothScroll=null;
 const TRANSITION_SPEED=1.6,CONTACT_HOLD=4.8,CONTACT_PERIOD=CONTACT_HOLD+2/TRANSITION_SPEED,contactFaces=['Bungee','Monoton','Dela Gothic One'];
@@ -9,7 +9,18 @@ const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const clamp=x=>Math.max(0,Math.min(1,x)),mix=(a,b,p)=>a+(b-a)*p,ease=x=>{x=clamp(x);return x*x*(3-2*x)};
 const glyphs=' .,:;-=+*#%@',PROJECT_START=4.5,PROJECT_LENGTH=2.1,CONTACT_START=12.65,END=15.3;
 let w=0,h=0,time=0,last=0,raf=0,story=0,paused=reduced.matches,visible=true,portrait=null,portraitInk=null,portraitPhoto=null,portraitPoints=[],atlas=null,atlasCell=0;
-let cursor={x:-2,y:-2},pointer={x:-2,y:-2};
+// Interaction techniques adapted from React Bits' official sources:
+// https://reactbits.dev/text-animations/ascii-text and https://reactbits.dev/animations/dither-veil
+// (MIT + Commons Clause; notices retained by attribution, no component code vendored).
+// The dither veil is a cell-resolution exposure mask thresholded against an 8x8
+// Bayer matrix; ASCII Text contributes pointer tilt, hover scramble and click ripples.
+// Both are reimplemented against this file's single canvas and tick loop.
+const smoothstep=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t)};
+const hashNoise=(x,y,s)=>{const v=Math.sin(x*12.9898+y*78.233+s*37.719)*43758.5453;return v-Math.floor(v)};
+const BAYER=new Float32Array(64);
+for(let by=0;by<8;by++)for(let bx=0;bx<8;bx++){const v=bx^by,m=((v&1)<<5)|((by&1)<<4)|((v&2)<<2)|((by&2)<<1)|((v&4)>>1)|((by&4)>>2);BAYER[by*8+bx]=(m+.5)/64}
+let hover={x:.5,y:.5,inside:false},tiltX=0,tiltY=0,ripples=[];
+let veilMask=null,veilMaskCtx=null,veilImageData=null,veilAlpha=null,veilCols=0,veilRows=0,veilScale=null,veilScratch=null,veilBrush={x:0,y:0},veilPresence=0;
 let frameDelta=1/60,scrollDirty=true,needsDraw=true;
 const projects=[
  {name:'Rekindle',slug:'rekindle',description:'A product recommender that learns from review histories, achieving about 46% higher offline NDCG@10 than its strongest baseline.',repo:'rekindle',background:[16,17,15]},
@@ -31,16 +42,118 @@ function cachePortrait(){
  document.querySelector(".reduced-photo").src=portraitPhoto.toDataURL("image/webp");
  const sample=document.createElement('canvas');sample.width=cols;sample.height=rows;const sc=sample.getContext('2d');sc.drawImage(portraitPhoto,0,0,cols,rows);const pixels=sc.getImageData(0,0,cols,rows).data;
  portraitInk=document.createElement('canvas');portraitInk.width=size;portraitInk.height=ph;const ink=portraitInk.getContext('2d');ink.font='10px monospace';ink.textBaseline='middle';portraitPoints=[];
+ veilCols=cols;veilRows=rows;veilAlpha=new Float32Array(cols*rows);veilBrush={x:cols/2,y:rows/2};veilPresence=0;
+ veilMask=document.createElement('canvas');veilMask.width=cols;veilMask.height=rows;veilMaskCtx=veilMask.getContext('2d');veilImageData=veilMaskCtx.createImageData(cols,rows);
+ veilScale=document.createElement('canvas');veilScale.width=size;veilScale.height=ph;veilScratch=document.createElement('canvas');veilScratch.width=size;veilScratch.height=ph;
  const asciiInk=root.dataset.mode==='light'?'rgb(41,65,101)':'rgb(230,230,220)';for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const k=(y*cols+x)*4,v=(pixels[k]*.2126+pixels[k+1]*.7152+pixels[k+2]*.0722)/255;const char=glyphs[Math.min(10,Math.floor(Math.pow(v,.7)*11))];ink.fillStyle=asciiInk;ink.globalAlpha=.2+v*.8;ink.fillText(char,x*6,y/rows*ph+3);ink.globalAlpha=1;if(v>.12&&x%2===0&&y%2===0)portraitPoints.push({x:x/cols,y:y/rows,char,alpha:.25+v*.7})}
 }
 function portraitRect(){const mobile=w<700,pw=mobile?Math.min(w*.52,310):Math.min(w*.40,h*.65);return {x:mobile?w*.40:w*.045,y:mobile?h*.025:h*.16,w:pw,h:pw*(portrait?portrait.height/portrait.width:1)}}
-function drawPortrait(){if(!portraitInk||story<1.95)return;const appear=1,toPhoto=ease((story-2.25)/.55),toAscii=ease((story-3.55)/.55),exit=ease((story-4.08)/.65),r=portraitRect();if(appear<.001)return;
- const photoMix=toPhoto*(1-toAscii),asciiMix=1-photoMix;
- for(const [source,alpha] of [[portraitInk,asciiMix],[portraitPhoto,photoMix]]){if(alpha<.001)continue;ctx.globalAlpha=alpha*appear*(1-exit);if(appear>.99){ctx.drawImage(source,r.x,r.y,r.w,r.h)}else{for(let row=0;row<source.height;row+=12){const offset=Math.sin(row*.035+time*.2)*(1-appear)*130;ctx.drawImage(source,0,row,source.width,Math.min(12,source.height-row),r.x+offset,r.y+row/source.height*r.h,r.w,r.h*12/source.height)}}}ctx.globalAlpha=1;
+function drawPortrait(){
+ if(!portraitInk||!veilMaskCtx||story<1.95)return;
+ const toPhoto=ease((story-2.25)/.55),toAscii=ease((story-3.55)/.55),exit=ease((story-4.08)/.65),alpha=1-exit,r=portraitRect();
+ if(alpha<.001)return;
+ const photoMix=toPhoto*(1-toAscii),peak=updateVeil(r,photoMix);
+ if(photoMix<.001&&peak<.02){ctx.globalAlpha=alpha;ctx.drawImage(portraitInk,r.x,r.y,r.w,r.h);ctx.globalAlpha=1;return}
+ const sc=veilScratch.getContext('2d');
+ sc.setTransform(1,0,0,1,0,0);sc.imageSmoothingEnabled=false;sc.globalCompositeOperation='source-over';
+ sc.clearRect(0,0,veilScratch.width,veilScratch.height);sc.drawImage(portraitInk,0,0);
+ sc.globalCompositeOperation='destination-out';sc.drawImage(veilScale,0,0);
+ ctx.globalAlpha=alpha;ctx.drawImage(veilScratch,r.x,r.y,r.w,r.h);
+ sc.globalCompositeOperation='source-over';sc.clearRect(0,0,veilScratch.width,veilScratch.height);sc.drawImage(portraitPhoto,0,0);
+ sc.globalCompositeOperation='destination-in';sc.drawImage(veilScale,0,0);
+ ctx.drawImage(veilScratch,r.x,r.y,r.w,r.h);ctx.globalAlpha=1;
+}
+function updateVeil(r,photoMix){
+ const cols=veilCols,rows=veilRows,cells=veilAlpha,dt=Math.min(.05,Math.max(0,frameDelta));
+ if(!cols||!rows||!cells)return 0;
+ const cell=r.w/cols;
+ // Pointer when present, otherwise the same slow wander Dither Veil uses when idle.
+ let tx,ty,targetStrength;
+ if(hover.inside&&!reduced.matches){tx=(hover.x*w-r.x)/r.w*cols;ty=(hover.y*h-r.y)/r.h*rows;targetStrength=1}
+ else{tx=cols*(.5+.32*Math.sin(time*.31)+.07*Math.sin(time*.73+1.6));ty=rows*(.5+.26*Math.sin(time*.41+1.1)+.06*Math.cos(time*.9));targetStrength=.55}
+ veilPresence=mix(veilPresence,targetStrength,1-Math.exp(-dt/.2));
+ const follow=1-Math.exp(-dt/(hover.inside?.045:.35));
+ veilBrush.x=mix(veilBrush.x,tx,follow);veilBrush.y=mix(veilBrush.y,ty,follow);
+ // Linger: the trail decays rather than disappearing between brush moves.
+ const fade=dt/1.35;
+ for(let i=0;i<cells.length;i++){const v=cells[i]-fade;cells[i]=v>0?v:0}
+ const radius=Math.max(46,Math.min(230,r.w*.24))*(.45+.55*veilPresence)/cell,soft=Math.max(1.2,radius*.62);
+ const x0=Math.max(0,Math.floor(veilBrush.x-radius)),x1=Math.min(cols,Math.ceil(veilBrush.x+radius)),y0=Math.max(0,Math.floor(veilBrush.y-radius)),y1=Math.min(rows,Math.ceil(veilBrush.y+radius));
+ for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){
+  const d=Math.hypot(x+.5-veilBrush.x,y+.5-veilBrush.y);
+  if(d>=radius)continue;
+  const value=clamp((radius-d)/soft)*veilPresence,i=y*cols+x;
+  if(value>cells[i])cells[i]=value;
+ }
+ // Click shockwave: an expanding ring that exposes the photo along its band.
+ for(const rip of ripples){
+  const rx=(rip.x*w-r.x)/r.w*cols,ry=(rip.y*h-r.y)/r.h*rows,reach=rip.age*Math.max(w,h)*.75/cell,band=Math.max(3,reach*.16),strength=(1-clamp(rip.age/1.3))*.9;
+  if(strength<=.002)continue;
+  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+   const gap=Math.abs(Math.hypot(x+.5-rx,y+.5-ry)-reach);
+   if(gap>=band)continue;
+   const value=clamp(1-gap/band)*strength,i=y*cols+x;
+   if(value>cells[i])cells[i]=value;
+  }
+ }
+ // Quantize exposure against the Bayer matrix so the reveal is a 1-bit dither,
+ // and the timeline blend can sit underneath it as a floor.
+ const data=veilImageData.data;let peak=0;
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+  const i=y*cols+x,shown=clamp(photoMix+cells[i]),on=shown>BAYER[(x&7)*8+(y&7)];
+  if(cells[i]>peak)peak=cells[i];
+  const k=i*4;data[k]=255;data[k+1]=255;data[k+2]=255;data[k+3]=on?255:0;
+ }
+ veilMaskCtx.putImageData(veilImageData,0,0);
+ const sc=veilScale.getContext('2d');
+ sc.setTransform(1,0,0,1,0,0);sc.imageSmoothingEnabled=false;sc.clearRect(0,0,veilScale.width,veilScale.height);
+ sc.drawImage(veilMask,0,0,cols,rows,0,0,veilScale.width,veilScale.height);
+ return peak;
 }
 function glyphAtlas(cell,step){if(atlas&&atlasCell===cell)return atlas;atlasCell=cell;atlas=document.createElement('canvas');atlas.width=cell*11;atlas.height=step;const c=atlas.getContext('2d'),light=root.dataset.mode==='light';c.font=`${cell+1}px monospace`;c.textBaseline='middle';for(let i=0;i<11;i++){c.fillStyle=light?`rgba(31,64,109,${.1+i*.083})`:`rgba(218,220,210,${.1+i*.083})`;c.fillText(glyphs[i],i*cell,step/2)}return atlas}
-function drawWaves(){const fold=ease((story-.4)/1.2),alpha=1-ease((story-1.1)/1.1);if(alpha<.001)return;const cell=Math.max(7,Math.ceil(w/145)),step=Math.ceil(cell*1.35),sprite=glyphAtlas(cell,step);const rippleOn=story<.45&&!paused&&!reduced.matches&&cursor.x>-1;if(rippleOn){const follow=1-Math.exp(-18*frameDelta);pointer.x=mix(pointer.x,cursor.x,follow);pointer.y=mix(pointer.y,cursor.y,follow)}else pointer={x:-2,y:-2};ctx.globalAlpha=alpha;
- for(let y=0;y<h;y+=step){const v=y/h,ys=Math.sin(v*5.4-time*.18)*.52;for(let x=0;x<w;x+=cell){const u=x/w;let ripple=0;if(rippleOn){const dx=(u-pointer.x)*w/h,dy=v-pointer.y,d2=dx*dx+dy*dy;if(d2<.1)ripple=(1-d2*10)**2*Math.sin(d2*180-time*2)*.13}const a=u*3.8+v*1.65+ys+ripple,b=v*2.7-u*.8+Math.sin(u*6+time*.12)*.28,surface=Math.sin(a*3.5+time*.13)+Math.cos(b*4.1-time*.09)*.57,value=Math.exp(-((surface/.48)**2))*.76+((.5+.5*Math.cos(a*26+b*4))**3)*.25;if(value<.1)continue;const z=surface*.22*fold,px=(u-.5)*Math.cos(fold*1.1)+z*Math.sin(fold*1.1),perspective=1/(1-z*.3);ctx.drawImage(sprite,Math.min(10,Math.floor(value*10))*cell,0,cell,step,(.5+px*perspective)*w,(.5+(v-.5)*(1-fold*.68)*perspective)*h,cell,step)}}ctx.globalAlpha=1;
+function drawWaves(){
+ const fold=ease((story-.4)/1.2),alpha=1-ease((story-1.1)/1.1);
+ if(alpha<.001)return;
+ const cell=Math.max(7,Math.ceil(w/145)),step=Math.ceil(cell*1.35),sprite=glyphAtlas(cell,step);
+ const interactive=!paused&&!reduced.matches&&story<1.1,tick=Math.floor(time*18);
+ // ASCII Text's tilt follow: eased toward the pointer, drifting on its own when idle.
+ const follow=1-Math.exp(-6*Math.min(.05,frameDelta));
+ const targetX=interactive&&hover.inside?(hover.y-.5)*1.4:Math.sin(time*.55)*.12;
+ const targetY=interactive&&hover.inside?(hover.x-.5)*1.4:Math.sin(time*.4+1.3)*.2;
+ tiltX+=(targetX-tiltX)*follow;tiltY+=(targetY-tiltY)*follow;
+ const px=hover.x*w,py=hover.y*h,reach=Math.max(120,h*.18*1.6);
+ const rings=interactive?ripples:[];
+ ctx.globalAlpha=alpha;
+ for(let y=0;y<h;y+=step){
+  const v=y/h,ys=Math.sin(v*5.4-time*.18)*.52;
+  for(let x=0;x<w;x+=cell){
+   const cx=x+cell*.5,cy=y+step*.5;
+   let ring=0,pushX=0,pushY=0;
+   for(const rip of rings){
+    const rx=rip.x*w,ry=rip.y*h,radius=rip.age*Math.max(w,h)*.75,band=Math.max(cell*3,24),gap=Math.abs(Math.hypot(cx-rx,cy-ry)-radius);
+    const fall=(1-smoothstep(0,1.2,rip.age))*(1-smoothstep(0,band,gap));
+    if(fall<=0)continue;
+    ring=Math.max(ring,fall);
+    const dx=cx-rx,dy=cy-ry,len=Math.hypot(dx,dy)||1;
+    pushX+=dx/len*fall*cell*1.5;pushY+=dy/len*fall*cell*1.5;
+   }
+   // Tilt and ripple push both displace the sampled surface, not just the glyph.
+   const u=x/w+(pushX+tiltY*(v-.5)*cell*2)/w,vv=v+(pushY+tiltX*(u-.5)*cell*2)/h;
+   const a=u*3.8+vv*1.65+ys,b=vv*2.7-u*.8+Math.sin(u*6+time*.12)*.28;
+   const surface=Math.sin(a*3.5+time*.13)+Math.cos(b*4.1-time*.09)*.57;
+   const value=Math.exp(-((surface/.48)**2))*.76+((.5+.5*Math.cos(a*26+b*4))**3)*.25;
+   if(value<.1&&ring<.08)continue;
+   let index=value<.1?0:Math.min(10,Math.floor(value*10));
+   const near=Math.hypot(cx-px,cy-py),scramble=hover.inside?clamp(1-smoothstep(reach*.35,reach,near))*.55:0;
+   if(index>0&&hashNoise(x,y,tick)<scramble*.8)index=1+Math.floor(hashNoise(x,y,tick+7.13)*10);
+   if(ring>0&&hashNoise(x,y,tick*3.1)<ring)index=1+Math.floor(hashNoise(x,y,tick*1.7)*10);
+   const z=surface*.22*fold,p=(u-.5)*Math.cos(fold*1.1)+z*Math.sin(fold*1.1),perspective=1/(1-z*.3);
+   if(ring>0)ctx.globalAlpha=alpha*Math.min(1,.72+ring*.5);
+   ctx.drawImage(sprite,index*cell,0,cell,step,(.5+p*perspective)*w,(.5+(vv-.5)*(1-fold*.68)*perspective)*h,cell,step);
+   if(ring>0)ctx.globalAlpha=alpha;
+  }
+ }
+ ctx.globalAlpha=1;
 }
 let waveMorphOrigin=null;
 function drawWavePortraitMorph(){
@@ -217,6 +330,7 @@ function tick(now){
  if(scrollDirty){scrollDirty=false;update()}
  if(visible&&!paused&&!reduced.matches){
   time+=frameDelta;
+  if(ripples.length)ripples=ripples.filter(rip=>(rip.age+=frameDelta)<1.3);
   if(story>CONTACT_START+1.15&&(!contactInteraction||contactWordClock%CONTACT_PERIOD>CONTACT_HOLD))contactWordClock+=frameDelta;
   needsDraw=true;
   if(story>1.45&&story<4.2)buildHobbyArt(cubeArt,time);
@@ -227,7 +341,11 @@ function tick(now){
 function sync(){document.body.dataset.motionPaused=String(paused);cancelAnimationFrame(raf);last=performance.now();raf=requestAnimationFrame(tick)}
 contact.addEventListener('mouseenter',()=>{contactInteraction=true});contact.addEventListener('mouseleave',()=>{contactInteraction=contact.contains(document.activeElement)});contact.addEventListener('focusin',()=>{contactInteraction=true});contact.addEventListener('focusout',event=>{contactInteraction=contact.contains(event.relatedTarget)||contact.matches(':hover')});
 document.addEventListener('visibilitychange',sync);reduced.addEventListener('change',()=>{paused=reduced.matches;if(reduced.matches)[opening,about,...panels,contact].forEach(panel=>{panel.inert=false});resize();sync()});new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;sync()}).observe(journey);
-window.addEventListener('scroll',()=>{scrollDirty=true},{passive:true});window.addEventListener('resize',resize);window.addEventListener('pointermove',event=>{if(paused||reduced.matches||story>=.45)return;cursor={x:event.clientX/w,y:event.clientY/h};if(pointer.x<-1)pointer={...cursor}},{passive:true});document.documentElement.addEventListener('pointerleave',()=>{cursor={x:-2,y:-2}});
+window.addEventListener('scroll',()=>{scrollDirty=true},{passive:true});window.addEventListener('resize',resize);
+window.addEventListener('pointermove',event=>{if(reduced.matches)return;hover.x=event.clientX/Math.max(1,w);hover.y=event.clientY/Math.max(1,h);hover.inside=true;needsDraw=true},{passive:true});
+window.addEventListener('pointerdown',event=>{if(paused||reduced.matches||story>=4.1)return;if(event.pointerType==='mouse'&&event.button!==0)return;ripples.push({x:event.clientX/Math.max(1,w),y:event.clientY/Math.max(1,h),age:0});needsDraw=true},{passive:true});
+document.documentElement.addEventListener('pointerleave',()=>{hover.inside=false;needsDraw=true});
+window.addEventListener('pointercancel',()=>{hover.inside=false;needsDraw=true},{passive:true});
 function setupSmoothScroll(){
  smoothScroll?.destroy();smoothScroll=null;
  if(reduced.matches||typeof window.Lenis!=='function')return;
