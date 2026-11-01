@@ -3,7 +3,9 @@ import { afterEach, expect, it, vi } from "vitest";
 import EditorialPortfolio from "../components/EditorialPortfolio";
 
 const { scrollTo } = vi.hoisted(() => ({ scrollTo: vi.fn() }));
-vi.mock("lenis/react", () => ({ useLenis: () => ({ scrollTo }) }));
+vi.mock("lenis/react", () => ({
+  useLenis: () => ({ scrollTo, scroll: 0, on: () => () => {} }),
+}));
 
 afterEach(() => {
   cleanup();

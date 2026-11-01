@@ -6,7 +6,7 @@ const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
 const GUIDE_SIZE = 22;
 const PILL_PADDING = 11;
 const FLOOD_FULL = .84;
-const PROJECT_ACCENTS = ["#d7b6ff", "#bf9df7", "#aa86e9", "#916bd1"];
+const PROJECT_ACCENTS = ["#9dbbe4", "#82a5d6", "#6689bc", "#4f719f"];
 
 /** Untransformed document offset, so held/receding sections don't skew measurements. */
 function pageOffset(element: HTMLElement) {

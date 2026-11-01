@@ -7,6 +7,8 @@ import DegradedName from "./DegradedName";
 import { portfolioProjects } from "../portfolioProjects";
 import { useScrollScenes } from "./useScrollScenes";
 import { usePipelineGuide } from "./usePipelineGuide";
+import { useTransitionCommit } from "./useTransitionCommit";
+import AsciiField from "./AsciiField";
 import { PORTRAIT_SIZES, PROJECT_SIZES, variantSrcSet } from "../imageVariants";
 import "./responsive-images.css";
 import "./editorial-portfolio.css";
@@ -27,6 +29,7 @@ export default function EditorialPortfolio() {
   const lenis = useLenis();
   useScrollScenes();
   usePipelineGuide();
+  useTransitionCommit(lenis);
 
   const navigate = (event: MouseEvent<HTMLAnchorElement>) => {
     if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -54,6 +57,7 @@ export default function EditorialPortfolio() {
     <span className="guide-dot" data-guide-dot="" aria-hidden="true"><span className="guide-dot__label" data-guide-label="">Ingest</span></span>
     <main id="main" tabIndex={-1}>
       <section className="hero" id="top" tabIndex={-1} aria-labelledby="hero-title">
+        <AsciiField />
         <div className="hero-name">
           <DegradedName />
         </div>

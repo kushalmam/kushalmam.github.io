@@ -14,19 +14,20 @@
 
 /* ─── Tokens ─────────────────────────────────────────────── */
 :root {
-  --paper: #efece4;
-  --paper-2: #e3dfd5;
-  --ink: #111312;
-  --muted: #5d615c;
-  --faint: #8b8e88;
-  --line: #d2cec3;
-  --signal: #2c7456;
-  --night: #121413;
-  --night-2: #1b1e1c;
-  --night-line: #2b2f2c;
-  --night-ink: #eeeae1;
-  --night-muted: #9aa09a;
-  --mint: #b4e9ce;
+  --paper: #f1f5fa;
+  --paper-2: #e5ebf3;
+  --ink: #142942;
+  --muted: #344e6d;
+  --faint: #617691;
+  --line: #c6d1df;
+  --signal: #28598e;
+  --ascii-ink: #416894;
+  --night: #111d2d;
+  --night-2: #1a2a3e;
+  --night-line: #2b4059;
+  --night-ink: #e8eef6;
+  --night-muted: #aabbd0;
+  --mint: #9bb9df;
   --accent: var(--signal);
   --pad: clamp(20px, 4.4vw, 84px);
   --col-gap: clamp(12px, 1.4vw, 24px);
@@ -60,7 +61,7 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 svg { display: block; }
 
 /* Tiny uppercase metadata — the counterweight to the display type. */
-.stages, .affiliation small, .project-category, .contact-cell__label {
+.affiliation small, .project-category, .contact-cell__label {
   font-family: var(--mono);
   font-size: var(--micro);
   line-height: 1.2;
@@ -85,8 +86,15 @@ svg { display: block; }
   mix-blend-mode: difference;
 }
 .wordmark { font-size: 25px; font-weight: 760; letter-spacing: -.07em; }
-.stages { display: flex; gap: clamp(22px, 3.2vw, 56px); }
-.stages a { opacity: .42; transition: opacity .35s var(--ease); }
+.stages {
+  display: flex; gap: clamp(22px, 3.2vw, 56px);
+  font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 560;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+}
+.stages a { opacity: .62; transition: opacity .35s var(--ease); }
 .stages a:hover, .stages a[data-active] { opacity: 1; }
 
 /* The surname's accent dot, travelling as the section marker. */
@@ -103,15 +111,16 @@ svg { display: block; }
   will-change: transform;
 }
 .guide-dot__label {
-  font-family: var(--mono); font-size: var(--micro); line-height: 1;
-  letter-spacing: .04em; text-transform: uppercase; white-space: nowrap;
+  font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+  font-size: 10px; font-weight: 600; line-height: 1;
+  letter-spacing: .01em; white-space: nowrap;
   opacity: clamp(0, calc((var(--pill, 0) - .82) * 6), 1);
 }
 /* Accent per stage: ingest (root default), route, transform (on night), output.
    Switched per stage and faded by the consumers, so scrolling never restyles the page. */
-html[data-stage="1"] { --accent: #3452c7; --paper-live: #eceee9; }
-html[data-stage="2"] { --accent: var(--project-accent, #b7a6ff); --paper-live: #eceee9; }
-html[data-stage="3"] { --accent: #d9502c; --paper-live: #f2ebe2; }
+html[data-stage="1"] { --accent: #28598e; --paper-live: var(--paper); }
+html[data-stage="2"] { --accent: var(--project-accent, #28598e); --paper-live: var(--paper); }
+html[data-stage="3"] { --accent: #28598e; --paper-live: var(--paper-2); }
 html[data-stage="2"] .guide-dot { color: var(--night); }
 html[data-guide] .guide-dot { visibility: visible; }
 html[data-guide] .name-origin-dot { visibility: hidden; }
@@ -130,6 +139,14 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
   display: flex; flex-direction: column; justify-content: center;
   container-type: inline-size;
 }
+.ascii-field {
+  position: absolute; z-index: 0; top: 14%; right: 0; width: min(52%, 900px); height: 82%;
+  opacity: .78; pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 24%, #000 100%), linear-gradient(0deg, transparent 0%, #000 20%, #000 84%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 24%, #000 100%), linear-gradient(0deg, transparent 0%, #000 20%, #000 84%, transparent 100%);
+  mask-composite: intersect;
+}
+.hero-name, .hero-role { z-index: 1; }
 /* "Mamillapalli" is ~5.8em in Redaction, so this runs it edge to edge. */
 .hero-name { position: relative; font-size: calc(100cqi / 5.86); }
 .name {
@@ -282,7 +299,7 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
   margin-top: 9vh;
 }
 .affiliation { display: flex; gap: 12px; padding-top: 14px; border-top: 1px solid var(--ink); font-size: 16px; font-weight: 560; letter-spacing: -.02em; }
-.affiliation small { display: block; margin-top: 7px; color: var(--muted); font-size: 10px; line-height: 1.35; }
+.affiliation small { display: block; margin-top: 7px; color: var(--muted); font-size: 11px; line-height: 1.35; }
 .org-mark { width: 22px; height: 24px; flex-shrink: 0; }
 .affiliation--nyu .org-mark { width: 17px; }
 .about-offscreen { grid-column: 6 / 11; margin-top: 28px; color: var(--muted); font-size: 15px; line-height: 1.5; }
@@ -363,7 +380,7 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
   display: flex; flex-direction: column;
   overflow: hidden;
 }
-.contact-mask { overflow: hidden; padding-bottom: .04em; }
+.contact-mask { overflow: hidden; padding: .14em 0 .04em; margin-top: -.14em; }
 .contact h2 {
   font-size: clamp(64px, 12.4vw, 236px);
   font-weight: var(--display);
@@ -397,7 +414,7 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
 }
 .contact-cell:hover, .contact-cell:focus-visible { background: var(--ink); color: var(--paper); }
 .contact-cell:hover::before, .contact-cell:focus-visible::before { width: calc(100% - 44px); }
-.contact-cell__label { display: flex; color: inherit; opacity: .6; }
+.contact-cell__label { display: flex; color: inherit; opacity: .75; }
 .contact-cell__value { font-size: clamp(26px, 3vw, 56px); font-weight: 640; font-stretch: 88%; letter-spacing: -.05em; line-height: 1; }
 .contact-cell--email { grid-column: 1 / 7; grid-row: span 2; }
 .contact-cell--email .contact-cell__value { font-size: clamp(24px, 3.1vw, 58px); overflow-wrap: anywhere; }
@@ -608,7 +625,7 @@ main { position: relative; overflow: clip; background: var(--paper-live, var(--p
 /* ─── Mobile: natural reading order ──────────────────────── */
 @media (max-width: 699px) {
   :root { --header-h: 60px; }
-  .stages { gap: 14px; letter-spacing: .03em; }
+  .stages { gap: 14px; font-size: 12px; letter-spacing: -.01em; }
   .wordmark { font-size: 22px; }
   .about { display: block; padding: 16vh var(--pad) 16vh; }
   .about-lead { font-size: clamp(48px, 15vw, 90px); }
