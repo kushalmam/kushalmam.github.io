@@ -2,10 +2,13 @@ import type { ProjectDiagramId } from "../portfolioProjects";
 import { clamp, ease, mix } from "../timeline";
 import { renderBayerDither } from "./dither";
 
+export const PROJECT_TARGET_W = 320;
+export const PROJECT_TARGET_H = 240;
+
 const SOURCE_W = 480;
 const SOURCE_H = 360;
-const TARGET_W = 320;
-const TARGET_H = 240;
+const TARGET_W = PROJECT_TARGET_W;
+const TARGET_H = PROJECT_TARGET_H;
 
 let sharedSource: HTMLCanvasElement | null = null;
 let sharedTarget: HTMLCanvasElement | null = null;
@@ -621,22 +624,20 @@ function drawCosmicRecompScene(
   }
 }
 
-export function renderProjectVisual(
+export function renderProjectSource(
   id: ProjectDiagramId,
   phase: number,
   clock: number,
-  lightMode: boolean,
-  reveal = 1,
 ): HTMLCanvasElement {
   const canvases = ensureCanvases();
   if (!canvases) {
     const fallback = document.createElement("canvas");
-    fallback.width = TARGET_W;
-    fallback.height = TARGET_H;
+    fallback.width = SOURCE_W;
+    fallback.height = SOURCE_H;
     return fallback;
   }
 
-  const { source, target, ctx } = canvases;
+  const { source, ctx } = canvases;
   ctx.clearRect(0, 0, SOURCE_W, SOURCE_H);
 
   if (id === "rekindle") {
@@ -649,7 +650,26 @@ export function renderProjectVisual(
     drawCosmicRecompScene(ctx, clock);
   }
 
-  renderBayerDither(source, target, {
+  return source;
+}
+
+export function renderProjectVisual(
+  id: ProjectDiagramId,
+  phase: number,
+  clock: number,
+  lightMode: boolean,
+  reveal = 1,
+): HTMLCanvasElement {
+  const source = renderProjectSource(id, phase, clock);
+  const canvases = ensureCanvases();
+  if (!canvases) {
+    const fallback = document.createElement("canvas");
+    fallback.width = TARGET_W;
+    fallback.height = TARGET_H;
+    return fallback;
+  }
+
+  renderBayerDither(source, canvases.target, {
     cellSize: 1,
     ditherAmount: 0.22,
     lightMode,
@@ -658,5 +678,5 @@ export function renderProjectVisual(
     reveal,
   });
 
-  return target;
+  return canvases.target;
 }

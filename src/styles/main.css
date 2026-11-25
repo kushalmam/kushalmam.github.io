@@ -85,7 +85,6 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  text-shadow: 0 1px 12px var(--bg);
 }
 
 .header-mark {
@@ -132,6 +131,7 @@ header nav {
   position: sticky;
   top: 0;
   overflow: hidden;
+  contain: layout style paint;
 }
 
 #field {
@@ -150,6 +150,7 @@ header nav {
   top: 22%;
   width: 94%;
   z-index: 3;
+  will-change: transform, opacity;
 }
 
 .opening h1 {
@@ -158,7 +159,6 @@ header nav {
   line-height: 0.83;
   letter-spacing: -0.065em;
   margin: 0;
-  text-shadow: 0 2px 24px var(--bg);
 }
 
 .opening h1 span {
@@ -174,7 +174,6 @@ header nav {
   line-height: 1.18;
   letter-spacing: -0.025em;
   margin: 0;
-  text-shadow: 0 1px 14px var(--bg);
 }
 
 .opening .scroll-link {
@@ -262,6 +261,7 @@ body[data-bg-paused="true"] .scroll-travel {
   opacity: 0;
   pointer-events: none;
   z-index: 3;
+  will-change: transform, opacity;
 }
 
 .about h2 {
@@ -350,6 +350,7 @@ body[data-bg-paused="true"] .scroll-travel {
   opacity: 0;
   pointer-events: none;
   z-index: 3;
+  will-change: transform, opacity;
 }
 
 .project-panel h2 {

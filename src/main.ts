@@ -1,6 +1,4 @@
-import "lenis/dist/lenis.css";
 import "./styles/main.css";
-import Lenis from "lenis";
 import { portfolioProjects } from "./portfolioProjects";
 import marksData from "./data/marks.json";
 import {
@@ -12,14 +10,24 @@ import {
   projectSlice,
 } from "./timeline";
 import {
+  CONTACT_GRID_H,
+  CONTACT_GRID_W,
+  CONTACT_TARGET_H,
+  CONTACT_TARGET_W,
   CONTACT_WORDS,
-  contactWordHasMotion,
+  renderContactSource,
   renderContactVisual,
 } from "./canvas/contactVisual";
 import { applyBayerMask, renderBayerDither } from "./canvas/dither";
 import { renderHeroSea } from "./canvas/field";
+import { GlStageRenderer, type Rect } from "./canvas/glStage";
 import { buildHobbyArt, resetHobbyCaches } from "./canvas/hobbies";
-import { renderProjectVisual } from "./canvas/projectVisuals";
+import {
+  PROJECT_TARGET_H,
+  PROJECT_TARGET_W,
+  renderProjectSource,
+  renderProjectVisual,
+} from "./canvas/projectVisuals";
 
 type MarkKey = keyof typeof marksData;
 interface MarkDef {
@@ -27,13 +35,6 @@ interface MarkDef {
   paths: string[];
 }
 const marks: Record<MarkKey, MarkDef> = marksData;
-
-interface Rect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
 
 interface Ripple {
   x: number;
@@ -65,14 +66,14 @@ app.innerHTML = `
     <div class="stage">
       <canvas id="field" aria-hidden="true"></canvas>
       <section class="opening" aria-labelledby="name">
-        <h1 id="name">Kushal<span>Mamillapalli</span></h1>
+        <h1 id="name">Kushal <span>Mamillapalli</span></h1>
         <p class="intro">I build recommendation systems and the infrastructure behind them.</p>
         <a class="scroll-link" href="#about" aria-label="Scroll to explore"><span class="scroll-travel" aria-hidden="true"></span></a>
       </section>
       <section class="about" id="about" aria-labelledby="about-title">
-        <h2 id="about-title">Curious about<br>how things connect.</h2>
+        <h2 id="about-title">Curious about <br>how things connect.</h2>
         <p class="bio">I’m a data engineer at <span class="inline-org"><svg class="mark" data-mark="spotify" aria-hidden="true"></svg>Spotify</span>, working on personalization pipelines.</p>
-        <img class="reduced-photo" src="${base}images/portrait-960.webp" alt="Kushal in New York">
+        <img class="reduced-photo" loading="lazy" decoding="async" src="${base}images/portrait-900.avif" alt="Kushal in New York">
         <p class="education"><svg class="mark" data-mark="nyu" aria-hidden="true"></svg><span>I graduated from NYU Tandon with a degree in Computer Science in 2026.</span></p>
         <div class="offscreen">
           <div class="hobbies">
@@ -116,7 +117,9 @@ app.innerHTML = `
 `;
 
 const canvas = document.querySelector<HTMLCanvasElement>("#field")!;
-const ctx = canvas.getContext("2d")!;
+let glStage = GlStageRenderer.create(canvas);
+const ctx2d = glStage ? null : canvas.getContext("2d")!;
+
 const stage = document.querySelector<HTMLElement>(".stage")!;
 const journey = document.querySelector<HTMLElement>(".journey")!;
 const opening = document.querySelector<HTMLElement>(".opening")!;
@@ -150,7 +153,17 @@ let portraitPhoto: HTMLCanvasElement | null = null;
 
 let contactWordClock = 0;
 let contactInteraction = false;
-let smoothScroll: Lenis | null = null;
+
+interface AnchorScrollAnim {
+  from: number;
+  to: number;
+  start: number;
+  durationMs: number;
+}
+let anchorAnim: AnchorScrollAnim | null = null;
+let journeyTop = 0;
+let scrollRange = 1;
+let lastScrollActivity = 0;
 
 const hover = { x: 0.5, y: 0.5, inside: false };
 let ripples: Ripple[] = [];
@@ -159,6 +172,8 @@ let veilMask: HTMLCanvasElement | null = null;
 let veilMaskCtx: CanvasRenderingContext2D | null = null;
 let veilImageData: ImageData | null = null;
 let veilAlpha: Float32Array | null = null;
+let veilBytes: Uint8Array | null = null;
+let veilDirty = true;
 let veilCols = 0;
 let veilRows = 0;
 let veilScale: HTMLCanvasElement | null = null;
@@ -170,13 +185,9 @@ let frameDelta = 1 / 60;
 let lastCubeFrame = -1;
 let scrollDirty = true;
 let fieldDirty = true;
-let idleTimer = 0;
-let windowFocused = true;
-let lastScrollActivity = 0;
-let lastPointerActivity = 0;
 
 function isPortraitSettledStatic(): boolean {
-  return story >= 2.8 && story <= 3.55 && ripples.length === 0 && Boolean(portraitPhoto);
+  return story >= 2.8 && story <= 3.55 && ripples.length === 0 && Boolean(portrait);
 }
 
 function stopLoop(): void {
@@ -184,38 +195,6 @@ function stopLoop(): void {
     cancelAnimationFrame(raf);
     raf = 0;
   }
-  if (idleTimer) {
-    clearTimeout(idleTimer);
-    idleTimer = 0;
-  }
-}
-
-function isScrollActive(now: number): boolean {
-  return (
-    scrollDirty ||
-    Boolean(smoothScroll?.isSmooth) ||
-    now - lastScrollActivity < 450
-  );
-}
-
-function nextFrameDelayMs(now: number): number {
-  if (isScrollActive(now)) return 0;
-  if (ripples.length > 0 && story < 4.55) return 16;
-  if (story < 1.85) return now - lastPointerActivity < 350 ? 28 : 48;
-  if (story < 4.2) {
-    if (isPortraitSettledStatic()) return 55;
-    return now - lastPointerActivity < 350 ? 32 : 48;
-  }
-  if (story < timeline.contactStart) return 40;
-
-  const part = contactWordClock % CONTACT_PERIOD;
-  const wordIndex = Math.floor(contactWordClock / CONTACT_PERIOD) % CONTACT_WORDS.length;
-  const dissolving = part > CONTACT_HOLD || story < timeline.contactStart + 0.9;
-  if (dissolving) return 40;
-
-  const baseDelay = contactWordHasMotion(wordIndex) ? 66 : 125;
-  if (contactInteraction) return baseDelay;
-  return Math.max(40, Math.min(baseDelay, Math.ceil((CONTACT_HOLD - part) * 1000)));
 }
 
 function isLightMode(): boolean {
@@ -284,19 +263,47 @@ document.querySelectorAll<SVGSVGElement>("[data-mark]").forEach((svg) => {
 });
 
 const photo = new Image();
+let triedPortraitFallback = false;
 photo.onload = () => {
-  portrait = photo;
-  cachePortrait();
-  fieldDirty = true;
-  draw();
-  fieldDirty = false;
+  const commitPortrait = () => {
+    portrait = photo;
+    cachePortrait();
+    fieldDirty = true;
+    draw();
+    fieldDirty = false;
+  };
+  if (typeof photo.decode === "function") {
+    photo.decode().then(commitPortrait, commitPortrait);
+  } else {
+    commitPortrait();
+  }
 };
-photo.src = `${base}images/portrait-960.webp`;
+photo.onerror = () => {
+  if (triedPortraitFallback) return;
+  triedPortraitFallback = true;
+  photo.src = `${base}images/portrait-960.webp`;
+};
+photo.src = `${base}images/portrait-900.avif`;
 
 function cachePortrait(): void {
   if (!portrait) return;
   const cols = 100;
   const rows = Math.round((100 * portrait.height) / portrait.width);
+
+  veilCols = cols;
+  veilRows = rows;
+  veilAlpha = new Float32Array(cols * rows);
+  veilBytes = new Uint8Array(cols * rows);
+  veilDirty = true;
+  veilBrush.x = cols / 2;
+  veilBrush.y = rows / 2;
+  veilPresence = 0;
+
+  if (glStage) {
+    glStage.setPortrait(portrait);
+    return;
+  }
+
   const size = portrait.naturalWidth || portrait.width;
   const ph = portrait.naturalHeight || portrait.height;
 
@@ -335,13 +342,6 @@ function cachePortrait(): void {
   portraitDitherAnimated.width = ditherW;
   portraitDitherAnimated.height = ditherH;
 
-  veilCols = cols;
-  veilRows = rows;
-  veilAlpha = new Float32Array(cols * rows);
-  veilBrush.x = cols / 2;
-  veilBrush.y = rows / 2;
-  veilPresence = 0;
-
   veilMask = document.createElement("canvas");
   veilMask.width = cols;
   veilMask.height = rows;
@@ -367,22 +367,12 @@ function portraitRect(): Rect {
   };
 }
 
-function updateVeil(r: Rect, photoMix: number): number {
+function stepVeil(r: Rect): number {
   const cols = veilCols;
   const rows = veilRows;
   const cells = veilAlpha;
   const dt = Math.min(0.05, Math.max(0, frameDelta));
-  if (
-    !cols ||
-    !rows ||
-    !cells ||
-    !veilMaskCtx ||
-    !veilImageData ||
-    !veilMask ||
-    !veilScale
-  ) {
-    return 0;
-  }
+  if (!cols || !rows || !cells) return 0;
   const cell = r.w / cols;
 
   let tx: number;
@@ -462,37 +452,69 @@ function updateVeil(r: Rect, photoMix: number): number {
     }
   }
 
-  const peak = applyBayerMask(cells, cols, rows, photoMix, veilImageData.data);
-
-  veilMaskCtx.putImageData(veilImageData, 0, 0);
-  const sc = veilScale.getContext("2d")!;
-  sc.setTransform(1, 0, 0, 1, 0, 0);
-  sc.imageSmoothingEnabled = false;
-  sc.clearRect(0, 0, veilScale.width, veilScale.height);
-  sc.drawImage(veilMask, 0, 0, cols, rows, 0, 0, veilScale.width, veilScale.height);
+  let peak = 0;
+  const bytes = veilBytes;
+  if (bytes) {
+    for (let i = 0; i < cells.length; i++) {
+      const v = cells[i];
+      if (v > peak) peak = v;
+      bytes[i] = Math.min(255, (v * 255 + 0.5) | 0);
+    }
+    veilDirty = true;
+  }
   return peak;
 }
 
 function drawPortrait(): void {
+  if (!portrait || story < 1.15 || story >= 4.25) return;
+
+  const enterReveal = ease((story - 1.15) / 0.75);
+  const exitReveal = 1 - ease((story - 3.75) / 0.45);
+  const portraitReveal = clamp(enterReveal * exitReveal);
+  if (portraitReveal <= 0.005) return;
+
+  const r = portraitRect();
+  const toPhoto = ease((story - 2.25) / 0.55);
+  const toDither = ease((story - 3.55) / 0.55);
+  const photoMix = toPhoto * (1 - toDither) * portraitReveal;
+
+  if (glStage) {
+    if (photoMix < 0.999 || ripples.length > 0) {
+      stepVeil(r);
+    }
+    const ditherGridW = 120;
+    const ditherGridH = Math.max(1, Math.round((ditherGridW * portrait.height) / portrait.width));
+    glStage.drawPortrait({
+      rect: r,
+      photoMix,
+      portraitReveal,
+      lightMode: isLightMode(),
+      ditherGridW,
+      ditherGridH,
+      veilCols,
+      veilRows,
+      veilBytes,
+      veilDirty,
+    });
+    veilDirty = false;
+    return;
+  }
+
   if (
+    !ctx2d ||
     !portraitDither ||
     !portraitDitherAnimated ||
     !portraitPhoto ||
     !veilMaskCtx ||
     !veilScratch ||
     !veilScale ||
-    story < 1.15 ||
-    story >= 4.55
+    !veilImageData ||
+    !veilMask ||
+    !veilAlpha
   ) {
     return;
   }
 
-  const enterReveal = ease((story - 1.15) / 0.75);
-  const exitReveal = 1 - ease((story - 4.0) / 0.55);
-  const portraitReveal = clamp(enterReveal * exitReveal);
-  if (portraitReveal <= 0.005) return;
-
-  const r = portraitRect();
   let ditherSurface = portraitDither;
   if (portraitReveal < 0.995) {
     renderBayerDither(portraitPhoto, portraitDitherAnimated, {
@@ -506,28 +528,32 @@ function drawPortrait(): void {
     ditherSurface = portraitDitherAnimated;
   }
 
-  const toPhoto = ease((story - 2.25) / 0.55);
-  const toDither = ease((story - 3.55) / 0.55);
-  const photoMix = toPhoto * (1 - toDither) * portraitReveal;
-  const prevSmooth = ctx.imageSmoothingEnabled;
-  const prevQuality = ctx.imageSmoothingQuality;
+  const prevSmooth = ctx2d.imageSmoothingEnabled;
+  const prevQuality = ctx2d.imageSmoothingQuality;
 
   if (photoMix >= 0.999 && portraitReveal >= 0.999 && ripples.length === 0) {
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(portraitPhoto, r.x, r.y, r.w, r.h);
-    ctx.imageSmoothingEnabled = prevSmooth;
-    ctx.imageSmoothingQuality = prevQuality;
+    ctx2d.imageSmoothingEnabled = true;
+    ctx2d.imageSmoothingQuality = "high";
+    ctx2d.drawImage(portraitPhoto, r.x, r.y, r.w, r.h);
+    ctx2d.imageSmoothingEnabled = prevSmooth;
+    ctx2d.imageSmoothingQuality = prevQuality;
     return;
   }
 
-  const peak = updateVeil(r, photoMix);
+  stepVeil(r);
+  const peak = applyBayerMask(veilAlpha, veilCols, veilRows, photoMix, veilImageData.data);
+  veilMaskCtx.putImageData(veilImageData, 0, 0);
+  const scaleCtx = veilScale.getContext("2d")!;
+  scaleCtx.setTransform(1, 0, 0, 1, 0, 0);
+  scaleCtx.imageSmoothingEnabled = false;
+  scaleCtx.clearRect(0, 0, veilScale.width, veilScale.height);
+  scaleCtx.drawImage(veilMask, 0, 0, veilCols, veilRows, 0, 0, veilScale.width, veilScale.height);
 
   if (photoMix < 0.001 && peak < 0.02) {
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(ditherSurface, r.x, r.y, r.w, r.h);
-    ctx.imageSmoothingEnabled = prevSmooth;
-    ctx.imageSmoothingQuality = prevQuality;
+    ctx2d.imageSmoothingEnabled = false;
+    ctx2d.drawImage(ditherSurface, r.x, r.y, r.w, r.h);
+    ctx2d.imageSmoothingEnabled = prevSmooth;
+    ctx2d.imageSmoothingQuality = prevQuality;
     return;
   }
 
@@ -539,8 +565,8 @@ function drawPortrait(): void {
   sc.drawImage(ditherSurface, 0, 0, veilScratch.width, veilScratch.height);
   sc.globalCompositeOperation = "destination-out";
   sc.drawImage(veilScale, 0, 0);
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(veilScratch, r.x, r.y, r.w, r.h);
+  ctx2d.imageSmoothingEnabled = false;
+  ctx2d.drawImage(veilScratch, r.x, r.y, r.w, r.h);
 
   sc.imageSmoothingEnabled = true;
   sc.imageSmoothingQuality = "high";
@@ -550,13 +576,13 @@ function drawPortrait(): void {
   sc.imageSmoothingEnabled = false;
   sc.globalCompositeOperation = "destination-in";
   sc.drawImage(veilScale, 0, 0);
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.globalAlpha = portraitReveal;
-  ctx.drawImage(veilScratch, r.x, r.y, r.w, r.h);
-  ctx.globalAlpha = 1;
-  ctx.imageSmoothingEnabled = prevSmooth;
-  ctx.imageSmoothingQuality = prevQuality;
+  ctx2d.imageSmoothingEnabled = true;
+  ctx2d.imageSmoothingQuality = "high";
+  ctx2d.globalAlpha = portraitReveal;
+  ctx2d.drawImage(veilScratch, r.x, r.y, r.w, r.h);
+  ctx2d.globalAlpha = 1;
+  ctx2d.imageSmoothingEnabled = prevSmooth;
+  ctx2d.imageSmoothingQuality = prevQuality;
 }
 
 function diagramRect(): Rect {
@@ -587,14 +613,14 @@ function fitAspectRect(bounds: Rect, aspect: number): Rect {
 }
 
 function drawProjects(): void {
-  if (story < 4.2 || story >= timeline.contactStart) return;
+  if (story < 4.25 || story >= timeline.contactStart) return;
   const { index, local } = projectSlice(
     story,
     timeline,
     portfolioProjects.length,
   );
   const project = portfolioProjects[index];
-  const enter = index === 0 ? ease((story - 4.2) / 0.55) : ease(local / 0.22);
+  const enter = index === 0 ? ease((story - 4.25) / 0.55) : ease(local / 0.22);
   const leave =
     index === portfolioProjects.length - 1
       ? 1 - ease((story - (timeline.contactStart - 0.5)) / 0.5)
@@ -602,6 +628,23 @@ function drawProjects(): void {
   const reveal = clamp(enter * leave);
   if (reveal <= 0.005) return;
 
+  const targetRect = fitAspectRect(diagramRect(), PROJECT_TARGET_W / PROJECT_TARGET_H);
+
+  if (glStage) {
+    const source = renderProjectSource(project.diagramId, local, time);
+    glStage.drawDitheredSource(source, targetRect, {
+      gridW: PROJECT_TARGET_W,
+      gridH: PROJECT_TARGET_H,
+      lightMode: isLightMode(),
+      preserveColor: true,
+      edgeStrength: project.diagramId === "cosmicrecomp" ? 0.56 : 0.48,
+      ditherAmount: 0.22,
+      reveal,
+    });
+    return;
+  }
+
+  if (!ctx2d) return;
   const visual = renderProjectVisual(
     project.diagramId,
     local,
@@ -609,17 +652,16 @@ function drawProjects(): void {
     isLightMode(),
     reveal,
   );
-  const targetRect = fitAspectRect(diagramRect(), visual.width / visual.height);
-  const prevSmooth = ctx.imageSmoothingEnabled;
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(
+  const prevSmooth = ctx2d.imageSmoothingEnabled;
+  ctx2d.imageSmoothingEnabled = false;
+  ctx2d.drawImage(
     visual,
     targetRect.x,
     targetRect.y,
     targetRect.w,
     targetRect.h,
   );
-  ctx.imageSmoothingEnabled = prevSmooth;
+  ctx2d.imageSmoothingEnabled = prevSmooth;
 }
 
 function drawContact(): void {
@@ -645,7 +687,6 @@ function drawContact(): void {
   const reveal = clamp(entryReveal * wordReveal);
   if (reveal <= 0.005) return;
 
-  const visual = renderContactVisual(activeIdx, time, isLightMode(), reveal);
   const vh = Math.min(h, innerHeight);
   const bounds: Rect = {
     x: w * 0.05,
@@ -653,12 +694,31 @@ function drawContact(): void {
     w: w * 0.9,
     h: vh * 0.54,
   };
-  const targetRect = fitAspectRect(bounds, visual.width / visual.height);
+  const targetRect = fitAspectRect(bounds, CONTACT_TARGET_W / CONTACT_TARGET_H);
   const drawX = w < 700 ? targetRect.x : Math.min(targetRect.x, w * 0.055);
-  const prevSmooth = ctx.imageSmoothingEnabled;
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(visual, drawX, targetRect.y, targetRect.w, targetRect.h);
-  ctx.imageSmoothingEnabled = prevSmooth;
+  const drawRect: Rect = { x: drawX, y: targetRect.y, w: targetRect.w, h: targetRect.h };
+
+  if (glStage) {
+    const source = renderContactSource(activeIdx, time);
+    glStage.drawDitheredSource(source, drawRect, {
+      gridW: CONTACT_GRID_W,
+      gridH: CONTACT_GRID_H,
+      lightMode: isLightMode(),
+      preserveColor: true,
+      edgeStrength: 0.36,
+      gamma: 0.9,
+      ditherAmount: 0.2,
+      reveal,
+    });
+    return;
+  }
+
+  if (!ctx2d) return;
+  const visual = renderContactVisual(activeIdx, time, isLightMode(), reveal);
+  const prevSmooth = ctx2d.imageSmoothingEnabled;
+  ctx2d.imageSmoothingEnabled = false;
+  ctx2d.drawImage(visual, drawRect.x, drawRect.y, drawRect.w, drawRect.h);
+  ctx2d.imageSmoothingEnabled = prevSmooth;
 }
 
 Promise.all([
@@ -673,10 +733,32 @@ Promise.all([
 });
 
 function draw(): void {
-  ctx.clearRect(0, 0, w, h);
+  if (glStage) {
+    glStage.beginFrame(isLightMode());
+    if (reduced.matches) return;
+    if (story < 1.85) {
+      glStage.drawHeroSea({
+        story,
+        time,
+        frameDelta,
+        paused,
+        reducedMotion: reduced.matches,
+        hover,
+        ripples,
+        lightMode: isLightMode(),
+      });
+    }
+    drawPortrait();
+    drawProjects();
+    drawContact();
+    return;
+  }
+
+  if (!ctx2d) return;
+  ctx2d.clearRect(0, 0, w, h);
   if (reduced.matches) return;
   if (story < 1.85) {
-    renderHeroSea(ctx, w, h, {
+    renderHeroSea(ctx2d, w, h, {
       story,
       time,
       frameDelta,
@@ -692,24 +774,40 @@ function draw(): void {
   drawContact();
 }
 
+interface PanelState {
+  alpha: number;
+  offset: number;
+  hidden: boolean;
+  inert: boolean;
+}
+const panelStates = new WeakMap<HTMLElement, PanelState>();
+
 function setPanel(panel: HTMLElement, alpha: number, offset = 0): void {
-  panel.style.opacity = String(alpha);
-  panel.style.transform = `translateY(${offset}px)`;
-  panel.style.visibility = alpha <= 0.001 ? "hidden" : "";
-  panel.inert = alpha < 0.5;
-  panel.style.pointerEvents = alpha > 0.5 ? "auto" : "none";
+  const a = Math.round(alpha * 10000) / 10000;
+  const o = Math.round(offset * 100) / 100;
+  const hidden = a <= 0.001;
+  const inert = a < 0.5;
+  const prev = panelStates.get(panel);
+  if (prev && prev.hidden && hidden) return;
+  if (prev && prev.alpha === a && prev.offset === o && prev.hidden === hidden && prev.inert === inert) {
+    return;
+  }
+  panelStates.set(panel, { alpha: a, offset: o, hidden, inert });
+  if (!prev || prev.alpha !== a) panel.style.opacity = String(a);
+  if (!prev || prev.offset !== o) panel.style.transform = `translateY(${o}px)`;
+  if (!prev || prev.hidden !== hidden) panel.style.visibility = hidden ? "hidden" : "";
+  if (!prev || prev.inert !== inert) {
+    panel.inert = inert;
+    panel.style.pointerEvents = inert ? "none" : "auto";
+  }
 }
 
 function update(): void {
-  story =
-    clamp(
-      -journey.getBoundingClientRect().top /
-        Math.max(1, journey.offsetHeight - stage.offsetHeight),
-    ) * timeline.end;
+  story = clamp((window.scrollY - journeyTop) / scrollRange) * timeline.end;
   if (!reduced.matches) {
     const exit = ease((story - 0.2) / 0.85);
     const reveal = ease((story - 1.5) / 0.65);
-    const leave = ease((story - 3.95) / 0.65);
+    const leave = ease((story - 3.75) / 0.45);
     setPanel(opening, 1 - exit, -exit * 45);
     setPanel(about, reveal * (1 - leave), leave * -35);
     panels.forEach((panel, i) => {
@@ -750,10 +848,17 @@ function renderReducedDiagrams(): void {
 function resize(): void {
   w = innerWidth;
   h = stage.clientHeight;
-  const d = Math.min(devicePixelRatio || 1, 2);
-  canvas.width = w * d;
-  canvas.height = h * d;
-  ctx.setTransform(d, 0, 0, d, 0, 0);
+  journeyTop = journey.getBoundingClientRect().top + window.scrollY;
+  scrollRange = Math.max(1, journey.offsetHeight - stage.offsetHeight);
+  const maxDpr = glStage ? 1.5 : 2;
+  const d = Math.min(devicePixelRatio || 1, maxDpr);
+  canvas.width = Math.round(w * d);
+  canvas.height = Math.round(h * d);
+  if (glStage) {
+    glStage.resize(w, h);
+  } else if (ctx2d) {
+    ctx2d.setTransform(d, 0, 0, d, 0, 0);
+  }
   fieldDirty = true;
   update();
   if (reduced.matches) {
@@ -765,16 +870,12 @@ function resize(): void {
 const cubeArt = document.querySelector<HTMLCanvasElement>('[data-hobby="cube"]');
 
 function wakeLoop(): void {
-  if (document.hidden || !windowFocused || !visible || paused || reduced.matches) {
+  if (document.hidden || !visible || paused || reduced.matches) {
     if (fieldDirty && visible && !document.hidden) {
       draw();
       fieldDirty = false;
     }
     return;
-  }
-  if (idleTimer) {
-    clearTimeout(idleTimer);
-    idleTimer = 0;
   }
   if (raf === 0) {
     last = performance.now();
@@ -784,66 +885,67 @@ function wakeLoop(): void {
 
 function tick(now: number): void {
   raf = 0;
-  if (document.hidden || !windowFocused) return;
+  if (document.hidden || !visible || paused || reduced.matches) return;
   frameDelta = Math.max(0, Math.min((now - last) / 1000, 0.2));
   last = now;
-  if (isScrollActive(now)) {
-    smoothScroll?.raf(now);
+
+  if (anchorAnim) {
+    const p = clamp((now - anchorAnim.start) / anchorAnim.durationMs);
+    const eased = p * p * p * (p * (p * 6 - 15) + 10);
+    window.scrollTo({
+      top: anchorAnim.from + (anchorAnim.to - anchorAnim.from) * eased,
+      behavior: "instant",
+    });
+    scrollDirty = true;
+    if (p >= 1) anchorAnim = null;
   }
+
   if (scrollDirty) {
     scrollDirty = false;
     update();
   }
-  if (visible && !paused && !reduced.matches) {
-    time += frameDelta;
-    if (ripples.length) {
-      ripples = ripples.filter((rip) => (rip.age += frameDelta) < 1.3);
-    }
-    if (
-      story > timeline.contactStart + 1.15 &&
-      (!contactInteraction || contactWordClock % CONTACT_PERIOD > CONTACT_HOLD)
-    ) {
-      contactWordClock += frameDelta;
-    }
-    if (!isPortraitSettledStatic()) {
-      fieldDirty = true;
-    }
-    if (
-      story > 1.45 &&
-      story < 4.2 &&
-      cubeArt &&
-      (lastCubeFrame < 0 || time - lastCubeFrame >= 0.05)
-    ) {
-      lastCubeFrame = time;
-      buildHobbyArt(cubeArt, time, isLightMode());
-    }
+
+  time += frameDelta;
+  if (ripples.length) {
+    ripples = ripples.filter((rip) => (rip.age += frameDelta) < 1.3);
   }
-  if (fieldDirty && visible) {
+  if (
+    story > timeline.contactStart + 1.15 &&
+    (!contactInteraction || contactWordClock % CONTACT_PERIOD > CONTACT_HOLD)
+  ) {
+    contactWordClock += frameDelta;
+  }
+
+  const staticPortrait = story >= 1.85 && isPortraitSettledStatic();
+  if (!staticPortrait) {
+    fieldDirty = true;
+  }
+
+  const scrolling = now - lastScrollActivity < 120;
+  if (
+    !scrolling &&
+    story > 1.45 &&
+    story < 4.2 &&
+    cubeArt &&
+    (lastCubeFrame < 0 || time - lastCubeFrame >= 0.05)
+  ) {
+    lastCubeFrame = time;
+    buildHobbyArt(cubeArt, time, isLightMode());
+  }
+
+  if (fieldDirty) {
     draw();
     fieldDirty = false;
   }
-  if (visible && !paused && !reduced.matches) {
-    const delay = nextFrameDelayMs(now);
-    if (delay <= 0) {
-      raf = requestAnimationFrame(tick);
-    } else {
-      idleTimer = window.setTimeout(() => {
-        idleTimer = 0;
-        if (!document.hidden && windowFocused && visible && !paused && !reduced.matches) {
-          raf = requestAnimationFrame(tick);
-        }
-      }, delay);
-    }
-  }
+
+  raf = requestAnimationFrame(tick);
 }
 
 function sync(): void {
   document.body.dataset.motionPaused = String(paused);
-  if (windowFocused) {
-    delete document.body.dataset.bgPaused;
-  }
+  delete document.body.dataset.bgPaused;
   stopLoop();
-  if (!document.hidden && windowFocused && visible && !paused && !reduced.matches) {
+  if (!document.hidden && visible && !paused && !reduced.matches) {
     last = performance.now();
     raf = requestAnimationFrame(tick);
   } else if (fieldDirty && visible && !document.hidden) {
@@ -851,6 +953,19 @@ function sync(): void {
     fieldDirty = false;
   }
 }
+
+canvas.addEventListener("webglcontextlost", (event) => {
+  event.preventDefault();
+  stopLoop();
+});
+canvas.addEventListener("webglcontextrestored", () => {
+  glStage = GlStageRenderer.create(canvas);
+  if (glStage && portrait) {
+    glStage.setPortrait(portrait);
+  }
+  resize();
+  sync();
+});
 
 contact.addEventListener("mouseenter", () => {
   contactInteraction = true;
@@ -866,16 +981,6 @@ contact.addEventListener("focusout", (event) => {
     contact.contains(event.relatedTarget as Node | null) || contact.matches(":hover");
 });
 
-window.addEventListener("blur", () => {
-  windowFocused = false;
-  document.body.dataset.bgPaused = "true";
-  stopLoop();
-});
-window.addEventListener("focus", () => {
-  windowFocused = true;
-  delete document.body.dataset.bgPaused;
-  sync();
-});
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     stopLoop();
@@ -902,28 +1007,20 @@ new IntersectionObserver(([entry]) => {
 const markScrollActivity = () => {
   lastScrollActivity = performance.now();
   scrollDirty = true;
-  windowFocused = true;
-  delete document.body.dataset.bgPaused;
+  if (glStage) {
+    // Immediate sync update during native scroll so sticky stage matches scrollY in the same frame.
+    update();
+  }
   wakeLoop();
 };
 
+const cancelAnchorScroll = () => {
+  anchorAnim = null;
+};
+
 window.addEventListener("scroll", markScrollActivity, { passive: true });
-window.addEventListener("wheel", markScrollActivity, { passive: true });
-window.addEventListener("touchstart", markScrollActivity, { passive: true });
-window.addEventListener("touchmove", markScrollActivity, { passive: true });
-window.addEventListener("keydown", (event) => {
-  if (
-    event.key === "ArrowDown" ||
-    event.key === "ArrowUp" ||
-    event.key === "PageDown" ||
-    event.key === "PageUp" ||
-    event.key === "Home" ||
-    event.key === "End" ||
-    event.key === " "
-  ) {
-    markScrollActivity();
-  }
-});
+window.addEventListener("wheel", cancelAnchorScroll, { passive: true });
+window.addEventListener("touchstart", cancelAnchorScroll, { passive: true });
 window.addEventListener("resize", resize);
 window.addEventListener(
   "pointermove",
@@ -932,8 +1029,7 @@ window.addEventListener(
     hover.x = event.clientX / Math.max(1, w);
     hover.y = event.clientY / Math.max(1, h);
     hover.inside = true;
-    if (story < 4.55 && !isPortraitSettledStatic()) {
-      lastPointerActivity = performance.now();
+    if (story < 4.25 && !(story >= 1.85 && isPortraitSettledStatic())) {
       fieldDirty = true;
       wakeLoop();
     }
@@ -943,8 +1039,6 @@ window.addEventListener(
 window.addEventListener(
   "pointerdown",
   (event) => {
-    windowFocused = true;
-    delete document.body.dataset.bgPaused;
     if (paused || reduced.matches || story >= 4.1) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     if ((event.target as Element | null)?.closest("a, button")) return;
@@ -954,7 +1048,6 @@ window.addEventListener(
       y: event.clientY / Math.max(1, h),
       age: 0,
     });
-    lastPointerActivity = performance.now();
     fieldDirty = true;
     wakeLoop();
   },
@@ -962,7 +1055,7 @@ window.addEventListener(
 );
 document.documentElement.addEventListener("pointerleave", () => {
   hover.inside = false;
-  if (story < 4.55 && !isPortraitSettledStatic()) {
+  if (story < 4.25 && !(story >= 1.85 && isPortraitSettledStatic())) {
     fieldDirty = true;
     wakeLoop();
   }
@@ -971,7 +1064,7 @@ window.addEventListener(
   "pointercancel",
   () => {
     hover.inside = false;
-    if (story < 4.55 && !isPortraitSettledStatic()) {
+    if (story < 4.25 && !(story >= 1.85 && isPortraitSettledStatic())) {
       fieldDirty = true;
       wakeLoop();
     }
@@ -979,48 +1072,22 @@ window.addEventListener(
   { passive: true },
 );
 
-function setupSmoothScroll(): void {
-  smoothScroll?.destroy();
-  smoothScroll = null;
-  if (reduced.matches) return;
-  smoothScroll = new Lenis({
-    autoRaf: false,
-    lerp: 1 - Math.pow(1 - 0.075, TRANSITION_SPEED),
-    smoothWheel: true,
-    syncTouch: false,
-    wheelMultiplier: 0.92,
-    anchors: false,
-    virtualScroll: (event) => {
-      event.deltaY *= story < 3.9 ? 0.7 : 0.95;
-      return true;
-    },
-  });
-  smoothScroll.on("scroll", markScrollActivity);
-}
-
 function scrollStory(target: number, duration: number): void {
-  lastScrollActivity = performance.now();
   scrollDirty = true;
-  windowFocused = true;
-  delete document.body.dataset.bgPaused;
-  if (smoothScroll) {
-    smoothScroll.scrollTo(target, {
-      duration: duration / TRANSITION_SPEED,
-      lerp: 0,
-      easing: (p) => p * p * p * (p * (p * 6 - 15) + 10),
-    });
+  if (reduced.matches) {
+    anchorAnim = null;
+    window.scrollTo({ top: target, behavior: "instant" });
     wakeLoop();
     return;
   }
-  window.scrollTo({
-    top: target,
-    behavior: reduced.matches ? "instant" : "smooth",
-  });
+  anchorAnim = {
+    from: window.scrollY,
+    to: Math.max(0, Math.min(scrollRange, target)),
+    start: performance.now(),
+    durationMs: Math.max(200, (duration / TRANSITION_SPEED) * 1000),
+  };
   wakeLoop();
 }
-
-reduced.addEventListener("change", setupSmoothScroll);
-window.addEventListener("pagehide", () => smoothScroll?.destroy());
 
 document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => {
   a.addEventListener("click", (event) => {
@@ -1040,8 +1107,7 @@ document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => {
     event.preventDefault();
     const position = reduced.matches
       ? target.getBoundingClientRect().top + scrollY
-      : journey.offsetTop +
-        ((journey.offsetHeight - stage.offsetHeight) * beat) / timeline.end;
+      : journeyTop + (scrollRange * beat) / timeline.end;
     const duration = a.classList.contains("scroll-link")
       ? 5.2
       : hash === "#top"
@@ -1053,5 +1119,4 @@ document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => {
 
 setTheme(isLightMode() ? "light" : "dark", false);
 resize();
-setupSmoothScroll();
 sync();

@@ -72,10 +72,15 @@ const WORD_STYLES: readonly WordStyle[] = [
   },
 ];
 
+export const CONTACT_TARGET_W = 480;
+export const CONTACT_TARGET_H = 240;
+export const CONTACT_GRID_W = 240;
+export const CONTACT_GRID_H = 120;
+
 const SOURCE_W = 640;
 const SOURCE_H = 320;
-const TARGET_W = 480;
-const TARGET_H = 240;
+const TARGET_W = CONTACT_TARGET_W;
+const TARGET_H = CONTACT_TARGET_H;
 
 let sourceCanvas: HTMLCanvasElement | null = null;
 let targetCanvas: HTMLCanvasElement | null = null;
@@ -136,21 +141,19 @@ function drawFittedLine(
   return Math.min(maxWidth, ctx.measureText(text).width);
 }
 
-export function renderContactVisual(
+export function renderContactSource(
   wordIndex: number,
   clock: number,
-  lightMode: boolean,
-  reveal = 1,
 ): HTMLCanvasElement {
   const canvases = ensureCanvases();
   if (!canvases) {
     const fallback = document.createElement("canvas");
-    fallback.width = TARGET_W;
-    fallback.height = TARGET_H;
+    fallback.width = SOURCE_W;
+    fallback.height = SOURCE_H;
     return fallback;
   }
 
-  const { source, target, ctx } = canvases;
+  const { source, ctx } = canvases;
   ctx.clearRect(0, 0, SOURCE_W, SOURCE_H);
 
   const idx =
@@ -243,7 +246,25 @@ export function renderContactVisual(
     ctx.stroke();
   }
 
-  renderBayerDither(source, target, {
+  return source;
+}
+
+export function renderContactVisual(
+  wordIndex: number,
+  clock: number,
+  lightMode: boolean,
+  reveal = 1,
+): HTMLCanvasElement {
+  const source = renderContactSource(wordIndex, clock);
+  const canvases = ensureCanvases();
+  if (!canvases) {
+    const fallback = document.createElement("canvas");
+    fallback.width = TARGET_W;
+    fallback.height = TARGET_H;
+    return fallback;
+  }
+
+  renderBayerDither(source, canvases.target, {
     cellSize: 2,
     ditherAmount: 0.2,
     lightMode,
@@ -253,5 +274,5 @@ export function renderContactVisual(
     reveal,
   });
 
-  return target;
+  return canvases.target;
 }
