@@ -11,7 +11,11 @@ import {
   mix,
   projectSlice,
 } from "./timeline";
-import { CONTACT_WORDS, renderContactVisual } from "./canvas/contactVisual";
+import {
+  CONTACT_WORDS,
+  contactWordHasMotion,
+  renderContactVisual,
+} from "./canvas/contactVisual";
 import { applyBayerMask, renderBayerDither } from "./canvas/dither";
 import { renderHeroSea } from "./canvas/field";
 import { buildHobbyArt, resetHobbyCaches } from "./canvas/hobbies";
@@ -165,7 +169,54 @@ let veilPresence = 0;
 let frameDelta = 1 / 60;
 let lastCubeFrame = -1;
 let scrollDirty = true;
-let needsDraw = true;
+let fieldDirty = true;
+let idleTimer = 0;
+let windowFocused = true;
+let lastScrollActivity = 0;
+let lastPointerActivity = 0;
+
+function isPortraitSettledStatic(): boolean {
+  return story >= 2.8 && story <= 3.55 && ripples.length === 0 && Boolean(portraitPhoto);
+}
+
+function stopLoop(): void {
+  if (raf) {
+    cancelAnimationFrame(raf);
+    raf = 0;
+  }
+  if (idleTimer) {
+    clearTimeout(idleTimer);
+    idleTimer = 0;
+  }
+}
+
+function isScrollActive(now: number): boolean {
+  return (
+    scrollDirty ||
+    Boolean(smoothScroll?.isSmooth) ||
+    now - lastScrollActivity < 450
+  );
+}
+
+function nextFrameDelayMs(now: number): number {
+  if (isScrollActive(now)) return 0;
+  if (ripples.length > 0 && story < 4.55) return 16;
+  if (story < 1.85) return now - lastPointerActivity < 350 ? 28 : 48;
+  if (story < 4.2) {
+    if (isPortraitSettledStatic()) return 55;
+    return now - lastPointerActivity < 350 ? 32 : 48;
+  }
+  if (story < timeline.contactStart) return 40;
+
+  const part = contactWordClock % CONTACT_PERIOD;
+  const wordIndex = Math.floor(contactWordClock / CONTACT_PERIOD) % CONTACT_WORDS.length;
+  const dissolving = part > CONTACT_HOLD || story < timeline.contactStart + 0.9;
+  if (dissolving) return 40;
+
+  const baseDelay = contactWordHasMotion(wordIndex) ? 66 : 125;
+  if (contactInteraction) return baseDelay;
+  return Math.max(40, Math.min(baseDelay, Math.ceil((CONTACT_HOLD - part) * 1000)));
+}
 
 function isLightMode(): boolean {
   return root.dataset.mode === "light";
@@ -201,8 +252,9 @@ function setTheme(mode: "light" | "dark", persist = true): void {
     .querySelectorAll<HTMLCanvasElement>(".hobby-art")
     .forEach((target) => buildHobbyArt(target, 0, isLightMode()));
   if (reduced.matches) renderReducedDiagrams();
-  needsDraw = true;
+  fieldDirty = true;
   update();
+  wakeLoop();
 }
 
 themeToggle.addEventListener("click", () => setTheme(isLightMode() ? "dark" : "light"));
@@ -235,7 +287,9 @@ const photo = new Image();
 photo.onload = () => {
   portrait = photo;
   cachePortrait();
+  fieldDirty = true;
   draw();
+  fieldDirty = false;
 };
 photo.src = `${base}images/portrait-960.webp`;
 
@@ -249,7 +303,7 @@ function cachePortrait(): void {
   portraitPhoto = document.createElement("canvas");
   portraitPhoto.width = size;
   portraitPhoto.height = ph;
-  const c = portraitPhoto.getContext("2d")!;
+  const c = portraitPhoto.getContext("2d", { willReadFrequently: true })!;
   c.imageSmoothingEnabled = true;
   c.imageSmoothingQuality = "high";
   c.drawImage(
@@ -613,8 +667,9 @@ Promise.all([
   document.fonts.load('400 150px "Dela Gothic One"'),
   document.fonts.load('800 150px "Archivo"'),
 ]).then(() => {
-  needsDraw = true;
+  fieldDirty = true;
   draw();
+  fieldDirty = false;
 });
 
 function draw(): void {
@@ -640,6 +695,7 @@ function draw(): void {
 function setPanel(panel: HTMLElement, alpha: number, offset = 0): void {
   panel.style.opacity = String(alpha);
   panel.style.transform = `translateY(${offset}px)`;
+  panel.style.visibility = alpha <= 0.001 ? "hidden" : "";
   panel.inert = alpha < 0.5;
   panel.style.pointerEvents = alpha > 0.5 ? "auto" : "none";
 }
@@ -667,7 +723,7 @@ function update(): void {
   }
 
   document.body.style.backgroundColor = "";
-  needsDraw = true;
+  fieldDirty = true;
 }
 
 function renderReducedDiagrams(): void {
@@ -698,20 +754,42 @@ function resize(): void {
   canvas.width = w * d;
   canvas.height = h * d;
   ctx.setTransform(d, 0, 0, d, 0, 0);
+  fieldDirty = true;
   update();
   if (reduced.matches) {
     renderReducedDiagrams();
   }
+  wakeLoop();
 }
 
 const cubeArt = document.querySelector<HTMLCanvasElement>('[data-hobby="cube"]');
 
+function wakeLoop(): void {
+  if (document.hidden || !windowFocused || !visible || paused || reduced.matches) {
+    if (fieldDirty && visible && !document.hidden) {
+      draw();
+      fieldDirty = false;
+    }
+    return;
+  }
+  if (idleTimer) {
+    clearTimeout(idleTimer);
+    idleTimer = 0;
+  }
+  if (raf === 0) {
+    last = performance.now();
+    raf = requestAnimationFrame(tick);
+  }
+}
+
 function tick(now: number): void {
   raf = 0;
-  if (document.hidden) return;
-  frameDelta = Math.max(0, Math.min((now - last) / 1000, 0.05));
+  if (document.hidden || !windowFocused) return;
+  frameDelta = Math.max(0, Math.min((now - last) / 1000, 0.2));
   last = now;
-  smoothScroll?.raf(now);
+  if (isScrollActive(now)) {
+    smoothScroll?.raf(now);
+  }
   if (scrollDirty) {
     scrollDirty = false;
     update();
@@ -727,29 +805,51 @@ function tick(now: number): void {
     ) {
       contactWordClock += frameDelta;
     }
-    needsDraw = true;
+    if (!isPortraitSettledStatic()) {
+      fieldDirty = true;
+    }
     if (
       story > 1.45 &&
       story < 4.2 &&
       cubeArt &&
-      (lastCubeFrame < 0 || time - lastCubeFrame >= 0.032)
+      (lastCubeFrame < 0 || time - lastCubeFrame >= 0.05)
     ) {
       lastCubeFrame = time;
       buildHobbyArt(cubeArt, time, isLightMode());
     }
   }
-  if (needsDraw && visible) {
+  if (fieldDirty && visible) {
     draw();
-    needsDraw = false;
+    fieldDirty = false;
   }
-  raf = requestAnimationFrame(tick);
+  if (visible && !paused && !reduced.matches) {
+    const delay = nextFrameDelayMs(now);
+    if (delay <= 0) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      idleTimer = window.setTimeout(() => {
+        idleTimer = 0;
+        if (!document.hidden && windowFocused && visible && !paused && !reduced.matches) {
+          raf = requestAnimationFrame(tick);
+        }
+      }, delay);
+    }
+  }
 }
 
 function sync(): void {
   document.body.dataset.motionPaused = String(paused);
-  cancelAnimationFrame(raf);
-  last = performance.now();
-  raf = requestAnimationFrame(tick);
+  if (windowFocused) {
+    delete document.body.dataset.bgPaused;
+  }
+  stopLoop();
+  if (!document.hidden && windowFocused && visible && !paused && !reduced.matches) {
+    last = performance.now();
+    raf = requestAnimationFrame(tick);
+  } else if (fieldDirty && visible && !document.hidden) {
+    draw();
+    fieldDirty = false;
+  }
 }
 
 contact.addEventListener("mouseenter", () => {
@@ -766,11 +866,28 @@ contact.addEventListener("focusout", (event) => {
     contact.contains(event.relatedTarget as Node | null) || contact.matches(":hover");
 });
 
-document.addEventListener("visibilitychange", sync);
+window.addEventListener("blur", () => {
+  windowFocused = false;
+  document.body.dataset.bgPaused = "true";
+  stopLoop();
+});
+window.addEventListener("focus", () => {
+  windowFocused = true;
+  delete document.body.dataset.bgPaused;
+  sync();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopLoop();
+  } else {
+    sync();
+  }
+});
 reduced.addEventListener("change", () => {
   paused = reduced.matches;
   if (reduced.matches) {
     [opening, about, ...panels, contact].forEach((panel) => {
+      panel.style.visibility = "";
       panel.inert = false;
     });
   }
@@ -782,13 +899,31 @@ new IntersectionObserver(([entry]) => {
   sync();
 }).observe(journey);
 
-window.addEventListener(
-  "scroll",
-  () => {
-    scrollDirty = true;
-  },
-  { passive: true },
-);
+const markScrollActivity = () => {
+  lastScrollActivity = performance.now();
+  scrollDirty = true;
+  windowFocused = true;
+  delete document.body.dataset.bgPaused;
+  wakeLoop();
+};
+
+window.addEventListener("scroll", markScrollActivity, { passive: true });
+window.addEventListener("wheel", markScrollActivity, { passive: true });
+window.addEventListener("touchstart", markScrollActivity, { passive: true });
+window.addEventListener("touchmove", markScrollActivity, { passive: true });
+window.addEventListener("keydown", (event) => {
+  if (
+    event.key === "ArrowDown" ||
+    event.key === "ArrowUp" ||
+    event.key === "PageDown" ||
+    event.key === "PageUp" ||
+    event.key === "Home" ||
+    event.key === "End" ||
+    event.key === " "
+  ) {
+    markScrollActivity();
+  }
+});
 window.addEventListener("resize", resize);
 window.addEventListener(
   "pointermove",
@@ -797,13 +932,19 @@ window.addEventListener(
     hover.x = event.clientX / Math.max(1, w);
     hover.y = event.clientY / Math.max(1, h);
     hover.inside = true;
-    needsDraw = true;
+    if (story < 4.55 && !isPortraitSettledStatic()) {
+      lastPointerActivity = performance.now();
+      fieldDirty = true;
+      wakeLoop();
+    }
   },
   { passive: true },
 );
 window.addEventListener(
   "pointerdown",
   (event) => {
+    windowFocused = true;
+    delete document.body.dataset.bgPaused;
     if (paused || reduced.matches || story >= 4.1) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     if ((event.target as Element | null)?.closest("a, button")) return;
@@ -813,19 +954,27 @@ window.addEventListener(
       y: event.clientY / Math.max(1, h),
       age: 0,
     });
-    needsDraw = true;
+    lastPointerActivity = performance.now();
+    fieldDirty = true;
+    wakeLoop();
   },
   { passive: true },
 );
 document.documentElement.addEventListener("pointerleave", () => {
   hover.inside = false;
-  needsDraw = true;
+  if (story < 4.55 && !isPortraitSettledStatic()) {
+    fieldDirty = true;
+    wakeLoop();
+  }
 });
 window.addEventListener(
   "pointercancel",
   () => {
     hover.inside = false;
-    needsDraw = true;
+    if (story < 4.55 && !isPortraitSettledStatic()) {
+      fieldDirty = true;
+      wakeLoop();
+    }
   },
   { passive: true },
 );
@@ -846,24 +995,28 @@ function setupSmoothScroll(): void {
       return true;
     },
   });
-  smoothScroll.on("scroll", () => {
-    scrollDirty = true;
-  });
+  smoothScroll.on("scroll", markScrollActivity);
 }
 
 function scrollStory(target: number, duration: number): void {
+  lastScrollActivity = performance.now();
+  scrollDirty = true;
+  windowFocused = true;
+  delete document.body.dataset.bgPaused;
   if (smoothScroll) {
     smoothScroll.scrollTo(target, {
       duration: duration / TRANSITION_SPEED,
       lerp: 0,
       easing: (p) => p * p * p * (p * (p * 6 - 15) + 10),
     });
+    wakeLoop();
     return;
   }
   window.scrollTo({
     top: target,
     behavior: reduced.matches ? "instant" : "smooth",
   });
+  wakeLoop();
 }
 
 reduced.addEventListener("change", setupSmoothScroll);

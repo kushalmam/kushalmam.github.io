@@ -79,6 +79,13 @@ const TARGET_H = 240;
 
 let sourceCanvas: HTMLCanvasElement | null = null;
 let targetCanvas: HTMLCanvasElement | null = null;
+let sourceCtx: CanvasRenderingContext2D | null = null;
+
+export function contactWordHasMotion(wordIndex: number): boolean {
+  const idx =
+    ((wordIndex % WORD_STYLES.length) + WORD_STYLES.length) % WORD_STYLES.length;
+  return WORD_STYLES[idx].accent !== "none";
+}
 
 function ensureCanvases(): {
   source: HTMLCanvasElement;
@@ -89,15 +96,18 @@ function ensureCanvases(): {
     sourceCanvas = document.createElement("canvas");
     sourceCanvas.width = SOURCE_W;
     sourceCanvas.height = SOURCE_H;
+    sourceCtx = sourceCanvas.getContext("2d", { willReadFrequently: true });
   }
   if (!targetCanvas) {
     targetCanvas = document.createElement("canvas");
     targetCanvas.width = TARGET_W;
     targetCanvas.height = TARGET_H;
   }
-  const ctx = sourceCanvas.getContext("2d");
-  if (!ctx) return null;
-  return { source: sourceCanvas, target: targetCanvas, ctx };
+  if (!sourceCtx) {
+    sourceCtx = sourceCanvas.getContext("2d", { willReadFrequently: true });
+  }
+  if (!sourceCtx) return null;
+  return { source: sourceCanvas, target: targetCanvas, ctx: sourceCtx };
 }
 
 function drawFittedLine(

@@ -247,7 +247,8 @@ header nav {
   }
 }
 
-body[data-motion-paused="true"] .scroll-travel {
+body[data-motion-paused="true"] .scroll-travel,
+body[data-bg-paused="true"] .scroll-travel {
   animation-play-state: paused;
 }
 

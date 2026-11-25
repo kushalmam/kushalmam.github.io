@@ -24,6 +24,27 @@ interface PreparedRipple {
   pushScale: number;
 }
 
+const TRIG_SIZE = 1024;
+const TRIG_MASK = TRIG_SIZE - 1;
+const RAD_TO_TRIG = TRIG_SIZE / (Math.PI * 2);
+const SIN_LUT = new Float32Array(TRIG_SIZE);
+const COS_LUT = new Float32Array(TRIG_SIZE);
+for (let i = 0; i < TRIG_SIZE; i++) {
+  const angle = (i / TRIG_SIZE) * Math.PI * 2;
+  SIN_LUT[i] = Math.sin(angle);
+  COS_LUT[i] = Math.cos(angle);
+}
+const fastSin = (rad: number): number => SIN_LUT[((rad * RAD_TO_TRIG) | 0) & TRIG_MASK];
+const fastCos = (rad: number): number => COS_LUT[((rad * RAD_TO_TRIG) | 0) & TRIG_MASK];
+
+const EXP_SIZE = 256;
+const EXP_MAX = 6;
+const EXP_SCALE = (EXP_SIZE - 1) / EXP_MAX;
+const EXP_NEG_LUT = new Float32Array(EXP_SIZE);
+for (let i = 0; i < EXP_SIZE; i++) {
+  EXP_NEG_LUT[i] = Math.exp(-i / EXP_SCALE);
+}
+
 let seaCanvas: HTMLCanvasElement | null = null;
 let seaCtx: CanvasRenderingContext2D | null = null;
 let seaImageData: ImageData | null = null;
@@ -201,12 +222,13 @@ export function renderHeroSea(
       const u = (sx + pushX + tiltShiftU) * invW;
       const vv = (sy + pushY + tiltX * (u - 0.5) * cellSize * 2) * invH;
       const a = u * 3.8 + vv * 1.65 + ys;
-      const b = vv * 2.7 - u * 0.8 + Math.sin(u * 6 + time012) * 0.28;
+      const b = vv * 2.7 - u * 0.8 + fastSin(u * 6 + time012) * 0.28;
       const surface =
-        Math.sin(a * 3.5 + time013) + Math.cos(b * 4.1 - time009) * 0.57;
-      const norm = surface / 0.48;
-      const ridge = Math.exp(-(norm * norm));
-      const cBase = 0.5 + 0.5 * Math.cos(a * 26 + b * 4);
+        fastSin(a * 3.5 + time013) + fastCos(b * 4.1 - time009) * 0.57;
+      const norm = surface * 2.0833333333333335;
+      const norm2 = norm * norm;
+      const ridge = norm2 >= EXP_MAX ? 0 : EXP_NEG_LUT[(norm2 * EXP_SCALE) | 0];
+      const cBase = 0.5 + 0.5 * fastCos(a * 26 + b * 4);
       const contour = cBase * cBase * cBase;
 
       const idx = rowOff + x;
@@ -225,7 +247,7 @@ export function renderHeroSea(
       const density = clamp(rawValue * foldFade + ring * 0.65 + hoverGlint * 0.22);
       if (density <= minDensity || density <= BAYER_8X8[by | (x & 7)]) continue;
 
-      const colorT = clamp(rawValue * 1.05 + 0.08 * Math.sin(u * 4 + v * 3 - time025));
+      const colorT = clamp(rawValue * 1.05 + 0.08 * fastSin(u * 4 + v * 3 - time025));
       let r: number;
       let g: number;
       let bl: number;
@@ -281,10 +303,10 @@ export function renderHeroSea(
       }
 
       const k = idx << 2;
-      data[k] = Math.round(r);
-      data[k + 1] = Math.round(g);
-      data[k + 2] = Math.round(bl);
-      data[k + 3] = Math.round(baseAlpha * (0.65 + 0.35 * density) * attenMask[idx]);
+      data[k] = (r + 0.5) | 0;
+      data[k + 1] = (g + 0.5) | 0;
+      data[k + 2] = (bl + 0.5) | 0;
+      data[k + 3] = (baseAlpha * (0.65 + 0.35 * density) * attenMask[idx] + 0.5) | 0;
     }
   }
 

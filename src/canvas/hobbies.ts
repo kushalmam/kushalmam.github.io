@@ -3,6 +3,7 @@ import { renderBayerDither } from "./dither";
 
 interface HobbyScratch {
   source: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D | null;
 }
 
 const hobbyScratch = new WeakMap<HTMLCanvasElement, HobbyScratch>();
@@ -21,11 +22,13 @@ export function buildHobbyArt(
     const source = document.createElement("canvas");
     source.width = 400;
     source.height = 300;
-    scratch = { source };
+    scratch = {
+      source,
+      ctx: source.getContext("2d", { willReadFrequently: true }),
+    };
     hobbyScratch.set(target, scratch);
   }
-  const { source } = scratch;
-  const c = source.getContext("2d");
+  const { source, ctx: c } = scratch;
   if (!c) return;
   c.clearRect(0, 0, 400, 300);
 

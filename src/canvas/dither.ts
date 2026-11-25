@@ -235,9 +235,15 @@ export function renderBayerDither(
       const gy = -l00 - 2 * l10 - l20 + l02 + 2 * l12 + l22;
       const agx = (alpha[y0 + xp1] - alpha[y0 + xm1]) / 255;
       const agy = (alpha[yp1 + x] - alpha[ym1 + x]) / 255;
-      const edge = clamp01(
-        Math.sqrt(gx * gx + gy * gy) * 0.45 + Math.sqrt(agx * agx + agy * agy) * 0.7,
-      );
+      const g2 = gx * gx + gy * gy;
+      const ag2 = agx * agx + agy * agy;
+      const edge =
+        g2 === 0 && ag2 === 0
+          ? 0
+          : clamp01(
+              (g2 > 0 ? Math.sqrt(g2) * 0.45 : 0) +
+                (ag2 > 0 ? Math.sqrt(ag2) * 0.7 : 0),
+            );
 
       const l = lum[idx];
       const bayer = BAYER_8X8[by | (x & 7)] - 0.5;

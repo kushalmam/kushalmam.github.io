@@ -9,6 +9,7 @@ const TARGET_H = 240;
 
 let sharedSource: HTMLCanvasElement | null = null;
 let sharedTarget: HTMLCanvasElement | null = null;
+let sharedCtx: CanvasRenderingContext2D | null = null;
 
 function ensureCanvases(): {
   source: HTMLCanvasElement;
@@ -19,15 +20,18 @@ function ensureCanvases(): {
     sharedSource = document.createElement("canvas");
     sharedSource.width = SOURCE_W;
     sharedSource.height = SOURCE_H;
+    sharedCtx = sharedSource.getContext("2d", { willReadFrequently: true });
   }
   if (!sharedTarget) {
     sharedTarget = document.createElement("canvas");
     sharedTarget.width = TARGET_W;
     sharedTarget.height = TARGET_H;
   }
-  const ctx = sharedSource.getContext("2d");
-  if (!ctx) return null;
-  return { source: sharedSource, target: sharedTarget, ctx };
+  if (!sharedCtx) {
+    sharedCtx = sharedSource.getContext("2d", { willReadFrequently: true });
+  }
+  if (!sharedCtx) return null;
+  return { source: sharedSource, target: sharedTarget, ctx: sharedCtx };
 }
 
 function drawRoundedRect(
