@@ -2,13 +2,22 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { PORTRAIT_SIZES, PROJECT_SIZES, variantPaths, variantSrcSet, variantWidths } from "../imageVariants";
-import { portfolioProjects } from "../portfolioProjects";
+import { portfolioProjects, type PortfolioProject } from "../portfolioProjects";
 import { staticFallback } from "../../scripts/staticFallback";
+
+type RasterProject = PortfolioProject & {
+  image: string;
+  width: number;
+};
+
+const rasterProjects = portfolioProjects.filter(
+  (project): project is RasterProject => Boolean(project.image && project.width),
+);
 
 /** Intrinsic width of each source, mirroring the call sites. */
 const sources: { path: string; width: number }[] = [
   { path: "images/portrait.jpg", width: 720 },
-  ...portfolioProjects.map(project => ({ path: `images/projects/${project.image}`, width: project.width })),
+  ...rasterProjects.map(project => ({ path: `images/projects/${project.image}`, width: project.width })),
 ];
 
 describe("responsive image variants", () => {
@@ -46,7 +55,7 @@ describe("responsive image variants", () => {
     expect(fallback).toContain(`srcset="/images/portrait-480.avif 480w, /images/portrait-720.avif 720w" sizes="${PORTRAIT_SIZES}"`);
     expect(fallback).toContain('type="image/webp"');
     expect(fallback).toContain('src="/images/portrait.jpg"');
-    for (const project of portfolioProjects) {
+    for (const project of rasterProjects) {
       expect(fallback).toContain(`srcset="/images/projects/${project.image.split(".")[0]}-480.webp 480w`);
       expect(fallback).toContain(`sizes="${PROJECT_SIZES}"`);
     }

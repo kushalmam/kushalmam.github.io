@@ -13,7 +13,7 @@ import { portfolioProjects } from "./portfolioProjects";
 const ORIGIN = "https://kushalmam.github.io";
 const TITLE = "Kushal Mamillapalli — Selected work";
 const DESCRIPTION =
-  "Selected work from Kushal Mamillapalli, a data engineer at Spotify: retrieval and ranking pipelines, agentic research tooling, and applied ML infrastructure.";
+  "Selected work from Kushal Mamillapalli, a data engineer at Spotify: retrieval and ranking pipelines, applied AI, sports analytics, and static recompilation.";
 
 const escapeXml = (text: string) =>
   text.replace(/[&<>"']/g, character =>

@@ -33,9 +33,9 @@ describe("web app manifest", () => {
     expect(manifest.lang).toBe("en");
     expect(manifest.theme_color).toMatch(/^#[0-9a-f]{6}$/i);
     expect(manifest.background_color).toMatch(/^#[0-9a-f]{6}$/i);
-    // The site's own paper and night tones, so the splash screen matches.
-    expect(manifest.theme_color).toBe("#efece4");
-    expect(manifest.background_color).toBe("#efece4");
+    // The site's own charcoal ground, so the splash screen matches.
+    expect(manifest.theme_color).toBe("#10110f");
+    expect(manifest.background_color).toBe("#10110f");
   });
 
   it("uses relative URLs, so the manifest survives a subpath deploy", () => {

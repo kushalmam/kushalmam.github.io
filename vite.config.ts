@@ -1,11 +1,10 @@
 import path from "path";
+import { defineConfig, type Plugin } from "vite";
 import { staticFallback } from "./scripts/staticFallback";
 import { buildFeed } from "./src/feed";
 
 const base =
   process.env.GITHUB_REPOSITORY === "kushalmam/portfolio" ? "/portfolio/" : "/";
-import react from "@vitejs/plugin-react-swc";
-import { defineConfig, type Plugin } from "vite";
 
 /**
  * Emits feed.xml from the same project data the page renders, and serves it in
@@ -39,7 +38,6 @@ export default defineConfig({
     },
   },
   plugins: [
-    react(),
     portfolioFeed(),
     {
       name: "portfolio-static-content",
@@ -51,11 +49,5 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    dedupe: [
-      "react",
-      "react-dom",
-      "react/jsx-runtime",
-      "react/jsx-dev-runtime",
-    ],
   },
 });
