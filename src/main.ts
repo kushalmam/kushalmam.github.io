@@ -10,10 +10,10 @@ import {
   ease,
   mix,
   projectSlice,
-  smoothstep,
 } from "./timeline";
-import { buildProjectDiagram, type DiagramPoint } from "./canvas/diagrams";
-import { applyBayerMask } from "./canvas/dither";
+import { CONTACT_WORDS, renderContactVisual } from "./canvas/contactVisual";
+import { applyBayerMask, renderBayerDither } from "./canvas/dither";
+import { renderHeroSea } from "./canvas/field";
 import { buildHobbyArt, resetHobbyCaches } from "./canvas/hobbies";
 import { renderProjectVisual } from "./canvas/projectVisuals";
 
@@ -29,27 +29,12 @@ interface Rect {
   y: number;
   w: number;
   h: number;
-  glyphSize?: number;
-  material?: boolean;
-}
-
-interface Point2D {
-  x: number;
-  y: number;
-  char: string;
-  alpha: number;
 }
 
 interface Ripple {
   x: number;
   y: number;
   age: number;
-}
-
-interface SculptureGlyph {
-  image: HTMLCanvasElement;
-  width: number;
-  height: number;
 }
 
 const base = import.meta.env.BASE_URL;
@@ -83,7 +68,7 @@ app.innerHTML = `
       <section class="about" id="about" aria-labelledby="about-title">
         <h2 id="about-title">Curious about<br>how things connect.</h2>
         <p class="bio">I’m a data engineer at <span class="inline-org"><svg class="mark" data-mark="spotify" aria-hidden="true"></svg>Spotify</span>, working on personalization pipelines.</p>
-        <img class="reduced-photo" src="${base}images/portrait-720.webp" alt="Kushal in New York">
+        <img class="reduced-photo" src="${base}images/portrait-960.webp" alt="Kushal in New York">
         <p class="education"><svg class="mark" data-mark="nyu" aria-hidden="true"></svg><span>I graduated from NYU Tandon with a degree in Computer Science in 2026.</span></p>
         <div class="offscreen">
           <div class="hobbies">
@@ -140,10 +125,8 @@ const root = document.documentElement;
 
 const timeline = createTimeline(portfolioProjects.length);
 const TRANSITION_SPEED = 1.6;
-const CONTACT_HOLD = 4.8;
+const CONTACT_HOLD = 3.2;
 const CONTACT_PERIOD = CONTACT_HOLD + 2 / TRANSITION_SPEED;
-const CONTACT_FACES = ["Bungee", "Monoton", "Dela Gothic One"] as const;
-const GLYPHS = " .,:;-=+*#%@";
 
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -157,38 +140,15 @@ let paused = reduced.matches;
 let visible = true;
 
 let portrait: HTMLImageElement | null = null;
-let portraitInk: HTMLCanvasElement | null = null;
+let portraitDither: HTMLCanvasElement | null = null;
+let portraitDitherAnimated: HTMLCanvasElement | null = null;
 let portraitPhoto: HTMLCanvasElement | null = null;
-let portraitPoints: Point2D[] = [];
-let atlas: HTMLCanvasElement | null = null;
-let atlasCell = 0;
 
 let contactWordClock = 0;
 let contactInteraction = false;
-let contactMasks: { prefixes: DiagramPoint[][]; words: DiagramPoint[][] } | null = null;
-let contactLayoutCache: {
-  prefixes: DiagramPoint[][];
-  words: DiagramPoint[][];
-  rect: Rect;
-} | null = null;
 let smoothScroll: Lenis | null = null;
 
-let ambient: HTMLCanvasElement | null = null;
-let ambientTheme = -2;
-let ambientWidth = 0;
-let waveMorphOrigin: Point2D[] | null = null;
-
-// Interaction techniques adapted from React Bits' official sources:
-// https://reactbits.dev/text-animations/ascii-text and https://reactbits.dev/animations/dither-veil
-// (MIT + Commons Clause; notices retained by attribution, no component code vendored).
-const hashNoise = (x: number, y: number, s: number): number => {
-  const v = Math.sin(x * 12.9898 + y * 78.233 + s * 37.719) * 43758.5453;
-  return v - Math.floor(v);
-};
-
 const hover = { x: 0.5, y: 0.5, inside: false };
-let tiltX = 0;
-let tiltY = 0;
 let ripples: Ripple[] = [];
 
 let veilMask: HTMLCanvasElement | null = null;
@@ -203,10 +163,9 @@ const veilBrush = { x: 0, y: 0 };
 let veilPresence = 0;
 
 let frameDelta = 1 / 60;
+let lastCubeFrame = -1;
 let scrollDirty = true;
 let needsDraw = true;
-
-const sculptureGlyphs = new Map<string, SculptureGlyph>();
 
 function isLightMode(): boolean {
   return root.dataset.mode === "light";
@@ -215,12 +174,17 @@ function isLightMode(): boolean {
 function setTheme(mode: "light" | "dark", persist = true): void {
   root.dataset.mode = mode;
   themeToggle.setAttribute("aria-pressed", String(mode === "light"));
-  themeToggle.setAttribute("aria-label", `Switch to ${mode === "light" ? "dark" : "light"} mode`);
+  themeToggle.setAttribute(
+    "aria-label",
+    `Switch to ${mode === "light" ? "dark" : "light"} mode`,
+  );
   const label = themeToggle.querySelector(".theme-label");
   const icon = themeToggle.querySelector('[aria-hidden="true"]');
   if (label) label.textContent = mode === "light" ? "Dark" : "Light";
   if (icon) icon.textContent = mode === "light" ? "◑" : "◐";
-  if (themeMeta) themeMeta.setAttribute("content", mode === "light" ? "#f2f6fc" : "#10110f");
+  if (themeMeta) {
+    themeMeta.setAttribute("content", mode === "light" ? "#f6f5f0" : "#10110f");
+  }
   if (persist) {
     try {
       localStorage.setItem("portfolio-theme", mode);
@@ -228,12 +192,9 @@ function setTheme(mode: "light" | "dark", persist = true): void {
       // Ignore storage failures in restricted browsing contexts.
     }
   }
-  ambient = null;
-  atlas = null;
-  atlasCell = 0;
   ripples = [];
   veilPresence = 0;
-  sculptureGlyphs.clear();
+  lastCubeFrame = -1;
   resetHobbyCaches();
   if (portrait) cachePortrait();
   document
@@ -251,7 +212,7 @@ const panels = portfolioProjects.map((project) => {
   panel.className = "project-panel";
   panel.id = project.slug;
   panel.setAttribute("aria-labelledby", `${project.slug}-title`);
-  panel.innerHTML = `<h2 id="${project.slug}-title">${project.name}</h2><p>${project.summary}</p><a href="${project.href}">View source ↗</a><canvas class="reduced-diagram" role="img" aria-label="Illustrative ${project.name} workflow animation"></canvas>`;
+  panel.innerHTML = `<h2 id="${project.slug}-title">${project.name}</h2><p>${project.summary}</p><a href="${project.href}">View source ↗</a><canvas class="reduced-diagram" role="img" aria-label="Dithered ${project.name} visual"></canvas>`;
   stage.insertBefore(panel, stageFooter);
   return panel;
 });
@@ -276,47 +237,49 @@ photo.onload = () => {
   cachePortrait();
   draw();
 };
-photo.src = `${base}images/portrait-720.webp`;
+photo.src = `${base}images/portrait-960.webp`;
 
 function cachePortrait(): void {
   if (!portrait) return;
   const cols = 100;
   const rows = Math.round((100 * portrait.height) / portrait.width);
-  const size = 600;
-  const ph = Math.round((size * portrait.height) / portrait.width);
+  const size = portrait.naturalWidth || portrait.width;
+  const ph = portrait.naturalHeight || portrait.height;
 
   portraitPhoto = document.createElement("canvas");
   portraitPhoto.width = size;
   portraitPhoto.height = ph;
   const c = portraitPhoto.getContext("2d")!;
+  c.imageSmoothingEnabled = true;
+  c.imageSmoothingQuality = "high";
   c.drawImage(
     portrait,
-    portrait.width * 0.1,
-    portrait.height * 0.1,
-    portrait.width * 0.8,
-    portrait.height * 0.8,
+    0,
+    0,
+    portrait.width,
+    portrait.height,
     0,
     0,
     size,
     ph,
   );
-  const reducedPhoto = document.querySelector<HTMLImageElement>(".reduced-photo");
-  if (reducedPhoto) reducedPhoto.src = portraitPhoto.toDataURL("image/webp");
 
-  const sample = document.createElement("canvas");
-  sample.width = cols;
-  sample.height = rows;
-  const sc = sample.getContext("2d")!;
-  sc.drawImage(portraitPhoto, 0, 0, cols, rows);
-  const pixels = sc.getImageData(0, 0, cols, rows).data;
+  const ditherW = 240;
+  const ditherH = Math.round((ditherW * portrait.height) / portrait.width);
+  portraitDither = document.createElement("canvas");
+  portraitDither.width = ditherW;
+  portraitDither.height = ditherH;
+  renderBayerDither(portraitPhoto, portraitDither, {
+    cellSize: 2,
+    ditherAmount: 0.24,
+    lightMode: isLightMode(),
+    preserveColor: true,
+    edgeStrength: 0.34,
+  });
 
-  portraitInk = document.createElement("canvas");
-  portraitInk.width = size;
-  portraitInk.height = ph;
-  const ink = portraitInk.getContext("2d")!;
-  ink.font = "10px monospace";
-  ink.textBaseline = "middle";
-  portraitPoints = [];
+  portraitDitherAnimated = document.createElement("canvas");
+  portraitDitherAnimated.width = ditherW;
+  portraitDitherAnimated.height = ditherH;
 
   veilCols = cols;
   veilRows = rows;
@@ -337,28 +300,6 @@ function cachePortrait(): void {
   veilScratch = document.createElement("canvas");
   veilScratch.width = size;
   veilScratch.height = ph;
-
-  const asciiInk = isLightMode() ? "rgb(41,65,101)" : "rgb(230,230,220)";
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      const k = (y * cols + x) * 4;
-      const v =
-        (pixels[k] * 0.2126 + pixels[k + 1] * 0.7152 + pixels[k + 2] * 0.0722) / 255;
-      const char = GLYPHS[Math.min(10, Math.floor(Math.pow(v, 0.7) * 11))];
-      ink.fillStyle = asciiInk;
-      ink.globalAlpha = 0.2 + v * 0.8;
-      ink.fillText(char, x * 6, (y / rows) * ph + 3);
-      ink.globalAlpha = 1;
-      if (v > 0.12 && x % 2 === 0 && y % 2 === 0) {
-        portraitPoints.push({
-          x: x / cols,
-          y: y / rows,
-          char,
-          alpha: 0.25 + v * 0.7,
-        });
-      }
-    }
-  }
 }
 
 function portraitRect(): Rect {
@@ -377,7 +318,15 @@ function updateVeil(r: Rect, photoMix: number): number {
   const rows = veilRows;
   const cells = veilAlpha;
   const dt = Math.min(0.05, Math.max(0, frameDelta));
-  if (!cols || !rows || !cells || !veilMaskCtx || !veilImageData || !veilMask || !veilScale) {
+  if (
+    !cols ||
+    !rows ||
+    !cells ||
+    !veilMaskCtx ||
+    !veilImageData ||
+    !veilMask ||
+    !veilScale
+  ) {
     return 0;
   }
   const cell = r.w / cols;
@@ -390,8 +339,10 @@ function updateVeil(r: Rect, photoMix: number): number {
     ty = ((hover.y * h - r.y) / r.h) * rows;
     targetStrength = 1;
   } else {
-    tx = cols * (0.5 + 0.32 * Math.sin(time * 0.31) + 0.07 * Math.sin(time * 0.73 + 1.6));
-    ty = rows * (0.5 + 0.26 * Math.sin(time * 0.41 + 1.1) + 0.06 * Math.cos(time * 0.9));
+    tx =
+      cols * (0.5 + 0.32 * Math.sin(time * 0.31) + 0.07 * Math.sin(time * 0.73 + 1.6));
+    ty =
+      rows * (0.5 + 0.26 * Math.sin(time * 0.41 + 1.1) + 0.06 * Math.cos(time * 0.9));
     targetStrength = 0.55;
   }
 
@@ -431,12 +382,27 @@ function updateVeil(r: Rect, photoMix: number): number {
     const band = Math.max(3, reach * 0.16);
     const strength = (1 - clamp(rip.age / 1.3)) * 0.9;
     if (strength <= 0.002) continue;
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const gap = Math.abs(Math.hypot(x + 0.5 - rx, y + 0.5 - ry) - reach);
+    const minR = Math.max(0, reach - band);
+    const maxR = reach + band;
+    const minR2 = minR * minR;
+    const maxR2 = maxR * maxR;
+    const rx0 = Math.max(0, Math.floor(rx - maxR));
+    const rx1 = Math.min(cols, Math.ceil(rx + maxR));
+    const ry0 = Math.max(0, Math.floor(ry - maxR));
+    const ry1 = Math.min(rows, Math.ceil(ry + maxR));
+    const invBand = 1 / band;
+    for (let y = ry0; y < ry1; y++) {
+      const dy = y + 0.5 - ry;
+      const dy2 = dy * dy;
+      const rowOff = y * cols;
+      for (let x = rx0; x < rx1; x++) {
+        const dx = x + 0.5 - rx;
+        const dist2 = dx * dx + dy2;
+        if (dist2 < minR2 || dist2 > maxR2) continue;
+        const gap = Math.abs(Math.sqrt(dist2) - reach);
         if (gap >= band) continue;
-        const value = clamp(1 - gap / band) * strength;
-        const i = y * cols + x;
+        const value = (1 - gap * invBand) * strength;
+        const i = rowOff + x;
         if (value > cells[i]) cells[i] = value;
       }
     }
@@ -454,22 +420,60 @@ function updateVeil(r: Rect, photoMix: number): number {
 }
 
 function drawPortrait(): void {
-  if (!portraitInk || !portraitPhoto || !veilMaskCtx || !veilScratch || !veilScale || story < 1.95) {
+  if (
+    !portraitDither ||
+    !portraitDitherAnimated ||
+    !portraitPhoto ||
+    !veilMaskCtx ||
+    !veilScratch ||
+    !veilScale ||
+    story < 1.15 ||
+    story >= 4.55
+  ) {
     return;
   }
-  const toPhoto = ease((story - 2.25) / 0.55);
-  const toAscii = ease((story - 3.55) / 0.55);
-  const exit = ease((story - 4.08) / 0.65);
-  const alpha = 1 - exit;
-  const r = portraitRect();
-  if (alpha < 0.001) return;
 
-  const photoMix = toPhoto * (1 - toAscii);
+  const enterReveal = ease((story - 1.15) / 0.75);
+  const exitReveal = 1 - ease((story - 4.0) / 0.55);
+  const portraitReveal = clamp(enterReveal * exitReveal);
+  if (portraitReveal <= 0.005) return;
+
+  const r = portraitRect();
+  let ditherSurface = portraitDither;
+  if (portraitReveal < 0.995) {
+    renderBayerDither(portraitPhoto, portraitDitherAnimated, {
+      cellSize: 2,
+      ditherAmount: 0.24,
+      lightMode: isLightMode(),
+      preserveColor: true,
+      edgeStrength: 0.34,
+      reveal: portraitReveal,
+    });
+    ditherSurface = portraitDitherAnimated;
+  }
+
+  const toPhoto = ease((story - 2.25) / 0.55);
+  const toDither = ease((story - 3.55) / 0.55);
+  const photoMix = toPhoto * (1 - toDither) * portraitReveal;
+  const prevSmooth = ctx.imageSmoothingEnabled;
+  const prevQuality = ctx.imageSmoothingQuality;
+
+  if (photoMix >= 0.999 && portraitReveal >= 0.999 && ripples.length === 0) {
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(portraitPhoto, r.x, r.y, r.w, r.h);
+    ctx.imageSmoothingEnabled = prevSmooth;
+    ctx.imageSmoothingQuality = prevQuality;
+    return;
+  }
+
   const peak = updateVeil(r, photoMix);
+
   if (photoMix < 0.001 && peak < 0.02) {
-    ctx.globalAlpha = alpha;
-    ctx.drawImage(portraitInk, r.x, r.y, r.w, r.h);
-    ctx.globalAlpha = 1;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(ditherSurface, r.x, r.y, r.w, r.h);
+    ctx.imageSmoothingEnabled = prevSmooth;
+    ctx.imageSmoothingQuality = prevQuality;
     return;
   }
 
@@ -478,188 +482,27 @@ function drawPortrait(): void {
   sc.imageSmoothingEnabled = false;
   sc.globalCompositeOperation = "source-over";
   sc.clearRect(0, 0, veilScratch.width, veilScratch.height);
-  sc.drawImage(portraitInk, 0, 0);
+  sc.drawImage(ditherSurface, 0, 0, veilScratch.width, veilScratch.height);
   sc.globalCompositeOperation = "destination-out";
   sc.drawImage(veilScale, 0, 0);
-  ctx.globalAlpha = alpha;
+  ctx.imageSmoothingEnabled = false;
   ctx.drawImage(veilScratch, r.x, r.y, r.w, r.h);
 
+  sc.imageSmoothingEnabled = true;
+  sc.imageSmoothingQuality = "high";
   sc.globalCompositeOperation = "source-over";
   sc.clearRect(0, 0, veilScratch.width, veilScratch.height);
   sc.drawImage(portraitPhoto, 0, 0);
+  sc.imageSmoothingEnabled = false;
   sc.globalCompositeOperation = "destination-in";
   sc.drawImage(veilScale, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.globalAlpha = portraitReveal;
   ctx.drawImage(veilScratch, r.x, r.y, r.w, r.h);
   ctx.globalAlpha = 1;
-}
-
-function glyphAtlas(cell: number, step: number): HTMLCanvasElement {
-  if (atlas && atlasCell === cell) return atlas;
-  atlasCell = cell;
-  atlas = document.createElement("canvas");
-  atlas.width = cell * 11;
-  atlas.height = step;
-  const c = atlas.getContext("2d")!;
-  const light = isLightMode();
-  c.font = `${cell + 1}px monospace`;
-  c.textBaseline = "middle";
-  for (let i = 0; i < 11; i++) {
-    c.fillStyle = light
-      ? `rgba(31,64,109,${0.1 + i * 0.083})`
-      : `rgba(218,220,210,${0.1 + i * 0.083})`;
-    c.fillText(GLYPHS[i], i * cell, step / 2);
-  }
-  return atlas;
-}
-
-function drawWaves(): void {
-  const fold = ease((story - 0.4) / 1.2);
-  const alpha = 1 - ease((story - 1.1) / 1.1);
-  if (alpha < 0.001) return;
-
-  const cell = Math.max(7, Math.ceil(w / 145));
-  const step = Math.ceil(cell * 1.35);
-  const sprite = glyphAtlas(cell, step);
-  const interactive = !paused && !reduced.matches && story < 1.1;
-  const tickStep = Math.floor(time * 18);
-
-  const follow = 1 - Math.exp(-6 * Math.min(0.05, frameDelta));
-  const targetX =
-    interactive && hover.inside ? (hover.y - 0.5) * 1.4 : Math.sin(time * 0.55) * 0.12;
-  const targetY =
-    interactive && hover.inside ? (hover.x - 0.5) * 1.4 : Math.sin(time * 0.4 + 1.3) * 0.2;
-  tiltX += (targetX - tiltX) * follow;
-  tiltY += (targetY - tiltY) * follow;
-
-  const px = hover.x * w;
-  const py = hover.y * h;
-  const reach = Math.max(120, h * 0.18 * 1.6);
-  const rings = interactive ? ripples : [];
-
-  ctx.globalAlpha = alpha;
-  for (let y = 0; y < h; y += step) {
-    const v = y / h;
-    const ys = Math.sin(v * 5.4 - time * 0.18) * 0.52;
-    for (let x = 0; x < w; x += cell) {
-      const cx = x + cell * 0.5;
-      const cy = y + step * 0.5;
-      let ring = 0;
-      let pushX = 0;
-      let pushY = 0;
-      for (const rip of rings) {
-        const rx = rip.x * w;
-        const ry = rip.y * h;
-        const radius = rip.age * Math.max(w, h) * 0.75;
-        const band = Math.max(cell * 3, 24);
-        const gap = Math.abs(Math.hypot(cx - rx, cy - ry) - radius);
-        const fall = (1 - smoothstep(0, 1.2, rip.age)) * (1 - smoothstep(0, band, gap));
-        if (fall <= 0) continue;
-        ring = Math.max(ring, fall);
-        const dx = cx - rx;
-        const dy = cy - ry;
-        const len = Math.hypot(dx, dy) || 1;
-        pushX += (dx / len) * fall * cell * 1.5;
-        pushY += (dy / len) * fall * cell * 1.5;
-      }
-
-      const u = x / w + (pushX + tiltY * (v - 0.5) * cell * 2) / w;
-      const vv = v + (pushY + tiltX * (u - 0.5) * cell * 2) / h;
-      const a = u * 3.8 + vv * 1.65 + ys;
-      const b = vv * 2.7 - u * 0.8 + Math.sin(u * 6 + time * 0.12) * 0.28;
-      const surface =
-        Math.sin(a * 3.5 + time * 0.13) + Math.cos(b * 4.1 - time * 0.09) * 0.57;
-      const value =
-        Math.exp(-((surface / 0.48) ** 2)) * 0.76 +
-        (0.5 + 0.5 * Math.cos(a * 26 + b * 4)) ** 3 * 0.25;
-      if (value < 0.1 && ring < 0.08) continue;
-
-      let index = value < 0.1 ? 0 : Math.min(10, Math.floor(value * 10));
-      const near = Math.hypot(cx - px, cy - py);
-      const scramble = hover.inside
-        ? clamp(1 - smoothstep(reach * 0.35, reach, near)) * 0.55
-        : 0;
-      if (index > 0 && hashNoise(x, y, tickStep) < scramble * 0.8) {
-        index = 1 + Math.floor(hashNoise(x, y, tickStep + 7.13) * 10);
-      }
-      if (ring > 0 && hashNoise(x, y, tickStep * 3.1) < ring) {
-        index = 1 + Math.floor(hashNoise(x, y, tickStep * 1.7) * 10);
-      }
-      const z = surface * 0.22 * fold;
-      const p = (u - 0.5) * Math.cos(fold * 1.1) + z * Math.sin(fold * 1.1);
-      const perspective = 1 / (1 - z * 0.3);
-      if (ring > 0) ctx.globalAlpha = alpha * Math.min(1, 0.72 + ring * 0.5);
-      ctx.drawImage(
-        sprite,
-        index * cell,
-        0,
-        cell,
-        step,
-        (0.5 + p * perspective) * w,
-        (0.5 + (vv - 0.5) * (1 - fold * 0.68) * perspective) * h,
-        cell,
-        step,
-      );
-      if (ring > 0) ctx.globalAlpha = alpha;
-    }
-  }
-  ctx.globalAlpha = 1;
-}
-
-function drawWavePortraitMorph(): void {
-  if (!portraitPoints.length) {
-    drawWaves();
-    return;
-  }
-  const amount = ease((story - 0.85) / 1.1);
-  const r = portraitRect();
-  if (!waveMorphOrigin) {
-    waveMorphOrigin = [];
-    const cell = Math.max(7, Math.ceil(w / 145));
-    const step = Math.ceil(cell * 1.35);
-    const fold = ease((0.85 - 0.4) / 1.2);
-    for (let y = 0; y < h; y += step) {
-      for (let x = 0; x < w; x += cell) {
-        const u = x / w;
-        const v = y / h;
-        const a = u * 3.8 + v * 1.65 + Math.sin(v * 5.4 - time * 0.18) * 0.52;
-        const b = v * 2.7 - u * 0.8 + Math.sin(u * 6 + time * 0.12) * 0.28;
-        const surface =
-          Math.sin(a * 3.5 + time * 0.13) + Math.cos(b * 4.1 - time * 0.09) * 0.57;
-        const value =
-          Math.exp(-((surface / 0.48) ** 2)) * 0.76 +
-          (0.5 + 0.5 * Math.cos(a * 26 + b * 4)) ** 3 * 0.25;
-        if (value < 0.1) continue;
-        const z = surface * 0.22 * fold;
-        const px = (u - 0.5) * Math.cos(fold * 1.1) + z * Math.sin(fold * 1.1);
-        const perspective = 1 / (1 - z * 0.3);
-        waveMorphOrigin.push({
-          x: (0.5 + px * perspective) * w,
-          y: (0.5 + (v - 0.5) * (1 - fold * 0.68) * perspective) * h,
-          char: GLYPHS[Math.min(10, Math.floor(value * 10))],
-          alpha: 0.1 + value * 0.8,
-        });
-      }
-    }
-  }
-  const count = waveMorphOrigin.length;
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = isLightMode() ? "#244a7c" : "#dcddd6";
-  ctx.font = `${mix(Math.max(8, w / 145), (r.w / 100) * 1.67, amount)}px monospace`;
-  for (let i = 0; i < count; i++) {
-    const source = waveMorphOrigin[i];
-    const target =
-      portraitPoints[
-        Math.min(portraitPoints.length - 1, Math.floor((i / count) * portraitPoints.length))
-      ];
-    const bend = Math.sin(amount * Math.PI) * Math.sin(i * 0.618) * 22;
-    ctx.globalAlpha = mix(source.alpha, target.alpha, amount);
-    ctx.fillText(
-      amount < 0.5 ? source.char : target.char,
-      mix(source.x, r.x + target.x * r.w, amount) + bend,
-      mix(source.y, r.y + target.y * r.h, amount),
-    );
-  }
-  ctx.globalAlpha = 1;
+  ctx.imageSmoothingEnabled = prevSmooth;
+  ctx.imageSmoothingQuality = prevQuality;
 }
 
 function diagramRect(): Rect {
@@ -689,337 +532,107 @@ function fitAspectRect(bounds: Rect, aspect: number): Rect {
   };
 }
 
-function sculptureGlyph(char: string, size: number): SculptureGlyph {
-  const key = `${char}:${size}`;
-  const existing = sculptureGlyphs.get(key);
-  if (existing) return existing;
-
-  const image = document.createElement("canvas");
-  const width = Math.ceil(size * 0.92);
-  const height = Math.ceil(size * 1.6);
-  const ratio = 2;
-  image.width = width * ratio;
-  image.height = height * ratio;
-  const c = image.getContext("2d")!;
-  c.scale(ratio, ratio);
-  c.font = `${size}px monospace`;
-  c.textBaseline = "middle";
-  c.fillStyle = isLightMode() ? "#244a7c" : "#dcddd6";
-  c.fillText(char, 0, height * 0.5);
-
-  const result = { image, width, height };
-  sculptureGlyphs.set(key, result);
-  return result;
-}
-
-function renderPoints(
-  context: CanvasRenderingContext2D,
-  from: DiagramPoint[],
-  to: DiagramPoint[],
-  amount: number,
-  rect: Rect,
-  sourceRect: Rect = rect,
-): void {
-  if (amount > 0.999) from = to;
-  const count = Math.max(from.length, to.length);
-  const size =
-    rect.glyphSize ?? Math.round(Math.max(8, (rect.w / 88) * 1.55) * 2) / 2;
-  for (let i = 0; i < count; i++) {
-    const a = from[i % from.length];
-    const b = to[i % to.length];
-    if (!a || !b) continue;
-    const x = mix(sourceRect.x + a.x * sourceRect.w, rect.x + b.x * rect.w, amount);
-    const y = mix(sourceRect.y + a.y * sourceRect.h, rect.y + b.y * rect.h, amount);
-    const bend =
-      Math.sin(amount * Math.PI) * Math.sin(i * 2.399) * Math.min(80, w * 0.08);
-    const sprite = sculptureGlyph(amount < 0.5 ? a.char : b.char, size);
-    let dx = 0;
-    let dy = 0;
-    let ink = mix(a.alpha ?? 1, b.alpha ?? 1, amount);
-    let materialSprite = sprite;
-    if (rect.material) {
-      const material = amount < 0.5 ? a : b;
-      const seed = material.seed ?? i;
-      const depth = material.depth ? 0.4 : 1;
-      const wave = Math.sin(time * 0.29 + x * 0.004 + y * 0.008);
-      dx = Math.cos(time * 0.21 + y * 0.01 + seed * 0.003) * 0.4 * depth;
-      dy = (wave * 0.95 + Math.sin(time * 0.17 + seed * 0.013) * 0.35) * depth;
-      ink = clamp(ink * (1 + Math.sin(time * 0.24 + seed * 0.009) * 0.035));
-      if (material.bank && !material.depth && seed % 11 < 2) {
-        const bank = material.bank;
-        const step = Math.floor(time * 0.18 + seed * 0.017);
-        materialSprite = sculptureGlyph(
-          bank[Math.abs(Math.floor(seed) + step) % bank.length],
-          size,
-        );
-      }
-    }
-    context.globalAlpha = ink;
-    context.drawImage(
-      materialSprite.image,
-      x + bend + dx,
-      y + Math.cos(i) * bend * 0.5 + dy - materialSprite.height / 2,
-      materialSprite.width,
-      materialSprite.height,
-    );
-  }
-  context.globalAlpha = 1;
-}
-
 function drawProjects(): void {
-  if (story < 4.08 || story >= timeline.contactStart) return;
-  const { index, local, entry } = projectSlice(
+  if (story < 4.2 || story >= timeline.contactStart) return;
+  const { index, local } = projectSlice(
     story,
     timeline,
     portfolioProjects.length,
   );
   const project = portfolioProjects[index];
-  const exitFade =
+  const enter = index === 0 ? ease((story - 4.2) / 0.55) : ease(local / 0.22);
+  const leave =
     index === portfolioProjects.length - 1
-      ? 1 - ease((story - (timeline.contactStart - 0.35)) / 0.35)
-      : 1 - ease((local - 0.86) / 0.14);
-  const visualMix = ease((entry - 0.5) / 0.45) * exitFade;
+      ? 1 - ease((story - (timeline.contactStart - 0.5)) / 0.5)
+      : 1 - ease((local - 0.8) / 0.2);
+  const reveal = clamp(enter * leave);
+  if (reveal <= 0.005) return;
 
-  if (visualMix < 0.99) {
-    const next = buildProjectDiagram(project.diagramId, local, time);
-    ctx.globalAlpha = 1 - visualMix * 0.88;
-    if (entry > 0.999) {
-      renderPoints(ctx, next, next, 1, diagramRect());
-    } else {
-      const previous =
-        index === 0
-          ? portraitPoints
-          : buildProjectDiagram(portfolioProjects[index - 1].diagramId, 1, time);
-      if (previous.length) {
-        renderPoints(
-          ctx,
-          previous,
-          next,
-          entry,
-          diagramRect(),
-          index === 0 ? portraitRect() : diagramRect(),
-        );
-      } else {
-        renderPoints(ctx, next, next, 1, diagramRect());
-      }
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  if (visualMix > 0.01) {
-    const visual = renderProjectVisual(
-      project.diagramId,
-      local,
-      time,
-      isLightMode(),
-    );
-    const targetRect = fitAspectRect(diagramRect(), visual.width / visual.height);
-    const prevSmooth = ctx.imageSmoothingEnabled;
-    ctx.imageSmoothingEnabled = false;
-    ctx.globalAlpha = visualMix;
-    ctx.drawImage(
-      visual,
-      targetRect.x,
-      targetRect.y,
-      targetRect.w,
-      targetRect.h,
-    );
-    ctx.globalAlpha = 1;
-    ctx.imageSmoothingEnabled = prevSmooth;
-  }
-}
-
-function textMask(text: string, family: string): DiagramPoint[] {
-  const surface = document.createElement("canvas");
-  surface.width = 1100;
-  surface.height = 360;
-  const c = surface.getContext("2d")!;
-  let size = 300;
-  c.font = `400 ${size}px "${family}"`;
-  size *= Math.min(1, 1040 / c.measureText(text).width);
-  c.font = `400 ${size}px "${family}"`;
-  c.fillStyle = "#fff";
-  const metrics = c.measureText(text);
-  const ascent = metrics.actualBoundingBoxAscent || size * 0.78;
-  const descent = metrics.actualBoundingBoxDescent || size * 0.08;
-  c.fillText(text, 4, (360 + ascent - descent) / 2);
-
-  const pixels = c.getImageData(0, 0, 1100, 360).data;
-  const face: DiagramPoint[] = [];
-  const depth: DiagramPoint[] = [];
-  const banks = [". ,:;`", "-_=~", "/\\|()[]{}<>", "+*#%@&"];
-  for (let y = 0; y < 360; y += 7) {
-    for (let x = 0; x < 1100; x += 7) {
-      const alpha = pixels[(y * 1100 + x) * 4 + 3] / 255;
-      if (alpha < 0.25) continue;
-      const seed = Math.floor(x / 7) * 17 + Math.floor(y / 7) * 31;
-      const bank = banks[(Math.floor(x / 21) + Math.floor(y / 28)) % banks.length];
-      const char = bank[seed % bank.length];
-      face.push({
-        x: x / 1100,
-        y: y / 360,
-        char,
-        bank,
-        seed,
-        alpha: alpha * (0.72 + (1 - y / 360) * 0.22),
-      });
-      if ((x + y) % 3 === 0) {
-        depth.push({
-          x: x / 1100 + 0.005,
-          y: y / 360 + 0.018,
-          char: ":",
-          seed,
-          depth: true,
-          alpha: 0.18,
-        });
-      }
-    }
-  }
-  return [...depth, ...face];
-}
-
-function contactLayout() {
-  if (contactLayoutCache || !contactMasks) return contactLayoutCache;
-  const vh = Math.min(h, innerHeight);
-  const top = { x: w * 0.07, y: vh * 0.1, w: w * 0.86, h: vh * 0.26 };
-  const bottom = { x: w * 0.07, y: vh * 0.35, w: w * 0.86, h: vh * 0.3 };
-  const place = (points: DiagramPoint[], r: Rect): DiagramPoint[] =>
-    points.map((p) => ({
-      ...p,
-      x: (r.x + p.x * r.w) / w,
-      y: (r.y + p.y * r.h) / h,
-    }));
-  contactLayoutCache = {
-    prefixes: contactMasks.prefixes.map((mask) => place(mask, top)),
-    words: contactMasks.words.map((mask) => place(mask, bottom)),
-    rect: {
-      x: 0,
-      y: 0,
-      w,
-      h,
-      glyphSize: Math.max(5, (w / 1100) * 10.8),
-      material: true,
-    },
-  };
-  return contactLayoutCache;
+  const visual = renderProjectVisual(
+    project.diagramId,
+    local,
+    time,
+    isLightMode(),
+    reveal,
+  );
+  const targetRect = fitAspectRect(diagramRect(), visual.width / visual.height);
+  const prevSmooth = ctx.imageSmoothingEnabled;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(
+    visual,
+    targetRect.x,
+    targetRect.y,
+    targetRect.w,
+    targetRect.h,
+  );
+  ctx.imageSmoothingEnabled = prevSmooth;
 }
 
 function drawContact(): void {
-  if (story < timeline.contactStart || !contactMasks) return;
-  const layout = contactLayout();
-  if (!layout) return;
-  const entry = ease((story - timeline.contactStart) / 1.15);
-  if (entry < 0.999) {
-    const lastIndex = portfolioProjects.length - 1;
-    const previous = buildProjectDiagram(
-      portfolioProjects[lastIndex].diagramId,
-      clamp(
-        (timeline.contactStart - timeline.projectStart) / timeline.projectLength -
-          lastIndex,
-      ),
-      time,
-    );
-    const target = [...layout.prefixes[0], ...layout.words[0]];
-    renderPoints(ctx, previous, target, entry, layout.rect, diagramRect());
-    return;
-  }
-  const index = Math.floor(contactWordClock / CONTACT_PERIOD) % 3;
+  if (story < timeline.contactStart) return;
+  const entryReveal = ease((story - timeline.contactStart) / 0.85);
+  const index = Math.floor(contactWordClock / CONTACT_PERIOD) % CONTACT_WORDS.length;
   const part = contactWordClock % CONTACT_PERIOD;
-  const morph = ease((part - CONTACT_HOLD) / (CONTACT_PERIOD - CONTACT_HOLD));
-  const next = (index + 1) % 3;
-  renderPoints(ctx, layout.prefixes[index], layout.prefixes[next], morph, layout.rect);
-  renderPoints(ctx, layout.words[index], layout.words[next], morph, layout.rect);
-}
+  const morph = clamp((part - CONTACT_HOLD) / (CONTACT_PERIOD - CONTACT_HOLD));
+  const next = (index + 1) % CONTACT_WORDS.length;
 
-Promise.all(
-  CONTACT_FACES.map((family) => document.fonts.load(`400 300px "${family}"`)),
-).then(() => {
-  contactMasks = {
-    prefixes: CONTACT_FACES.map((family) => textMask("Let’s", family)),
-    words: ["build.", "make.", "talk."].map((word, i) =>
-      textMask(word, CONTACT_FACES[i]),
-    ),
-  };
-  contactLayoutCache = null;
-  draw();
-});
-
-function drawAmbient(): void {
-  const strength = ease((story - 1.1) / 1.5);
-  if (strength < 0.001) return;
-  const lastIndex = portfolioProjects.length - 1;
-  const theme =
-    story < 4.2
-      ? -1
-      : Math.min(
-          lastIndex,
-          Math.max(
-            0,
-            Math.floor((story - timeline.projectStart) / timeline.projectLength),
-          ),
-        );
-  if (!ambient || ambientWidth !== w || ambientTheme !== theme) {
-    ambientWidth = w;
-    ambientTheme = theme;
-    ambient = document.createElement("canvas");
-    ambient.width = Math.min(1100, w);
-    ambient.height = Math.round((ambient.width * h) / Math.max(1, w));
-    const c = ambient.getContext("2d")!;
-    const aw = ambient.width;
-    const ah = ambient.height;
-    const colors = isLightMode()
-      ? [
-          [34, 62, 103],
-          [29, 55, 96],
-          [38, 67, 108],
-          [28, 72, 92],
-        ]
-      : [
-          [145, 158, 145],
-          [180, 157, 139],
-          [143, 171, 161],
-          [132, 174, 146],
-        ];
-    const index = Math.min(
-      lastIndex,
-      Math.max(0, Math.floor((story - timeline.projectStart) / timeline.projectLength)),
-    );
-    const color =
-      story < 4.2
-        ? isLightMode()
-          ? [32, 59, 99]
-          : [151, 157, 151]
-        : colors[index];
-    c.font = "9px monospace";
-    c.textBaseline = "middle";
-    for (let y = 0; y < ah; y += 13) {
-      for (let x = 0; x < aw; x += 11) {
-        const u = x / aw;
-        const v = y / ah;
-        const phase = u * 8 - v * 6 + Math.sin(v * 4) * 1.3;
-        const ridge = Math.exp(-Math.pow(Math.sin(phase) * 3.2, 2));
-        const fine = 0.5 + 0.5 * Math.cos(u * 27 + v * 13);
-        const quiet = u > 0.55 && v > 0.2 && v < 0.77 ? 0.3 : 1;
-        const alpha = (0.025 + ridge * 0.095) * quiet;
-        c.fillStyle = `rgba(${color.join(",")},${alpha})`;
-        c.fillText([".", ":", "/", "~", "+"][Math.min(4, Math.floor(fine * 5))], x, y);
-      }
+  let activeIdx = index;
+  let wordReveal = 1;
+  if (morph > 0) {
+    if (morph < 0.5) {
+      activeIdx = index;
+      wordReveal = 1 - ease(morph / 0.5);
+    } else {
+      activeIdx = next;
+      wordReveal = ease((morph - 0.5) / 0.5);
     }
   }
-  const driftX = Math.sin(time * 0.035) * w * 0.009;
-  const driftY = Math.cos(time * 0.03) * h * 0.008;
-  ctx.globalAlpha = strength;
-  ctx.drawImage(ambient, -w * 0.025 + driftX, -h * 0.025 + driftY, w * 1.05, h * 1.05);
-  ctx.globalAlpha = 1;
+
+  const reveal = clamp(entryReveal * wordReveal);
+  if (reveal <= 0.005) return;
+
+  const visual = renderContactVisual(activeIdx, time, isLightMode(), reveal);
+  const vh = Math.min(h, innerHeight);
+  const bounds: Rect = {
+    x: w * 0.05,
+    y: vh * 0.11,
+    w: w * 0.9,
+    h: vh * 0.54,
+  };
+  const targetRect = fitAspectRect(bounds, visual.width / visual.height);
+  const drawX = w < 700 ? targetRect.x : Math.min(targetRect.x, w * 0.055);
+  const prevSmooth = ctx.imageSmoothingEnabled;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(visual, drawX, targetRect.y, targetRect.w, targetRect.h);
+  ctx.imageSmoothingEnabled = prevSmooth;
 }
+
+Promise.all([
+  document.fonts.load('400 150px "Bungee"'),
+  document.fonts.load('400 150px "Monoton"'),
+  document.fonts.load('400 150px "Dela Gothic One"'),
+  document.fonts.load('800 150px "Archivo"'),
+]).then(() => {
+  needsDraw = true;
+  draw();
+});
 
 function draw(): void {
   ctx.clearRect(0, 0, w, h);
   if (reduced.matches) return;
-  drawAmbient();
-  if (story < 0.85) drawWaves();
-  else if (story < 1.95) drawWavePortraitMorph();
-  if (story < 4.8) drawPortrait();
+  if (story < 1.85) {
+    renderHeroSea(ctx, w, h, {
+      story,
+      time,
+      frameDelta,
+      paused,
+      reducedMotion: reduced.matches,
+      hover,
+      ripples,
+      lightMode: isLightMode(),
+    });
+  }
+  drawPortrait();
   drawProjects();
   drawContact();
 }
@@ -1038,7 +651,6 @@ function update(): void {
         Math.max(1, journey.offsetHeight - stage.offsetHeight),
     ) * timeline.end;
   if (!reduced.matches) {
-    if (story < 0.7) waveMorphOrigin = null;
     const exit = ease((story - 0.2) / 0.85);
     const reveal = ease((story - 1.5) / 0.65);
     const leave = ease((story - 3.95) / 0.65);
@@ -1054,24 +666,7 @@ function update(): void {
     if (story < timeline.contactStart) contactWordClock = 0;
   }
 
-  if (!isLightMode()) {
-    let bg: readonly [number, number, number] = [16, 17, 15];
-    if (story > 4) {
-      const p = (story - timeline.projectStart) / timeline.projectLength;
-      const index = Math.min(portfolioProjects.length - 1, Math.max(0, Math.floor(p)));
-      const amount = ease(clamp(p - index) / 0.22);
-      const previous: readonly [number, number, number] =
-        index === 0 ? [16, 17, 15] : portfolioProjects[index - 1].background;
-      bg = [
-        Math.round(mix(previous[0], portfolioProjects[index].background[0], amount)),
-        Math.round(mix(previous[1], portfolioProjects[index].background[1], amount)),
-        Math.round(mix(previous[2], portfolioProjects[index].background[2], amount)),
-      ];
-    }
-    document.body.style.backgroundColor = `rgb(${bg.join(",")})`;
-  } else {
-    document.body.style.backgroundColor = "";
-  }
+  document.body.style.backgroundColor = "";
   needsDraw = true;
 }
 
@@ -1097,9 +692,6 @@ function renderReducedDiagrams(): void {
 }
 
 function resize(): void {
-  waveMorphOrigin = null;
-  contactLayoutCache = null;
-  ambient = null;
   w = innerWidth;
   h = stage.clientHeight;
   const d = Math.min(devicePixelRatio || 1, 2);
@@ -1136,7 +728,13 @@ function tick(now: number): void {
       contactWordClock += frameDelta;
     }
     needsDraw = true;
-    if (story > 1.45 && story < 4.2 && cubeArt) {
+    if (
+      story > 1.45 &&
+      story < 4.2 &&
+      cubeArt &&
+      (lastCubeFrame < 0 || time - lastCubeFrame >= 0.032)
+    ) {
+      lastCubeFrame = time;
       buildHobbyArt(cubeArt, time, isLightMode());
     }
   }
@@ -1184,9 +782,13 @@ new IntersectionObserver(([entry]) => {
   sync();
 }).observe(journey);
 
-window.addEventListener("scroll", () => {
-  scrollDirty = true;
-}, { passive: true });
+window.addEventListener(
+  "scroll",
+  () => {
+    scrollDirty = true;
+  },
+  { passive: true },
+);
 window.addEventListener("resize", resize);
 window.addEventListener(
   "pointermove",
@@ -1204,6 +806,8 @@ window.addEventListener(
   (event) => {
     if (paused || reduced.matches || story >= 4.1) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
+    if ((event.target as Element | null)?.closest("a, button")) return;
+    if (ripples.length >= 4) ripples.shift();
     ripples.push({
       x: event.clientX / Math.max(1, w),
       y: event.clientY / Math.max(1, h),

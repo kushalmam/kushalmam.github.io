@@ -568,7 +568,8 @@ export function buildHobbyArt(
   }
 
   renderBayerDither(source, target, {
-    cellSize: 2,
+    cellSize: 1,
+    ditherAmount: 0.22,
     lightMode,
     preserveColor: true,
     edgeStrength: kind === "gundam" ? 0.55 : 0.42,

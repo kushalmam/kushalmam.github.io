@@ -4,8 +4,8 @@ import { renderBayerDither } from "./dither";
 
 const SOURCE_W = 480;
 const SOURCE_H = 360;
-const TARGET_W = 360;
-const TARGET_H = 270;
+const TARGET_W = 320;
+const TARGET_H = 240;
 
 let sharedSource: HTMLCanvasElement | null = null;
 let sharedTarget: HTMLCanvasElement | null = null;
@@ -61,7 +61,7 @@ function drawRekindleScene(
   const entrance = ease(phase / 0.35);
 
   // Left: 3 braided history/signal streams converging into central prism encoder
-  const streamColors = ["#c8cec4", "#e6e8dc", "#9ab5a0"];
+  const streamColors = ["#52d4b8", "#8bf0b8", "#f2d67c"];
   for (let s = 0; s < 3; s++) {
     const startY = 82 + s * 98;
     const endY = 180 + (s - 1) * 14;
@@ -82,7 +82,7 @@ function drawRekindleScene(
     // Source nodes
     c.beginPath();
     c.arc(34, startY, 10, 0, Math.PI * 2);
-    c.fillStyle = s === 1 ? "#ebeae0" : "#8f988f";
+    c.fillStyle = streamColors[s];
     c.fill();
     c.strokeStyle = "#161b18";
     c.lineWidth = 3;
@@ -96,7 +96,7 @@ function drawRekindleScene(
       Math.sin(pt * 7 + s * 2.1 - clock * 1.4) * (16 * (1 - pt * 0.65));
     c.beginPath();
     c.arc(px, py, 6.5, 0, Math.PI * 2);
-    c.fillStyle = "#f2f3e8";
+    c.fillStyle = "#f7fae8";
     c.fill();
     c.strokeStyle = "#161b18";
     c.lineWidth = 2;
@@ -114,15 +114,15 @@ function drawRekindleScene(
   c.lineTo(-22, 46);
   c.lineTo(-30, 0);
   c.closePath();
-  c.fillStyle = "#2b332e";
+  c.fillStyle = "#213832";
   c.fill();
-  c.strokeStyle = "#d9ddd3";
+  c.strokeStyle = "#48c4a8";
   c.lineWidth = 3.5;
   c.stroke();
 
   c.beginPath();
   c.arc(0, 0, 10 + pulse * 3, 0, Math.PI * 2);
-  c.fillStyle = "#d0e6d2";
+  c.fillStyle = "#9af7cc";
   c.fill();
   c.restore();
 
@@ -142,12 +142,18 @@ function drawRekindleScene(
     c.beginPath();
     c.moveTo(254, 180);
     c.bezierCurveTo(272, 180, 274, y + 14, 290, y + 14);
-    c.strokeStyle = isTop ? "#b9d6bc" : "#566059";
+    c.strokeStyle = isTop ? "#8cf2c0" : "#5d7a94";
     c.lineWidth = isTop ? 2.5 : 1.5;
     c.stroke();
 
     drawRoundedRect(c, 292, y, barW, 28, 5);
-    c.fillStyle = isTop ? (rank < 1 ? "#ebeae0" : "#b9d6bc") : "#535c56";
+    c.fillStyle = isTop
+      ? rank < 0.8
+        ? "#8cf2c0"
+        : rank < 1.8
+          ? "#f0e8be"
+          : "#58c9d4"
+      : "#5d7a94";
     c.fill();
     c.strokeStyle = "#161b18";
     c.lineWidth = 3;
@@ -155,7 +161,7 @@ function drawRekindleScene(
 
     // Inner score bar + rank chevron for top 3 items
     drawRoundedRect(c, 304, y + 9, barW * (isTop ? 0.52 : 0.32), 10, 2);
-    c.fillStyle = isTop ? "#232a25" : "#89938c";
+    c.fillStyle = isTop ? "#1b2c26" : "#a8c0d4";
     c.fill();
 
     if (isTop) {
@@ -179,9 +185,9 @@ function drawAutoCPTScene(
 ): void {
   // Left: Framed live audio waveform + scrolling clinical transcript lines
   drawRoundedRect(c, 26, 46, 178, 268, 8);
-  c.fillStyle = "#1e2320";
+  c.fillStyle = "#1c2b30";
   c.fill();
-  c.strokeStyle = "#9ca49c";
+  c.strokeStyle = "#6da3b0";
   c.lineWidth = 3;
   c.stroke();
 
@@ -196,7 +202,7 @@ function drawAutoCPTScene(
           (0.55 + 0.45 * Math.cos(i * 1.1 + clock * 1.9))) *
       envelope;
     const bx = 40 + i * 5.4;
-    c.fillStyle = amp > 28 ? "#efe7cf" : "#96a29a";
+    c.fillStyle = amp > 28 ? "#f5d87c" : "#54d6cf";
     c.fillRect(bx, 118 - amp, 3.2, amp * 2);
   }
 
@@ -207,7 +213,7 @@ function drawAutoCPTScene(
     const lw = 112 + ((line * 37) % 34);
     const highlighted = line === activeLine;
     drawRoundedRect(c, 42, ly, lw, 11, 3);
-    c.fillStyle = highlighted ? "#f3e4b8" : "#646d67";
+    c.fillStyle = highlighted ? "#f7d06b" : "#668196";
     c.fill();
     if (highlighted) {
       c.strokeStyle = "#181d1a";
@@ -233,7 +239,7 @@ function drawAutoCPTScene(
     c.beginPath();
     c.moveTo(204, sourceY);
     c.bezierCurveTo(234, sourceY, 236, targetY, card.x, targetY);
-    c.strokeStyle = active ? "#f3e4b8" : "#565f59";
+    c.strokeStyle = active ? "#f7d06b" : "#58728a";
     c.lineWidth = active ? 3.5 : 1.5;
     c.stroke();
 
@@ -252,7 +258,7 @@ function drawAutoCPTScene(
         t * t * t * targetY;
       c.beginPath();
       c.arc(px, py, 6, 0, Math.PI * 2);
-      c.fillStyle = "#fff4cf";
+      c.fillStyle = "#fff0b3";
       c.fill();
       c.strokeStyle = "#181d1a";
       c.lineWidth = 2;
@@ -265,7 +271,7 @@ function drawAutoCPTScene(
     const w = 88;
     const h = 84;
     drawRoundedRect(c, card.x, card.y, w, h, 6);
-    c.fillStyle = active ? "#f3e4b8" : "#444d47";
+    c.fillStyle = active ? "#f7cf6a" : "#4d688a";
     c.fill();
     c.strokeStyle = "#181d1a";
     c.lineWidth = 3;
@@ -273,18 +279,18 @@ function drawAutoCPTScene(
 
     // Bold 5-digit CPT code block bars
     for (let d = 0; d < 5; d++) {
-      c.fillStyle = active ? "#1c221e" : "#b8c0b8";
+      c.fillStyle = active ? "#242b22" : "#b4d0eb";
       c.fillRect(card.x + 12 + d * 13, card.y + 18, 9, 18);
     }
     // Metadata line & confidence meter
-    c.fillStyle = active ? "#464d47" : "#7f8982";
+    c.fillStyle = active ? "#5e5332" : "#84a2bf";
     c.fillRect(card.x + 12, card.y + 46, 54, 6);
-    c.fillStyle = active ? "#222924" : "#96a099";
+    c.fillStyle = active ? "#242b22" : "#9ec2e0";
     c.fillRect(card.x + 12, card.y + 62, active ? 64 : 40, 8);
 
     // Corner lock-in brackets on active card
     if (active) {
-      c.strokeStyle = "#f5edd2";
+      c.strokeStyle = "#fff0b3";
       c.lineWidth = 3;
       const pad = 6;
       const len = 12;
@@ -320,9 +326,9 @@ function drawNBAnomalyScene(
     cy,
     radius,
   );
-  grad.addColorStop(0, "#f1aa74");
-  grad.addColorStop(0.55, "#d88855");
-  grad.addColorStop(1, "#523220");
+  grad.addColorStop(0, "#f4a25e");
+  grad.addColorStop(0.55, "#dc7838");
+  grad.addColorStop(1, "#7a3c1c");
 
   c.save();
   c.beginPath();
@@ -373,7 +379,7 @@ function drawNBAnomalyScene(
   const baseX = 238;
   const baseY = 296;
   const chartW = 216;
-  c.strokeStyle = "#566059";
+  c.strokeStyle = "#5d788c";
   c.lineWidth = 2;
   for (let g = 0; g < 4; g++) {
     const gy = baseY - g * 66;
@@ -393,7 +399,7 @@ function drawNBAnomalyScene(
     const y = baseY - colH;
 
     drawRoundedRect(c, x, y, 14, colH, 3);
-    c.fillStyle = isOutlier ? "#f4e07c" : "#808c84";
+    c.fillStyle = isOutlier ? "#f7df65" : "#5b8aa8";
     c.fill();
     c.strokeStyle = "#171c19";
     c.lineWidth = 2.5;
@@ -404,7 +410,7 @@ function drawNBAnomalyScene(
       const rx = x + 7;
       const ry = y;
       const ringR = 16 + Math.sin(clock * 3) * 2.5;
-      c.strokeStyle = "#faf0b4";
+      c.strokeStyle = "#ff8b60";
       c.lineWidth = 2.5;
       c.beginPath();
       c.arc(rx, ry, ringR, 0, Math.PI * 2);
@@ -453,7 +459,7 @@ function drawCosmicRecompScene(
     c.beginPath();
     c.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
     c.lineTo(Math.cos(a) * 155, Math.sin(a) * 155);
-    c.strokeStyle = i % 4 === 0 ? "#85b894" : "#445449";
+    c.strokeStyle = i % 4 === 0 ? "#66f0c2" : "#52786a";
     c.lineWidth = i % 4 === 0 ? 3 : 2;
     c.stroke();
   }
@@ -473,13 +479,13 @@ function drawCosmicRecompScene(
     c.lineTo(27, -122);
     c.lineTo(-27, -122);
     c.closePath();
-    c.fillStyle = "#8a968e";
+    c.fillStyle = "#9cb0a4";
     c.fill();
     c.strokeStyle = "#141a16";
     c.lineWidth = 3.5;
     c.stroke();
 
-    c.fillStyle = "#2d3731";
+    c.fillStyle = "#34463d";
     c.fillRect(-11, -117, 22, 6);
     c.restore();
   }
@@ -487,7 +493,7 @@ function drawCosmicRecompScene(
   // Outer bevel ring
   c.beginPath();
   c.arc(0, 0, 112, 0, Math.PI * 2);
-  c.fillStyle = "#48544d";
+  c.fillStyle = "#6c7d74";
   c.fill();
   c.strokeStyle = "#141a16";
   c.lineWidth = 4;
@@ -496,7 +502,7 @@ function drawCosmicRecompScene(
   // Main stepped metallic slate ring
   c.beginPath();
   c.arc(0, 0, 102, 0, Math.PI * 2);
-  c.fillStyle = "#9aa79e";
+  c.fillStyle = "#bcc9c1";
   c.fill();
   c.strokeStyle = "#141a16";
   c.lineWidth = 3.5;
@@ -516,7 +522,7 @@ function drawCosmicRecompScene(
     const py = Math.sin(a) * 98;
     c.beginPath();
     c.arc(px, py, 6, 0, Math.PI * 2);
-    c.fillStyle = "#78f59a";
+    c.fillStyle = "#5cf284";
     c.fill();
     c.strokeStyle = "#141a16";
     c.lineWidth = 2.5;
@@ -537,8 +543,8 @@ function drawCosmicRecompScene(
   // Luminous radial emerald gradient filling the entire dial circle
   const emerald = c.createRadialGradient(0, 0, 6, 0, 0, dialR);
   emerald.addColorStop(0, "#b4ffd0");
-  emerald.addColorStop(0.55, "#62ee84");
-  emerald.addColorStop(1, "#36be5d");
+  emerald.addColorStop(0.55, "#5cf284");
+  emerald.addColorStop(1, "#30b858");
   c.fillStyle = emerald;
   c.fillRect(-dialR - 2, -dialR - 2, dialR * 2 + 4, dialR * 2 + 4);
 
@@ -605,7 +611,7 @@ function drawCosmicRecompScene(
     const waveR = 54 + wavePhase * 98;
     c.beginPath();
     c.arc(cx, cy, waveR, 0, Math.PI * 2);
-    c.strokeStyle = wavePhase < 0.6 ? "#9effba" : "#5bb876";
+    c.strokeStyle = wavePhase < 0.6 ? "#66f0c2" : "#44c29a";
     c.lineWidth = Math.max(1.5, 4.5 * (1 - wavePhase));
     c.stroke();
   }
@@ -616,6 +622,7 @@ export function renderProjectVisual(
   phase: number,
   clock: number,
   lightMode: boolean,
+  reveal = 1,
 ): HTMLCanvasElement {
   const canvases = ensureCanvases();
   if (!canvases) {
@@ -639,10 +646,12 @@ export function renderProjectVisual(
   }
 
   renderBayerDither(source, target, {
-    cellSize: 2,
+    cellSize: 1,
+    ditherAmount: 0.22,
     lightMode,
     preserveColor: true,
     edgeStrength: id === "cosmicrecomp" ? 0.56 : 0.48,
+    reveal,
   });
 
   return target;

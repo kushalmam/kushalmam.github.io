@@ -24,7 +24,7 @@ export const portfolioProjects: PortfolioProject[] = [
     name: "Rekindle",
     slug: "rekindle",
     diagramId: "rekindle",
-    background: [16, 17, 15],
+    background: [14, 21, 18],
     category: "Retrieval & ranking",
     summary:
       "A product recommender that learns from review histories, achieving about 46% higher offline NDCG@10 than its strongest baseline.",
@@ -39,7 +39,7 @@ export const portfolioProjects: PortfolioProject[] = [
     name: "AutoCPT",
     slug: "autocpt",
     diagramId: "autocpt",
-    background: [19, 18, 17],
+    background: [23, 19, 15],
     category: "Applied AI · HackNYU winner",
     summary:
       "A speech-to-CPT prototype that suggests billing codes from live clinical transcripts to reduce manual code lookup.",
@@ -54,7 +54,7 @@ export const portfolioProjects: PortfolioProject[] = [
     name: "NBAnomaly",
     slug: "nbanomaly",
     diagramId: "nbanomaly",
-    background: [17, 19, 18],
+    background: [17, 21, 29],
     category: "Sports data platform",
     summary:
       "A basketball analytics platform that compares player statistics to surface unusual performance profiles.",
@@ -69,7 +69,7 @@ export const portfolioProjects: PortfolioProject[] = [
     name: "CosmicRecomp",
     slug: "cosmicrecomp",
     diagramId: "cosmicrecomp",
-    background: [15, 20, 16],
+    background: [11, 23, 16],
     category: "Static recompilation",
     summary:
       "A high-performance static recompilation port of Ben 10 Ultimate Alien: Cosmic Destruction, backed by automated correctness tests and verification harnesses.",

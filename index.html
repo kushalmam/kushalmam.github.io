@@ -14,7 +14,10 @@
           document.documentElement.dataset.mode = mode;
           if (mode === "light") {
             var meta = document.querySelector('meta[name="theme-color"]');
-            if (meta) meta.setAttribute("content", "#f2f6fc");
+            if (meta) meta.setAttribute("content", "#f6f5f0");
+          } else if (mode === "dark") {
+            var darkMeta = document.querySelector('meta[name="theme-color"]');
+            if (darkMeta) darkMeta.setAttribute("content", "#10110f");
           }
         }
       } catch {}
@@ -111,7 +114,7 @@
         max-width: 60rem;
         margin: auto;
         padding: 4rem 1.5rem;
-        color: #eaeae3;
+        color: #f0f2ec;
         background: #10110f;
         font:
           1rem/1.7 system-ui,

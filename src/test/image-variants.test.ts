@@ -16,7 +16,7 @@ const rasterProjects = portfolioProjects.filter(
 
 /** Intrinsic width of each source, mirroring the call sites. */
 const sources: { path: string; width: number }[] = [
-  { path: "images/portrait.jpg", width: 720 },
+  { path: "images/portrait.jpg", width: 960 },
   ...rasterProjects.map(project => ({ path: `images/projects/${project.image}`, width: project.width })),
 ];
 
@@ -52,7 +52,7 @@ describe("responsive image variants", () => {
 
   it("offers the modern formats before the original in both renderers", () => {
     const fallback = staticFallback("/");
-    expect(fallback).toContain(`srcset="/images/portrait-480.avif 480w, /images/portrait-720.avif 720w" sizes="${PORTRAIT_SIZES}"`);
+    expect(fallback).toContain(`srcset="/images/portrait-480.avif 480w, /images/portrait-900.avif 900w, /images/portrait-960.avif 960w" sizes="${PORTRAIT_SIZES}"`);
     expect(fallback).toContain('type="image/webp"');
     expect(fallback).toContain('src="/images/portrait.jpg"');
     for (const project of rasterProjects) {

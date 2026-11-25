@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { applyBayerMask, BAYER_8X8, bayerThreshold } from "../canvas/dither";
+import {
+  applyBayerMask,
+  BAYER_8X8,
+  bayerRevealPass,
+  bayerThreshold,
+  risographLightInk,
+} from "../canvas/dither";
 
 describe("Bayer 8x8 dithering helpers", () => {
   it("builds a complete 8x8 matrix of 64 unique thresholds in (0, 1)", () => {
@@ -44,5 +50,28 @@ describe("Bayer 8x8 dithering helpers", () => {
     expect(
       Array.from({ length: 64 }, (_, i) => outFull[i * 4 + 3]).every((a) => a === 255),
     ).toBe(true);
+  });
+
+  it("gates cells progressively in bayerRevealPass", () => {
+    let passHalf = 0;
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        expect(bayerRevealPass(x, y, 0)).toBe(false);
+        expect(bayerRevealPass(x, y, -0.2)).toBe(false);
+        expect(bayerRevealPass(x, y, 1)).toBe(true);
+        expect(bayerRevealPass(x, y, 1.5)).toBe(true);
+        if (bayerRevealPass(x, y, 0.5)) passHalf++;
+      }
+    }
+    expect(passHalf).toBe(32);
+  });
+
+  it("preserves vibrant hues for saturated accents and maps neutrals to graphite ink", () => {
+    expect(risographLightInk(200, 200, 200, true)).toEqual([42, 46, 44]);
+    expect(risographLightInk(200, 200, 200, false)).toEqual([96, 102, 98]);
+    const emerald = risographLightInk(100, 240, 140, false);
+    expect(emerald[1]).toBeGreaterThan(emerald[0]);
+    expect(emerald[1]).toBeGreaterThan(emerald[2]);
+    expect(emerald[1]).toBeGreaterThan(150);
   });
 });

@@ -29,14 +29,14 @@
   font-display: swap;
 }
 
-/* Charcoal default with Cobalt light-mode study */
+/* Minimal charcoal ground with Cobalt light-mode study */
 :root {
   --bg: #10110f;
-  --ink: #eaeae3;
+  --ink: #f0f2ec;
   --quiet: #a4a59a;
-  --rule: rgba(234, 234, 227, 0.22);
-  --accent: #88aaf5;
-  --field-ink: 190, 201, 167;
+  --rule: rgba(240, 242, 236, 0.2);
+  --accent: #6ee7c0;
+  --field-ink: 120, 208, 194;
   color-scheme: dark;
 }
 
@@ -67,6 +67,7 @@ a {
 }
 
 a:hover {
+  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 5px;
 }
@@ -84,7 +85,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  mix-blend-mode: difference;
+  text-shadow: 0 1px 12px var(--bg);
 }
 
 .header-mark {
@@ -111,7 +112,7 @@ header nav {
   gap: 7px;
   padding: 4px 8px;
   border: 1px solid var(--rule);
-  background: transparent;
+  background: rgba(16, 17, 15, 0.85);
   color: inherit;
   font: inherit;
   cursor: pointer;
@@ -139,16 +140,16 @@ header nav {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 2;
+  z-index: 1;
 }
 
-/* Hero: oversized full name, with the character layer passing in front. */
+/* Hero: oversized full name sitting strictly in front of the background wave layer. */
 .opening {
   position: absolute;
   left: 3%;
   top: 22%;
   width: 94%;
-  z-index: 1;
+  z-index: 3;
 }
 
 .opening h1 {
@@ -157,6 +158,7 @@ header nav {
   line-height: 0.83;
   letter-spacing: -0.065em;
   margin: 0;
+  text-shadow: 0 2px 24px var(--bg);
 }
 
 .opening h1 span {
@@ -172,6 +174,7 @@ header nav {
   line-height: 1.18;
   letter-spacing: -0.025em;
   margin: 0;
+  text-shadow: 0 1px 14px var(--bg);
 }
 
 .opening .scroll-link {
@@ -216,7 +219,7 @@ header nav {
   width: 3px;
   height: 8px;
   margin: 0;
-  background: currentColor;
+  background: var(--accent);
   animation: scroll-invitation 3.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
@@ -443,6 +446,7 @@ body[data-motion-paused="true"] .scroll-travel {
   display: none;
   font-family: Bungee, Archivo, sans-serif;
   font-weight: 400;
+  color: var(--accent);
 }
 
 .stage-footer {
@@ -457,14 +461,14 @@ body[data-motion-paused="true"] .scroll-travel {
   z-index: 3;
 }
 
-/* Cobalt light theme */
+/* Light paper theme mirroring the dark charcoal aesthetic */
 html[data-mode="light"] {
-  --bg: #f2f6fc;
-  --ink: #102748;
-  --quiet: #294b79;
-  --rule: rgba(24, 54, 96, 0.34);
-  --accent: #234f8a;
-  --field-ink: 35, 79, 138;
+  --bg: #f6f5f0;
+  --ink: #141513;
+  --quiet: #555954;
+  --rule: rgba(20, 21, 19, 0.22);
+  --accent: #0f8f6b;
+  --field-ink: 20, 21, 19;
   color-scheme: light;
 }
 
@@ -477,25 +481,25 @@ html[data-mode="light"] .stage {
 }
 
 html[data-mode="light"] header {
-  color: #102748;
-  mix-blend-mode: normal;
+  color: #141513;
 }
 
 html[data-mode="light"] .theme-toggle {
-  color: #102748;
-  border-color: rgba(24, 54, 96, 0.48);
+  color: #141513;
+  background: rgba(246, 245, 240, 0.88);
+  border-color: rgba(20, 21, 19, 0.34);
 }
 
 html[data-mode="light"] .theme-toggle:hover {
-  border-color: #234f8a;
+  border-color: #0f8f6b;
 }
 
 html[data-mode="light"] .project-panel > a {
-  color: #234f8a;
+  color: #0f8f6b;
 }
 
 html[data-mode="light"] .contact-links a:hover {
-  color: #234f8a;
+  color: #0f8f6b;
 }
 
 html[data-mode="light"] .stage-footer {
