@@ -402,23 +402,36 @@ void main() {
   ivec2 veilCell = clamp(ivec2(floor(vUv * vec2(uVeilSize))), ivec2(0), uVeilSize - 1);
   float veilVal = texelFetch(uVeilTex, veilCell, 0).r;
   float shown = clamp(uPhotoMix + veilVal, 0.0, 1.0);
-  bool showPhoto = (shown >= 1.0) || (shown > 0.0 && shown > bayer8x8(veilCell));
 
-  if (showPhoto) {
-    vec3 photoRgb = texture(uPortraitTex, vUv).rgb;
-    float a = uPortraitReveal;
-    if (a <= 0.0) discard;
-    outColor = vec4(photoRgb * a, a);
-    return;
-  }
+  vec3 photoRgb = texture(uPortraitTex, vUv).rgb;
+  float lum = dot(photoRgb, vec3(0.2126, 0.7152, 0.0722));
+  float mid = 1.0 - abs(2.0 * uPhotoMix - 1.0);
+  float shownBias = clamp(shown + (lum - 0.5) * 0.14 * mid, 0.0, 1.0);
+
+  float b = bayer8x8(veilCell);
+  float photoWeight = shown >= 0.999
+    ? 1.0
+    : (shown <= 0.001 ? 0.0 : smoothstep(b - 0.16, b + 0.16, shownBias));
 
   ivec2 cell = clamp(ivec2(floor(vUv * vec2(uDitherGrid))), ivec2(0), uDitherGrid - 1);
-  if (uPortraitReveal < 1.0 && (uPortraitReveal <= 0.0 || uPortraitReveal <= bayer8x8(cell + ivec2(3, 5)))) {
-    discard;
+  float revB = bayer8x8(cell + ivec2(3, 5));
+  float revealMask = uPortraitReveal >= 0.999
+    ? 1.0
+    : (uPortraitReveal <= 0.001 ? 0.0 : smoothstep(revB - 0.18, revB + 0.18, uPortraitReveal));
+  if (revealMask <= 0.002) discard;
+
+  vec4 photoPremul = vec4(photoRgb, 1.0);
+  vec4 blended;
+  if (photoWeight >= 0.999) {
+    blended = photoPremul;
+  } else {
+    vec4 d = texelFetch(uPortraitDitherTex, ivec2(cell.x, uDitherGrid.y - 1 - cell.y), 0);
+    blended = mix(d, photoPremul, photoWeight);
   }
-  vec4 d = texelFetch(uPortraitDitherTex, ivec2(cell.x, uDitherGrid.y - 1 - cell.y), 0);
-  if (d.a <= 0.0) discard;
-  outColor = d;
+
+  vec4 finalColor = blended * revealMask;
+  if (finalColor.a <= 0.002) discard;
+  outColor = finalColor;
 }
 `;
 
@@ -748,12 +761,12 @@ export class GlStageRenderer {
     gl.uniform2i(L["uGridSize"], gridW, gridH);
     gl.uniform1i(L["uLightMode"], lightMode ? 1 : 0);
     gl.uniform1i(L["uPreserveColor"], 1);
-    gl.uniform1f(L["uEdgeStrength"], 0.34);
-    gl.uniform1f(L["uGamma"], lightMode ? 0.92 : 0.84);
+    gl.uniform1f(L["uEdgeStrength"], 0.22);
+    gl.uniform1f(L["uGamma"], lightMode ? 0.94 : 0.88);
     gl.uniform1f(L["uAlphaThreshold"], 40 / 255);
     gl.uniform1f(L["uReveal"], 1);
-    gl.uniform1f(L["uDitherAmount"], 0.24);
-    gl.uniform1f(L["uLevels"], 4);
+    gl.uniform1f(L["uDitherAmount"], 0.18);
+    gl.uniform1f(L["uLevels"], 6);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
     gl.enable(gl.BLEND);

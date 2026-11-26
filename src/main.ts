@@ -187,7 +187,7 @@ let scrollDirty = true;
 let fieldDirty = true;
 
 function isPortraitSettledStatic(): boolean {
-  return story >= 2.8 && story <= 3.55 && ripples.length === 0 && Boolean(portrait);
+  return story >= 2.85 && story <= 3.35 && ripples.length === 0 && Boolean(portrait);
 }
 
 function stopLoop(): void {
@@ -287,8 +287,8 @@ photo.src = `${base}images/portrait-900.avif`;
 
 function cachePortrait(): void {
   if (!portrait) return;
-  const cols = 100;
-  const rows = Math.round((100 * portrait.height) / portrait.width);
+  const cols = 160;
+  const rows = Math.round((cols * portrait.height) / portrait.width);
 
   veilCols = cols;
   veilRows = rows;
@@ -325,17 +325,19 @@ function cachePortrait(): void {
     ph,
   );
 
-  const ditherW = 240;
+  const ditherW = 320;
   const ditherH = Math.round((ditherW * portrait.height) / portrait.width);
   portraitDither = document.createElement("canvas");
   portraitDither.width = ditherW;
   portraitDither.height = ditherH;
   renderBayerDither(portraitPhoto, portraitDither, {
     cellSize: 2,
-    ditherAmount: 0.24,
+    ditherAmount: 0.18,
     lightMode: isLightMode(),
     preserveColor: true,
-    edgeStrength: 0.34,
+    edgeStrength: 0.22,
+    gamma: isLightMode() ? 0.94 : 0.88,
+    levels: 6,
   });
 
   portraitDitherAnimated = document.createElement("canvas");
@@ -474,15 +476,15 @@ function drawPortrait(): void {
   if (portraitReveal <= 0.005) return;
 
   const r = portraitRect();
-  const toPhoto = ease((story - 2.25) / 0.55);
-  const toDither = ease((story - 3.55) / 0.55);
+  const toPhoto = ease((story - 2.0) / 0.85);
+  const toDither = ease((story - 3.35) / 0.5);
   const photoMix = toPhoto * (1 - toDither) * portraitReveal;
 
   if (glStage) {
     if (photoMix < 0.999 || ripples.length > 0) {
       stepVeil(r);
     }
-    const ditherGridW = 120;
+    const ditherGridW = 160;
     const ditherGridH = Math.max(1, Math.round((ditherGridW * portrait.height) / portrait.width));
     glStage.drawPortrait({
       rect: r,
@@ -519,10 +521,12 @@ function drawPortrait(): void {
   if (portraitReveal < 0.995) {
     renderBayerDither(portraitPhoto, portraitDitherAnimated, {
       cellSize: 2,
-      ditherAmount: 0.24,
+      ditherAmount: 0.18,
       lightMode: isLightMode(),
       preserveColor: true,
-      edgeStrength: 0.34,
+      edgeStrength: 0.22,
+      gamma: isLightMode() ? 0.94 : 0.88,
+      levels: 6,
       reveal: portraitReveal,
     });
     ditherSurface = portraitDitherAnimated;
