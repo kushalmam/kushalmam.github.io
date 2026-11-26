@@ -48,6 +48,8 @@ export interface GpuDitherCanvas {
     options: Omit<DitherTexOptions, "gridW" | "gridH">,
   ): boolean;
   drawCube(target: HTMLCanvasElement, clock: number, lightMode: boolean): boolean;
+  drawGundam(target: HTMLCanvasElement, clock: number, lightMode: boolean): boolean;
+  drawMystery(target: HTMLCanvasElement, clock: number, lightMode: boolean): boolean;
   warmup(): void;
 }
 
@@ -1312,6 +1314,412 @@ export class GlStageRenderer {
   }
 }
 
+const GUNDAM_VERT_SRC = `#version 300 es
+in vec3 aPos;
+in vec3 aNormal;
+in vec2 aUv;
+in vec3 aColor;
+in float aMode;
+
+uniform float uYaw;
+uniform float uTilt;
+
+out vec2 vUv;
+out vec3 vColor;
+out vec3 vNormal;
+out float vMode;
+
+void main() {
+  float cy = cos(uYaw);
+  float sy = sin(uYaw);
+  float ct = cos(uTilt);
+  float st = sin(uTilt);
+
+  vec3 p = vec3(aPos.x * cy + aPos.z * sy, aPos.y, -aPos.x * sy + aPos.z * cy);
+  vec3 pos = vec3(p.x, p.y * ct - p.z * st, p.y * st + p.z * ct);
+
+  vec3 n0 = vec3(aNormal.x * cy + aNormal.z * sy, aNormal.y, -aNormal.x * sy + aNormal.z * cy);
+  vNormal = normalize(vec3(n0.x, n0.y * ct - n0.z * st, n0.y * st + n0.z * ct));
+
+  float persp = 1.0 / (1.0 - pos.z * 0.08);
+  vUv = aUv;
+  vColor = aColor;
+  vMode = aMode;
+  gl_Position = vec4(
+    pos.x * persp * (74.0 / 200.0),
+    -((pos.y * persp * 74.0 - 4.0) / 150.0),
+    -pos.z * 0.14,
+    1.0
+  );
+}
+`;
+
+const GUNDAM_FRAG_SRC = `#version 300 es
+precision highp float;
+
+in vec2 vUv;
+in vec3 vColor;
+in vec3 vNormal;
+in float vMode;
+uniform float uClock;
+
+out vec4 outColor;
+
+void main() {
+  vec3 col = vColor;
+  if (vMode > 0.5) {
+    float pulse = 0.92 + 0.08 * sin(uClock * 2.4);
+    outColor = vec4(clamp(col * pulse, 0.0, 1.0), 1.0);
+    return;
+  }
+  vec3 lightDir = normalize(vec3(-0.52, 0.72, 0.66));
+  float diff = clamp(dot(normalize(vNormal), lightDir) * 0.5 + 0.5, 0.0, 1.0);
+  float shade = 0.58 + 0.46 * diff;
+  vec3 lit = clamp(col * shade, 0.0, 1.0);
+  if (vMode > -0.5) {
+    float edge = max(abs(vUv.x), abs(vUv.y));
+    float border = smoothstep(0.425, 0.455, edge);
+    vec3 stroke = vec3(31.0 / 255.0, 38.0 / 255.0, 34.0 / 255.0);
+    lit = mix(lit, stroke, border);
+  }
+  outColor = vec4(lit, 1.0);
+}
+`;
+
+const MYSTERY_FRAG_SRC = `#version 300 es
+precision highp float;
+
+uniform float uClock;
+out vec4 outColor;
+
+vec2 rot2d(vec2 p, float a) {
+  float c = cos(a);
+  float s = sin(a);
+  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
+}
+
+float sdTorus(vec3 p, vec2 t) {
+  vec2 q = vec2(length(p.xy) - t.x, p.z);
+  return length(q) - t.y;
+}
+
+float sdCapsule(vec3 p, vec3 a, vec3 b, float r) {
+  vec3 pa = p - a;
+  vec3 ba = b - a;
+  float h = clamp(dot(pa, ba) / max(1e-5, dot(ba, ba)), 0.0, 1.0);
+  return length(pa - ba * h) - r;
+}
+
+float sdRoundBox(vec3 p, vec3 b, float r) {
+  vec3 q = abs(p) - b;
+  return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r;
+}
+
+vec2 sceneMap(vec3 p, vec3 loupeOff, out vec3 localP) {
+  // Tilted evidence card behind the loupe
+  vec3 cp = p - vec3(-0.08, 0.04, -0.32);
+  cp.xz = rot2d(cp.xz, 0.14);
+  cp.yz = rot2d(cp.yz, -0.1);
+  float dCard = sdRoundBox(cp, vec3(1.15, 0.92, 0.045), 0.04);
+
+  // Loupe local transform
+  vec3 lp = p - loupeOff;
+  lp.xy = rot2d(lp.xy, 0.08 * sin(uClock * 0.55));
+  lp.xz = rot2d(lp.xz, -0.18 + 0.09 * sin(uClock * 0.7));
+  lp.yz = rot2d(lp.yz, 0.24 + 0.05 * cos(uClock * 0.6));
+  localP = lp;
+
+  float dRim = sdTorus(lp, vec2(0.76, 0.105));
+  vec3 dir = vec3(0.70710678, -0.70710678, 0.0);
+  float dFerrule = sdCapsule(lp, dir * 0.84, dir * 1.08, 0.105);
+  float dHandle = sdCapsule(lp, dir * 1.10, dir * 1.92, 0.135);
+
+  vec2 res = vec2(dCard, 1.0);
+  if (dRim < res.x) res = vec2(dRim, 2.0);
+  if (dFerrule < res.x) res = vec2(dFerrule, 3.0);
+  if (dHandle < res.x) res = vec2(dHandle, 4.0);
+  return res;
+}
+
+vec3 calcNormal(vec3 p, vec3 loupeOff) {
+  vec3 dummy;
+  vec2 e = vec2(0.004, 0.0);
+  return normalize(vec3(
+    sceneMap(p + e.xyy, loupeOff, dummy).x - sceneMap(p - e.xyy, loupeOff, dummy).x,
+    sceneMap(p + e.yxy, loupeOff, dummy).x - sceneMap(p - e.yxy, loupeOff, dummy).x,
+    sceneMap(p + e.yyx, loupeOff, dummy).x - sceneMap(p - e.yyx, loupeOff, dummy).x
+  ));
+}
+
+vec3 shadeEvidence(vec2 uv, float mag) {
+  // Ruled slate evidence plate with concentric fingerprint clue ridges
+  vec3 base = vec3(56.0, 66.0, 62.0) / 255.0;
+  float grid = smoothstep(0.03, 0.0, abs(fract(uv.y * 5.0) - 0.5) - 0.45);
+  base = mix(base, vec3(92.0, 108.0, 102.0) / 255.0, grid * 0.55);
+
+  vec2 fp = (uv - vec2(0.05, 0.02)) * vec2(1.15, 0.88);
+  fp = rot2d(fp, -0.25);
+  float r = length(fp);
+  float ring = sin(r * 34.0 + sin(fp.x * 8.0) * 1.4);
+  float ridge = smoothstep(0.15, -0.25, ring) * smoothstep(0.68, 0.42, r);
+  vec3 ink = mag > 0.5 ? vec3(236.0, 214.0, 128.0) / 255.0 : vec3(156.0, 186.0, 174.0) / 255.0;
+  vec3 col = mix(base, ink, ridge * (mag > 0.5 ? 0.92 : 0.62));
+
+  // Subtle evidence marker ring
+  float mark = smoothstep(0.035, 0.0, abs(r - 0.28));
+  col = mix(col, vec3(110.0, 231.0, 192.0) / 255.0, mark * (mag > 0.5 ? 0.85 : 0.45));
+  return col;
+}
+
+void main() {
+  vec2 uv = vec2(gl_FragCoord.x - 200.0, -(gl_FragCoord.y - 150.0)) / 145.0;
+  vec3 ro = vec3(0.06, -0.04, 3.6);
+  vec3 rd = normalize(vec3(uv, -2.15));
+  vec3 loupeOff = vec3(
+    -0.22 + 0.16 * sin(uClock * 0.72),
+    0.16 + 0.1 * cos(uClock * 0.58),
+    0.26
+  );
+
+  float t = 0.0;
+  float minDist = 100.0;
+  float mat = 0.0;
+  vec3 hitLp = vec3(0.0);
+  for (int i = 0; i < 40; i++) {
+    vec3 p = ro + rd * t;
+    vec2 h = sceneMap(p, loupeOff, hitLp);
+    minDist = min(minDist, h.x);
+    if (h.x < 0.004) {
+      mat = h.y;
+      break;
+    }
+    t += h.x;
+    if (t > 6.5) break;
+  }
+
+  // Test lens glass plane intersection in loupe local space
+  vec3 lpRo = ro - loupeOff;
+  lpRo.xy = rot2d(lpRo.xy, 0.08 * sin(uClock * 0.55));
+  lpRo.xz = rot2d(lpRo.xz, -0.18 + 0.09 * sin(uClock * 0.7));
+  lpRo.yz = rot2d(lpRo.yz, 0.24 + 0.05 * cos(uClock * 0.6));
+  vec3 lpRd = rd;
+  lpRd.xy = rot2d(lpRd.xy, 0.08 * sin(uClock * 0.55));
+  lpRd.xz = rot2d(lpRd.xz, -0.18 + 0.09 * sin(uClock * 0.7));
+  lpRd.yz = rot2d(lpRd.yz, 0.24 + 0.05 * cos(uClock * 0.6));
+  float tGlass = -lpRo.z / (abs(lpRd.z) > 0.01 ? lpRd.z : -0.01);
+  vec3 glassP = lpRo + lpRd * tGlass;
+  float glassR = length(glassP.xy);
+  bool hitGlass = tGlass > 0.0 && glassR < 0.71 && (mat == 0.0 || mat == 1.0 || tGlass < t);
+
+  vec3 outline = vec3(31.0 / 255.0, 38.0 / 255.0, 34.0 / 255.0);
+  vec3 lightDir = normalize(vec3(-0.55, 0.72, 0.66));
+
+  if (hitGlass) {
+    // Magnify evidence surface underneath + curved lens specular highlight
+    vec2 magUv = glassP.xy * 0.56 + loupeOff.xy * 0.45;
+    vec3 ev = shadeEvidence(magUv, 1.0);
+    vec3 lensTint = mix(ev, vec3(174.0, 224.0, 210.0) / 255.0, 0.16);
+    float rimShade = smoothstep(0.45, 0.7, glassR);
+    lensTint = mix(lensTint, vec3(88.0, 128.0, 122.0) / 255.0, rimShade * 0.32);
+    float spec = smoothstep(0.06, 0.0, abs(glassR - 0.52)) * smoothstep(0.2, 0.65, -glassP.x + glassP.y);
+    lensTint = mix(lensTint, vec3(244.0, 248.0, 242.0) / 255.0, spec * 0.82);
+    outColor = vec4(lensTint, 1.0);
+    return;
+  }
+
+  if (mat == 0.0) {
+    outColor = vec4(0.0);
+    return;
+  }
+
+  vec3 p = ro + rd * t;
+  vec3 n = calcNormal(p, loupeOff);
+  float diff = clamp(dot(n, lightDir) * 0.5 + 0.5, 0.0, 1.0);
+  float shade = 0.54 + 0.5 * diff;
+
+  vec3 baseCol = vec3(0.75);
+  if (mat == 1.0) {
+    // Evidence card with soft loupe shadow
+    vec3 cp = p - vec3(-0.08, 0.04, -0.32);
+    cp.xz = rot2d(cp.xz, 0.14);
+    cp.yz = rot2d(cp.yz, -0.1);
+    baseCol = shadeEvidence(cp.xy, 0.0);
+    float cardBorder = max(abs(cp.x) - 1.11, abs(cp.y) - 0.88);
+    if (cardBorder > 0.0) baseCol = outline;
+    float shad = smoothstep(0.7, 1.1, length(p.xy - loupeOff.xy));
+    baseCol *= 0.58 + 0.42 * shad;
+  } else if (mat == 2.0) {
+    // Beveled metallic rim
+    baseCol = vec3(222.0, 228.0, 220.0) / 255.0 * shade;
+  } else if (mat == 3.0) {
+    // Ferrule collar
+    baseCol = vec3(132.0, 146.0, 140.0) / 255.0 * shade;
+  } else {
+    // Turned handle with grip bands
+    float along = dot(hitLp.xy, vec2(0.70710678, -0.70710678));
+    float band = smoothstep(0.18, 0.0, abs(fract(along * 7.0) - 0.5) - 0.3);
+    vec3 hCol = mix(vec3(78.0, 88.0, 84.0), vec3(48.0, 56.0, 52.0), band) / 255.0;
+    float spec = pow(clamp(dot(reflect(-lightDir, n), -rd), 0.0, 1.0), 10.0);
+    baseCol = hCol * shade + vec3(0.16) * spec;
+  }
+
+  // Crisp silhouette border matching the Rubik's cube ink style
+  float fresnel = abs(dot(n, -rd));
+  if (mat > 1.5 && fresnel < 0.30) {
+    baseCol = mix(baseCol, outline, smoothstep(0.30, 0.16, fresnel));
+  }
+
+  outColor = vec4(clamp(baseCol, 0.0, 1.0), 1.0);
+}
+`;
+
+function buildGundamMeshData(): Float32Array {
+  const verts: number[] = [];
+
+  const rotPt = (
+    x: number,
+    y: number,
+    z: number,
+    rx: number,
+    ry: number,
+    rz: number,
+  ): [number, number, number] => {
+    let x1 = x;
+    let y1 = y;
+    let z1 = z;
+    if (rz !== 0) {
+      const c = Math.cos(rz);
+      const s = Math.sin(rz);
+      const nx = x1 * c - y1 * s;
+      const ny = x1 * s + y1 * c;
+      x1 = nx;
+      y1 = ny;
+    }
+    if (rx !== 0) {
+      const c = Math.cos(rx);
+      const s = Math.sin(rx);
+      const ny = y1 * c - z1 * s;
+      const nz = y1 * s + z1 * c;
+      y1 = ny;
+      z1 = nz;
+    }
+    if (ry !== 0) {
+      const c = Math.cos(ry);
+      const s = Math.sin(ry);
+      const nx = x1 * c + z1 * s;
+      const nz = -x1 * s + z1 * c;
+      x1 = nx;
+      z1 = nz;
+    }
+    return [x1, y1, z1];
+  };
+
+  const hexRgb = (hex: number): [number, number, number] => [
+    ((hex >> 16) & 255) / 255,
+    ((hex >> 8) & 255) / 255,
+    (hex & 255) / 255,
+  ];
+
+  const addBox = (
+    cx: number,
+    cy: number,
+    cz: number,
+    sx: number,
+    sy: number,
+    sz: number,
+    hex: number,
+    opts: { rx?: number; ry?: number; rz?: number; taperTop?: number; mode?: number } = {},
+  ) => {
+    const rx = opts.rx ?? 0;
+    const ry = opts.ry ?? 0;
+    const rz = opts.rz ?? 0;
+    const taper = opts.taperTop ?? 1;
+    const mode = opts.mode ?? 0;
+    const [r, g, b] = hexRgb(hex);
+
+    const hx = sx * 0.5;
+    const hy = sy * 0.5;
+    const hz = sz * 0.5;
+
+    const pt = (lx: number, ly: number, lz: number): [number, number, number] => {
+      const k = ly > 0 ? taper : 1;
+      const [px, py, pz] = rotPt(lx * k, ly, lz * k, rx, ry, rz);
+      return [cx + px, cy + py, cz + pz];
+    };
+
+    const faces: {
+      n: [number, number, number];
+      corners: [[number, number, number], [number, number, number], [number, number, number], [number, number, number]];
+    }[] = [
+      { n: [0, 0, 1], corners: [pt(-hx, -hy, hz), pt(hx, -hy, hz), pt(hx, hy, hz), pt(-hx, hy, hz)] },
+      { n: [0, 0, -1], corners: [pt(hx, -hy, -hz), pt(-hx, -hy, -hz), pt(-hx, hy, -hz), pt(hx, hy, -hz)] },
+      { n: [1, 0, 0], corners: [pt(hx, -hy, hz), pt(hx, -hy, -hz), pt(hx, hy, -hz), pt(hx, hy, hz)] },
+      { n: [-1, 0, 0], corners: [pt(-hx, -hy, -hz), pt(-hx, -hy, hz), pt(-hx, hy, hz), pt(-hx, hy, -hz)] },
+      { n: [0, 1, 0], corners: [pt(-hx, hy, hz), pt(hx, hy, hz), pt(hx, hy, -hz), pt(-hx, hy, -hz)] },
+      { n: [0, -1, 0], corners: [pt(-hx, -hy, -hz), pt(hx, -hy, -hz), pt(hx, -hy, hz), pt(-hx, -hy, hz)] },
+    ];
+
+    const uvs: [number, number][] = [
+      [-0.5, -0.5],
+      [0.5, -0.5],
+      [0.5, 0.5],
+      [-0.5, 0.5],
+    ];
+    const tris = [0, 1, 2, 0, 2, 3];
+
+    for (const face of faces) {
+      const [nx, ny, nz] = rotPt(face.n[0], face.n[1], face.n[2], rx, ry, rz);
+      for (const idx of tris) {
+        const [px, py, pz] = face.corners[idx];
+        const [u, v] = uvs[idx];
+        verts.push(px, py, pz, nx, ny, nz, u, v, r, g, b, mode);
+      }
+    }
+  };
+
+  // Neck collar & slats
+  addBox(0, -1.24, -0.02, 0.86, 0.44, 0.78, 0x353d39, { taperTop: 0.92 });
+  // Main helmet cranium + brow hood
+  addBox(0, 0.56, -0.02, 1.54, 0.72, 1.56, 0xe8e8de, { taperTop: 0.84 });
+  addBox(0, 0.22, 0.08, 1.62, 0.24, 1.64, 0xdfe2d7, { rx: 0.12 });
+  // Mohawk crest housing + dark bezel + glowing emerald camera
+  addBox(0, 0.96, 0.04, 0.36, 0.62, 1.32, 0xebeae0, { taperTop: 0.9 });
+  addBox(0, 1.06, 0.66, 0.26, 0.24, 0.16, 0x222925, { mode: -1 });
+  addBox(0, 1.06, 0.75, 0.18, 0.16, 0.04, 0xa8f6c6, { mode: 1 });
+  // Ear pods & vertical vents
+  for (const dir of [-1, 1]) {
+    addBox(dir * 0.86, -0.14, 0.02, 0.24, 0.96, 1.04, 0xb8c1b9, { taperTop: 0.94 });
+    addBox(dir * 0.99, -0.14, 0.02, 0.04, 0.56, 0.48, 0x2c3430, { mode: -1 });
+    // Cheek guards / jaw flanges
+    addBox(dir * 0.62, -0.52, 0.2, 0.32, 0.82, 1.12, 0xd4d9ce, { ry: dir * -0.16 });
+  }
+  // Recessed dark visor cavity + twin glowing gold eyes
+  addBox(0, -0.02, 0.44, 1.24, 0.36, 0.68, 0x151a17, { mode: -1 });
+  for (const dir of [-1, 1]) {
+    addBox(dir * 0.29, -0.02, 0.8, 0.34, 0.15, 0.08, 0xf6e27a, {
+      rz: dir * 0.16,
+      mode: 1,
+    });
+  }
+  // Sculpted faceplate mask + horizontal vent slats
+  addBox(0, -0.48, 0.62, 0.92, 0.64, 0.66, 0xf0f0e6, { rx: -0.1, taperTop: 1.06 });
+  addBox(0, -0.44, 0.96, 0.46, 0.06, 0.06, 0x1a201d, { mode: -1 });
+  addBox(0, -0.60, 0.94, 0.42, 0.06, 0.06, 0x1a201d, { mode: -1 });
+  // Crimson chin guard
+  addBox(0, -0.9, 0.66, 0.38, 0.32, 0.44, 0xba5d4f, { taperTop: 1.12 });
+  // Sweeping 3D V-fin blades + crimson pentagonal crest
+  for (const dir of [-1, 1]) {
+    addBox(dir * 0.66, 0.66, 0.96, 1.38, 0.17, 0.11, 0xf2ecd6, {
+      rz: dir * 0.46,
+      ry: dir * -0.22,
+      taperTop: 0.9,
+    });
+  }
+  addBox(0, 0.34, 0.98, 0.34, 0.34, 0.18, 0xba5d4f, { rz: 0.785398, taperTop: 0.92 });
+
+  return new Float32Array(verts);
+}
+
 const CUBE_VERT_SRC = `#version 300 es
 in vec3 aPos;
 in vec3 aCenter;
@@ -1578,6 +1986,106 @@ export function createGpuDitherCanvas(width: number, height: number): GpuDitherC
     return cubePipe;
   }
 
+  interface GundamPipeline {
+    program: WebGLProgram;
+    vao: WebGLVertexArrayObject;
+    fbo: WebGLFramebuffer;
+    tex: WebGLTexture;
+    vertCount: number;
+    locs: {
+      uYaw: WebGLUniformLocation | null;
+      uTilt: WebGLUniformLocation | null;
+      uClock: WebGLUniformLocation | null;
+    };
+  }
+  let gundamPipe: GundamPipeline | null | undefined;
+
+  function ensureGundamPipeline(): GundamPipeline | null {
+    if (gundamPipe !== undefined) return gundamPipe;
+    if (!gl) {
+      gundamPipe = null;
+      return null;
+    }
+    const base = ensureCubePipeline();
+    const gProg = createProgram(gl, GUNDAM_VERT_SRC, GUNDAM_FRAG_SRC);
+    const gVao = gl.createVertexArray();
+    const gVbo = gl.createBuffer();
+    if (!base || !gProg || !gVao || !gVbo) {
+      if (gProg) gl.deleteProgram(gProg);
+      gundamPipe = null;
+      return null;
+    }
+
+    const mesh = buildGundamMeshData();
+    gl.bindVertexArray(gVao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gVbo);
+    gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
+    const stride = 12 * 4;
+    const bindAttr = (name: string, size: number, offsetFloats: number) => {
+      const aLoc = gl!.getAttribLocation(gProg, name);
+      if (aLoc >= 0) {
+        gl!.enableVertexAttribArray(aLoc);
+        gl!.vertexAttribPointer(aLoc, size, gl!.FLOAT, false, stride, offsetFloats * 4);
+      }
+    };
+    bindAttr("aPos", 3, 0);
+    bindAttr("aNormal", 3, 3);
+    bindAttr("aUv", 2, 6);
+    bindAttr("aColor", 3, 8);
+    bindAttr("aMode", 1, 11);
+
+    gundamPipe = {
+      program: gProg,
+      vao: gVao,
+      fbo: base.fbo,
+      tex: base.tex,
+      vertCount: mesh.length / 12,
+      locs: {
+        uYaw: gl.getUniformLocation(gProg, "uYaw"),
+        uTilt: gl.getUniformLocation(gProg, "uTilt"),
+        uClock: gl.getUniformLocation(gProg, "uClock"),
+      },
+    };
+    return gundamPipe;
+  }
+
+  interface MysteryPipeline {
+    program: WebGLProgram;
+    fbo: WebGLFramebuffer;
+    tex: WebGLTexture;
+    uClock: WebGLUniformLocation | null;
+  }
+  let mysteryPipe: MysteryPipeline | null | undefined;
+
+  function ensureMysteryPipeline(): MysteryPipeline | null {
+    if (mysteryPipe !== undefined) return mysteryPipe;
+    if (!gl) {
+      mysteryPipe = null;
+      return null;
+    }
+    const base = ensureCubePipeline();
+    const mProg = createProgram(gl, PASS_VERT_SRC, MYSTERY_FRAG_SRC);
+    if (!base || !mProg) {
+      if (mProg) gl.deleteProgram(mProg);
+      mysteryPipe = null;
+      return null;
+    }
+    const posLoc = gl.getAttribLocation(mProg, "aPos");
+    if (posLoc >= 0) {
+      gl.bindVertexArray(vao);
+      gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+      gl.enableVertexAttribArray(posLoc);
+      gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+    }
+    mysteryPipe = {
+      program: mProg,
+      fbo: base.fbo,
+      tex: base.tex,
+      uClock: gl.getUniformLocation(mProg, "uClock"),
+    };
+    return mysteryPipe;
+  }
+
   function runDitherPass(
     boundTex: WebGLTexture,
     target: HTMLCanvasElement,
@@ -1678,9 +2186,63 @@ export function createGpuDitherCanvas(width: number, height: number): GpuDitherC
       });
     },
 
+    drawGundam(target, clock, lightMode) {
+      if (gl.isContextLost()) return false;
+      const pipe = ensureGundamPipeline();
+      if (!pipe) return false;
+
+      const yaw = -0.24 + Math.sin(clock * 0.65) * 0.22;
+      const tilt = 0.22 + Math.cos(clock * 0.45) * 0.05;
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, pipe.fbo);
+      gl.viewport(0, 0, 400, 300);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LESS);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.bindVertexArray(pipe.vao);
+      gl.useProgram(pipe.program);
+      gl.uniform1f(pipe.locs.uYaw, yaw);
+      gl.uniform1f(pipe.locs.uTilt, tilt);
+      gl.uniform1f(pipe.locs.uClock, clock);
+      gl.drawArrays(gl.TRIANGLES, 0, pipe.vertCount);
+      gl.disable(gl.DEPTH_TEST);
+
+      return runDitherPass(pipe.tex, target, {
+        lightMode,
+        preserveColor: true,
+        edgeStrength: 0.48,
+        ditherAmount: 0.2,
+      });
+    },
+
+    drawMystery(target, clock, lightMode) {
+      if (gl.isContextLost()) return false;
+      const pipe = ensureMysteryPipeline();
+      if (!pipe) return false;
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, pipe.fbo);
+      gl.viewport(0, 0, 400, 300);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.bindVertexArray(vao);
+      gl.useProgram(pipe.program);
+      gl.uniform1f(pipe.uClock, clock);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      return runDitherPass(pipe.tex, target, {
+        lightMode,
+        preserveColor: true,
+        edgeStrength: 0.42,
+        ditherAmount: 0.22,
+      });
+    },
+
     warmup() {
       if (!gl.isContextLost()) {
         ensureCubePipeline();
+        ensureGundamPipeline();
+        ensureMysteryPipeline();
       }
     },
   };

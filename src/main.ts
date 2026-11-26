@@ -190,7 +190,6 @@ const veilBrush = { x: 0, y: 0 };
 let veilPresence = 0;
 
 let frameDelta = 1 / 60;
-let lastCubeFrame = -1;
 let scrollDirty = true;
 let fieldDirty = true;
 let displayFontsLoaded = false;
@@ -247,7 +246,6 @@ function setTheme(mode: "light" | "dark", persist = true): void {
   ripples = [];
   veilPresence = 0;
   veilHasActiveCells = false;
-  lastCubeFrame = -1;
   lastContactSourceKey = "";
   lastContactHoldWordIdx = -1;
   lastStageSourceKind = "";
@@ -1028,7 +1026,7 @@ function resize(): void {
   wakeLoop();
 }
 
-const cubeArt = document.querySelector<HTMLCanvasElement>('[data-hobby="cube"]');
+const hobbyArts = Array.from(document.querySelectorAll<HTMLCanvasElement>(".hobby-art"));
 
 function wakeOnInput(): void {
   lastUserActivity = performance.now();
@@ -1112,15 +1110,11 @@ function tick(now: number): void {
   }
 
   const scrolling = now - lastScrollActivity < 120;
-  if (
-    !scrolling &&
-    story > 1.45 &&
-    story < 4.2 &&
-    cubeArt &&
-    (lastCubeFrame < 0 || time - lastCubeFrame >= 0.033)
-  ) {
-    lastCubeFrame = time;
-    buildHobbyArt(cubeArt, time, isLightMode());
+  if (!scrolling && story > 1.45 && story < 4.2 && hobbyArts.length > 0) {
+    const light = isLightMode();
+    for (const target of hobbyArts) {
+      buildHobbyArt(target, time, light);
+    }
   }
 
   if (fieldDirty) {

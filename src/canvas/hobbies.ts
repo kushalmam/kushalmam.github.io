@@ -35,8 +35,10 @@ export function buildHobbyArt(
   if (gpuDitherer === undefined) {
     gpuDitherer = createGpuDitherCanvas(280, 204);
   }
-  if (kind === "cube" && gpuDitherer && gpuDitherer.drawCube(target, clock, lightMode)) {
-    return;
+  if (gpuDitherer) {
+    if (kind === "cube" && gpuDitherer.drawCube(target, clock, lightMode)) return;
+    if (kind === "gundam" && gpuDitherer.drawGundam(target, clock, lightMode)) return;
+    if (kind === "mystery" && gpuDitherer.drawMystery(target, clock, lightMode)) return;
   }
 
   let scratch = hobbyScratch.get(target);
