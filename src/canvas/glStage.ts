@@ -40,6 +40,7 @@ export interface GpuDitherCanvas {
     target: HTMLCanvasElement,
     options: Omit<DitherTexOptions, "gridW" | "gridH">,
   ): boolean;
+  drawCube(target: HTMLCanvasElement, clock: number, lightMode: boolean): boolean;
 }
 
 const SCREEN_VERT_SRC = `#version 300 es
@@ -1024,6 +1025,130 @@ export class GlStageRenderer {
   }
 }
 
+const CUBE_VERT_SRC = `#version 300 es
+in vec3 aPos;
+in vec3 aCenter;
+in vec2 aTileUv;
+in float aShade;
+
+uniform int uCurrent;
+uniform float uFraction;
+uniform float uYaw;
+uniform float uTilt;
+
+out vec2 vTileUv;
+out float vShade;
+
+const int MOVE_AXIS[6] = int[6](1, 0, 2, 2, 0, 1);
+const float MOVE_DIR[6] = float[6](1.0, 1.0, 1.0, -1.0, -1.0, -1.0);
+
+vec3 rotateAxis(vec3 p, int axis, float angle) {
+  float c = cos(angle);
+  float s = sin(angle);
+  if (axis == 0) return vec3(p.x, p.y * c - p.z * s, p.y * s + p.z * c);
+  if (axis == 1) return vec3(p.z * s + p.x * c, p.y, p.z * c - p.x * s);
+  return vec3(p.x * c - p.y * s, p.x * s + p.y * c, p.z);
+}
+
+void main() {
+  vec3 pos = aPos;
+  vec3 center = aCenter;
+  for (int step = 0; step < 6; step++) {
+    if (step > uCurrent) break;
+    int axis = MOVE_AXIS[step];
+    float coord = axis == 0 ? center.x : (axis == 1 ? center.y : center.z);
+    if (coord > 0.5) {
+      float frac = step < uCurrent ? 1.0 : uFraction;
+      float angle = MOVE_DIR[step] * 1.57079632679 * frac;
+      center = rotateAxis(center, axis, angle);
+      pos = rotateAxis(pos, axis, angle);
+    }
+  }
+
+  float cy = cos(uYaw);
+  float sy = sin(uYaw);
+  float ct = cos(uTilt);
+  float st = sin(uTilt);
+  float rx = pos.x * cy + pos.z * sy;
+  float rz = -pos.x * sy + pos.z * cy;
+  float camY = pos.y * ct - rz * st;
+  float camZ = pos.y * st + rz * ct;
+
+  vTileUv = aTileUv;
+  vShade = aShade;
+  gl_Position = vec4(
+    rx * (55.0 / 200.0),
+    -((camY * 55.0 - 7.0) / 150.0),
+    -camZ * 0.15,
+    1.0
+  );
+}
+`;
+
+const CUBE_FRAG_SRC = `#version 300 es
+precision highp float;
+
+in vec2 vTileUv;
+in float vShade;
+out vec4 outColor;
+
+void main() {
+  float edge = max(abs(vTileUv.x), abs(vTileUv.y));
+  float border = smoothstep(0.392, 0.415, edge);
+  vec3 fill = vec3(vShade, min(1.0, vShade + 3.0 / 255.0), max(0.0, vShade - 7.0 / 255.0));
+  vec3 stroke = vec3(31.0 / 255.0, 38.0 / 255.0, 34.0 / 255.0);
+  outColor = vec4(mix(fill, stroke, border), 1.0);
+}
+`;
+
+function buildCubeMeshData(): Float32Array {
+  const faces: {
+    n: [number, number, number];
+    u: [number, number, number];
+    v: [number, number, number];
+    shade: number;
+  }[] = [
+    { n: [0, 0, 1], u: [1, 0, 0], v: [0, 1, 0], shade: 186 },
+    { n: [1, 0, 0], u: [0, 0, 1], v: [0, 1, 0], shade: 118 },
+    { n: [0, 1, 0], u: [1, 0, 0], v: [0, 0, 1], shade: 236 },
+    { n: [0, 0, -1], u: [1, 0, 0], v: [0, 1, 0], shade: 146 },
+    { n: [-1, 0, 0], u: [0, 0, 1], v: [0, 1, 0], shade: 162 },
+    { n: [0, -1, 0], u: [1, 0, 0], v: [0, 0, 1], shade: 92 },
+  ];
+  const quadVerts: [number, number][] = [
+    [-0.44, -0.44],
+    [0.44, -0.44],
+    [0.44, 0.44],
+    [-0.44, -0.44],
+    [0.44, 0.44],
+    [-0.44, 0.44],
+  ];
+  const data = new Float32Array(54 * 6 * 9);
+  let ptr = 0;
+  for (const face of faces) {
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) {
+        const cx = face.n[0] * 1.5 + face.u[0] * (col - 1) + face.v[0] * (row - 1);
+        const cy = face.n[1] * 1.5 + face.u[1] * (col - 1) + face.v[1] * (row - 1);
+        const cz = face.n[2] * 1.5 + face.u[2] * (col - 1) + face.v[2] * (row - 1);
+        const shade = Math.round(face.shade * (0.78 + ((row + col * 2) % 3) * 0.1)) / 255;
+        for (const [u, v] of quadVerts) {
+          data[ptr++] = cx + face.u[0] * u + face.v[0] * v;
+          data[ptr++] = cy + face.u[1] * u + face.v[1] * v;
+          data[ptr++] = cz + face.u[2] * u + face.v[2] * v;
+          data[ptr++] = cx;
+          data[ptr++] = cy;
+          data[ptr++] = cz;
+          data[ptr++] = u;
+          data[ptr++] = v;
+          data[ptr++] = shade;
+        }
+      }
+    }
+  }
+  return data;
+}
+
 export function createGpuDitherCanvas(width: number, height: number): GpuDitherCanvas | null {
   const glCanvas = document.createElement("canvas");
   glCanvas.width = width;
@@ -1085,22 +1210,131 @@ export function createGpuDitherCanvas(width: number, height: number): GpuDitherC
   let texW = 0;
   let texH = 0;
 
+  interface CubePipeline {
+    program: WebGLProgram;
+    vao: WebGLVertexArrayObject;
+    fbo: WebGLFramebuffer;
+    tex: WebGLTexture;
+    locs: {
+      uCurrent: WebGLUniformLocation | null;
+      uFraction: WebGLUniformLocation | null;
+      uYaw: WebGLUniformLocation | null;
+      uTilt: WebGLUniformLocation | null;
+    };
+  }
+  let cubePipe: CubePipeline | null | undefined;
+
+  function ensureCubePipeline(): CubePipeline | null {
+    if (cubePipe !== undefined) return cubePipe;
+    if (!gl) {
+      cubePipe = null;
+      return null;
+    }
+    const cProg = createProgram(gl, CUBE_VERT_SRC, CUBE_FRAG_SRC);
+    const cVao = gl.createVertexArray();
+    const cVbo = gl.createBuffer();
+    const cFbo = gl.createFramebuffer();
+    const cTex = gl.createTexture();
+    const cDepth = gl.createRenderbuffer();
+    if (!cProg || !cVao || !cVbo || !cFbo || !cTex || !cDepth) {
+      if (cProg) gl.deleteProgram(cProg);
+      cubePipe = null;
+      return null;
+    }
+
+    gl.bindVertexArray(cVao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, cVbo);
+    gl.bufferData(gl.ARRAY_BUFFER, buildCubeMeshData(), gl.STATIC_DRAW);
+    const stride = 9 * 4;
+    const bindAttr = (name: string, size: number, offsetFloats: number) => {
+      const aLoc = gl!.getAttribLocation(cProg, name);
+      if (aLoc >= 0) {
+        gl!.enableVertexAttribArray(aLoc);
+        gl!.vertexAttribPointer(aLoc, size, gl!.FLOAT, false, stride, offsetFloats * 4);
+      }
+    };
+    bindAttr("aPos", 3, 0);
+    bindAttr("aCenter", 3, 3);
+    bindAttr("aTileUv", 2, 6);
+    bindAttr("aShade", 1, 8);
+
+    gl.bindTexture(gl.TEXTURE_2D, cTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 400, 300, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    gl.bindRenderbuffer(gl.RENDERBUFFER, cDepth);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 400, 300);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, cFbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, cTex, 0);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, cDepth);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    cubePipe = {
+      program: cProg,
+      vao: cVao,
+      fbo: cFbo,
+      tex: cTex,
+      locs: {
+        uCurrent: gl.getUniformLocation(cProg, "uCurrent"),
+        uFraction: gl.getUniformLocation(cProg, "uFraction"),
+        uYaw: gl.getUniformLocation(cProg, "uYaw"),
+        uTilt: gl.getUniformLocation(cProg, "uTilt"),
+      },
+    };
+    return cubePipe;
+  }
+
+  function runDitherPass(
+    boundTex: WebGLTexture,
+    target: HTMLCanvasElement,
+    options: Omit<DitherTexOptions, "gridW" | "gridH">,
+  ): boolean {
+    if (!gl) return false;
+    const targetCtx = target.getContext("2d");
+    if (!targetCtx) return false;
+    const gridW = Math.max(1, target.width);
+    const gridH = Math.max(1, target.height);
+    if (glCanvas.width !== gridW || glCanvas.height !== gridH) {
+      glCanvas.width = gridW;
+      glCanvas.height = gridH;
+    }
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, gridW, gridH);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.bindVertexArray(vao);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, boundTex);
+
+    gl.useProgram(program);
+    gl.uniform1i(loc.uTex, 0);
+    gl.uniform2i(loc.uGridSize, gridW, gridH);
+    gl.uniform1i(loc.uLightMode, options.lightMode ? 1 : 0);
+    gl.uniform1i(loc.uPreserveColor, options.preserveColor === false ? 0 : 1);
+    gl.uniform1f(loc.uEdgeStrength, options.edgeStrength ?? 0.45);
+    gl.uniform1f(loc.uGamma, options.gamma ?? (options.lightMode ? 0.92 : 0.84));
+    gl.uniform1f(loc.uAlphaThreshold, (options.alphaThreshold ?? 40) / 255);
+    gl.uniform1f(loc.uReveal, options.reveal ?? 1);
+    gl.uniform1f(loc.uDitherAmount, options.ditherAmount ?? 0.22);
+    gl.uniform1f(loc.uLevels, Math.max(2, Math.round(options.levels ?? 4)));
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    const prevSmooth = targetCtx.imageSmoothingEnabled;
+    targetCtx.imageSmoothingEnabled = false;
+    targetCtx.clearRect(0, 0, gridW, gridH);
+    targetCtx.drawImage(glCanvas, 0, 0);
+    targetCtx.imageSmoothingEnabled = prevSmooth;
+    return true;
+  }
+
   return {
     dither(source, target, options) {
       if (gl.isContextLost()) return false;
-      const targetCtx = target.getContext("2d");
-      if (!targetCtx) return false;
-      const gridW = Math.max(1, target.width);
-      const gridH = Math.max(1, target.height);
-      if (glCanvas.width !== gridW || glCanvas.height !== gridH) {
-        glCanvas.width = gridW;
-        glCanvas.height = gridH;
-      }
-
-      gl.viewport(0, 0, gridW, gridH);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.bindVertexArray(vao);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
@@ -1112,26 +1346,43 @@ export function createGpuDitherCanvas(width: number, height: number): GpuDitherC
       } else {
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, source);
       }
+      return runDitherPass(tex, target, options);
+    },
 
-      gl.useProgram(program);
-      gl.uniform1i(loc.uTex, 0);
-      gl.uniform2i(loc.uGridSize, gridW, gridH);
-      gl.uniform1i(loc.uLightMode, options.lightMode ? 1 : 0);
-      gl.uniform1i(loc.uPreserveColor, options.preserveColor === false ? 0 : 1);
-      gl.uniform1f(loc.uEdgeStrength, options.edgeStrength ?? 0.45);
-      gl.uniform1f(loc.uGamma, options.gamma ?? (options.lightMode ? 0.92 : 0.84));
-      gl.uniform1f(loc.uAlphaThreshold, (options.alphaThreshold ?? 40) / 255);
-      gl.uniform1f(loc.uReveal, options.reveal ?? 1);
-      gl.uniform1f(loc.uDitherAmount, options.ditherAmount ?? 0.22);
-      gl.uniform1f(loc.uLevels, Math.max(2, Math.round(options.levels ?? 4)));
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    drawCube(target, clock, lightMode) {
+      if (gl.isContextLost()) return false;
+      const pipe = ensureCubePipeline();
+      if (!pipe) return false;
 
-      const prevSmooth = targetCtx.imageSmoothingEnabled;
-      targetCtx.imageSmoothingEnabled = false;
-      targetCtx.clearRect(0, 0, gridW, gridH);
-      targetCtx.drawImage(glCanvas, 0, 0);
-      targetCtx.imageSmoothingEnabled = prevSmooth;
-      return true;
+      const duration = 1.8;
+      const moveCount = 6;
+      const cycle = (clock % (duration * moveCount)) / duration;
+      const current = Math.floor(cycle);
+      const fraction = ease(clamp((cycle - current) / 0.75));
+      const yaw = -0.55 + Math.sin((cycle / moveCount) * Math.PI * 2) * 0.14;
+      const tilt = 0.52;
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, pipe.fbo);
+      gl.viewport(0, 0, 400, 300);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LESS);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.bindVertexArray(pipe.vao);
+      gl.useProgram(pipe.program);
+      gl.uniform1i(pipe.locs.uCurrent, current);
+      gl.uniform1f(pipe.locs.uFraction, fraction);
+      gl.uniform1f(pipe.locs.uYaw, yaw);
+      gl.uniform1f(pipe.locs.uTilt, tilt);
+      gl.drawArrays(gl.TRIANGLES, 0, 54 * 6);
+      gl.disable(gl.DEPTH_TEST);
+
+      return runDitherPass(pipe.tex, target, {
+        lightMode,
+        preserveColor: true,
+        edgeStrength: 0.42,
+        ditherAmount: 0.22,
+      });
     },
   };
 }

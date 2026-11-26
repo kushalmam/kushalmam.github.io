@@ -191,8 +191,12 @@ let displayFontsLoaded = false;
 let displayFontsPromise: Promise<void> | null = null;
 let lastContactSource: HTMLCanvasElement | null = null;
 let lastContactSourceKey = "";
-let lastContactDrawBucket = -1;
+let lastContactHoldWordIdx = -1;
 let lastStageSourceKind: "project" | "contact" | "" = "";
+let activeNavHash = "";
+const navLinks = Array.from(
+  document.querySelectorAll<HTMLAnchorElement>('header nav a[href^="#"]'),
+);
 
 function isPortraitSettledStatic(): boolean {
   return story >= 2.85 && story <= 3.35 && ripples.length === 0 && Boolean(portrait);
@@ -235,6 +239,7 @@ function setTheme(mode: "light" | "dark", persist = true): void {
   veilHasActiveCells = false;
   lastCubeFrame = -1;
   lastContactSourceKey = "";
+  lastContactHoldWordIdx = -1;
   lastStageSourceKind = "";
   resetHobbyCaches();
   if (portrait) cachePortrait();
@@ -724,7 +729,7 @@ function drawContact(): void {
 
   if (glStage) {
     const hasMotion = contactWordHasMotion(activeIdx);
-    const drawClock = hasMotion ? time : Math.floor(time * 20) / 20;
+    const drawClock = hasMotion ? time : 0;
     const sourceKey = `${activeIdx}:${drawClock}:${displayFontsLoaded ? 1 : 0}`;
     const needUpload =
       lastStageSourceKind !== "contact" ||
@@ -855,8 +860,30 @@ function setPanel(panel: HTMLElement, alpha: number, offset = 0): void {
   }
 }
 
+function updateNavCurrent(): void {
+  const hash = reduced.matches
+    ? ""
+    : story >= timeline.contactStart - 0.15
+      ? "#contact"
+      : story >= 4.2
+        ? "#work"
+        : story >= 1.45
+          ? "#about"
+          : "";
+  if (hash === activeNavHash) return;
+  activeNavHash = hash;
+  for (const link of navLinks) {
+    if (link.getAttribute("href") === hash) {
+      link.setAttribute("aria-current", "location");
+    } else {
+      link.removeAttribute("aria-current");
+    }
+  }
+}
+
 function update(): void {
   story = clamp((window.scrollY - journeyTop) / scrollRange) * timeline.end;
+  updateNavCurrent();
   if (!reduced.matches) {
     const exit = ease((story - 0.2) / 0.85);
     const reveal = ease((story - 1.5) / 0.65);
@@ -871,7 +898,10 @@ function update(): void {
     });
     setPanel(contact, ease((story - timeline.contactStart - 0.55) / 0.65));
     if (story >= 5.5) ensureDisplayFonts();
-    if (story < timeline.contactStart) contactWordClock = 0;
+    if (story < timeline.contactStart) {
+      contactWordClock = 0;
+      lastContactHoldWordIdx = -1;
+    }
   }
 
   document.body.style.backgroundColor = "";
@@ -977,15 +1007,16 @@ function tick(now: number): void {
     const part = contactWordClock % CONTACT_PERIOD;
     const wordIdx = Math.floor(contactWordClock / CONTACT_PERIOD) % CONTACT_WORDS.length;
     if (part <= CONTACT_HOLD && !contactWordHasMotion(wordIdx)) {
-      const bucket = Math.floor(time * 20);
-      if (bucket !== lastContactDrawBucket) {
-        lastContactDrawBucket = bucket;
+      if (wordIdx !== lastContactHoldWordIdx) {
+        lastContactHoldWordIdx = wordIdx;
         fieldDirty = true;
       }
     } else {
+      lastContactHoldWordIdx = -1;
       fieldDirty = true;
     }
   } else {
+    lastContactHoldWordIdx = -1;
     fieldDirty = true;
   }
 
@@ -995,7 +1026,7 @@ function tick(now: number): void {
     story > 1.45 &&
     story < 4.2 &&
     cubeArt &&
-    (lastCubeFrame < 0 || time - lastCubeFrame >= 0.05)
+    (lastCubeFrame < 0 || time - lastCubeFrame >= 0.033)
   ) {
     lastCubeFrame = time;
     buildHobbyArt(cubeArt, time, isLightMode());
@@ -1029,6 +1060,7 @@ canvas.addEventListener("webglcontextlost", (event) => {
 canvas.addEventListener("webglcontextrestored", () => {
   glStage = GlStageRenderer.create(canvas);
   lastContactSourceKey = "";
+  lastContactHoldWordIdx = -1;
   lastStageSourceKind = "";
   if (glStage && portrait) {
     glStage.setPortrait(portrait);

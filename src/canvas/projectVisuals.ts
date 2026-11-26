@@ -23,7 +23,7 @@ function ensureCanvases(): {
     sharedSource = document.createElement("canvas");
     sharedSource.width = SOURCE_W;
     sharedSource.height = SOURCE_H;
-    sharedCtx = sharedSource.getContext("2d", { willReadFrequently: true });
+    sharedCtx = sharedSource.getContext("2d");
   }
   if (!sharedTarget) {
     sharedTarget = document.createElement("canvas");
@@ -31,7 +31,7 @@ function ensureCanvases(): {
     sharedTarget.height = TARGET_H;
   }
   if (!sharedCtx) {
-    sharedCtx = sharedSource.getContext("2d", { willReadFrequently: true });
+    sharedCtx = sharedSource.getContext("2d");
   }
   if (!sharedCtx) return null;
   return { source: sharedSource, target: sharedTarget, ctx: sharedCtx };

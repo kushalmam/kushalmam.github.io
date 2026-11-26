@@ -19,6 +19,19 @@ export function buildHobbyArt(
   clock = 0,
   lightMode = false,
 ): void {
+  const kind = target.dataset.hobby;
+  if (target.width !== 280 || target.height !== 204) {
+    target.width = 280;
+    target.height = 204;
+  }
+
+  if (gpuDitherer === undefined) {
+    gpuDitherer = createGpuDitherCanvas(280, 204);
+  }
+  if (kind === "cube" && gpuDitherer && gpuDitherer.drawCube(target, clock, lightMode)) {
+    return;
+  }
+
   let scratch = hobbyScratch.get(target);
   if (!scratch) {
     const source = document.createElement("canvas");
@@ -53,7 +66,7 @@ export function buildHobbyArt(
     }
   }
 
-  const kind = target.dataset.hobby;
+  const edgeStrength = kind === "gundam" ? 0.55 : 0.42;
   if (kind === "gundam") {
     // Neck & collar base
     polygon(
@@ -567,15 +580,6 @@ export function buildHobbyArt(
     c.restore();
   }
 
-  if (target.width !== 280 || target.height !== 204) {
-    target.width = 280;
-    target.height = 204;
-  }
-
-  if (gpuDitherer === undefined) {
-    gpuDitherer = createGpuDitherCanvas(280, 204);
-  }
-  const edgeStrength = kind === "gundam" ? 0.55 : 0.42;
   if (
     gpuDitherer &&
     gpuDitherer.dither(source, target, {

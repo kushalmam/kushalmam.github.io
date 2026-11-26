@@ -101,7 +101,7 @@ function ensureCanvases(): {
     sourceCanvas = document.createElement("canvas");
     sourceCanvas.width = SOURCE_W;
     sourceCanvas.height = SOURCE_H;
-    sourceCtx = sourceCanvas.getContext("2d", { willReadFrequently: true });
+    sourceCtx = sourceCanvas.getContext("2d");
   }
   if (!targetCanvas) {
     targetCanvas = document.createElement("canvas");
@@ -109,7 +109,7 @@ function ensureCanvases(): {
     targetCanvas.height = TARGET_H;
   }
   if (!sourceCtx) {
-    sourceCtx = sourceCanvas.getContext("2d", { willReadFrequently: true });
+    sourceCtx = sourceCanvas.getContext("2d");
   }
   if (!sourceCtx) return null;
   return { source: sourceCanvas, target: targetCanvas, ctx: sourceCtx };
@@ -160,7 +160,7 @@ export function renderContactSource(
     ((wordIndex % WORD_STYLES.length) + WORD_STYLES.length) % WORD_STYLES.length;
   const style = WORD_STYLES[idx];
 
-  const sweep = Math.sin(clock * 0.9) * 90;
+  const sweep = style.accent === "none" ? 0 : Math.sin(clock * 0.9) * 90;
   const grad = ctx.createLinearGradient(
     20 + sweep,
     10,
