@@ -34,6 +34,14 @@ export interface PortraitDrawParams {
   veilDirty: boolean;
 }
 
+export interface GpuDitherCanvas {
+  dither(
+    source: HTMLCanvasElement,
+    target: HTMLCanvasElement,
+    options: Omit<DitherTexOptions, "gridW" | "gridH">,
+  ): boolean;
+}
+
 const SCREEN_VERT_SRC = `#version 300 es
 in vec2 aPos;
 uniform vec4 uRect;
@@ -496,6 +504,8 @@ export class GlStageRenderer {
   private fboH = 0;
 
   private sourceTex: WebGLTexture;
+  private sourceTexW = 0;
+  private sourceTexH = 0;
   private portraitTex: WebGLTexture;
   private portraitDitherTex: WebGLTexture;
   private portraitDitherFbo: WebGLFramebuffer;
@@ -975,7 +985,13 @@ export class GlStageRenderer {
     if (uploadSource) {
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
       gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+      if (this.sourceTexW !== source.width || this.sourceTexH !== source.height) {
+        this.sourceTexW = source.width;
+        this.sourceTexH = source.height;
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+      } else {
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, source);
+      }
     }
 
     const gamma = options.gamma ?? (options.lightMode ? 0.92 : 0.84);
@@ -1006,4 +1022,116 @@ export class GlStageRenderer {
 
     this.blitFbo(rect);
   }
+}
+
+export function createGpuDitherCanvas(width: number, height: number): GpuDitherCanvas | null {
+  const glCanvas = document.createElement("canvas");
+  glCanvas.width = width;
+  glCanvas.height = height;
+  let gl: WebGL2RenderingContext | null = null;
+  try {
+    gl = glCanvas.getContext("webgl2", {
+      alpha: true,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: true,
+      powerPreference: "default",
+    });
+  } catch {
+    return null;
+  }
+  if (!gl) return null;
+
+  const program = createProgram(gl, PASS_VERT_SRC, DITHER_PASS_FRAG_SRC);
+  const vao = gl.createVertexArray();
+  const quadBuf = gl.createBuffer();
+  const tex = gl.createTexture();
+  if (!program || !vao || !quadBuf || !tex) {
+    if (program) gl.deleteProgram(program);
+    return null;
+  }
+
+  gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]), gl.STATIC_DRAW);
+  const posLoc = gl.getAttribLocation(program, "aPos");
+  if (posLoc >= 0) {
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+  }
+
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.disable(gl.BLEND);
+
+  const loc = {
+    uTex: gl.getUniformLocation(program, "uTex"),
+    uGridSize: gl.getUniformLocation(program, "uGridSize"),
+    uLightMode: gl.getUniformLocation(program, "uLightMode"),
+    uPreserveColor: gl.getUniformLocation(program, "uPreserveColor"),
+    uEdgeStrength: gl.getUniformLocation(program, "uEdgeStrength"),
+    uGamma: gl.getUniformLocation(program, "uGamma"),
+    uAlphaThreshold: gl.getUniformLocation(program, "uAlphaThreshold"),
+    uReveal: gl.getUniformLocation(program, "uReveal"),
+    uDitherAmount: gl.getUniformLocation(program, "uDitherAmount"),
+    uLevels: gl.getUniformLocation(program, "uLevels"),
+  };
+
+  let texW = 0;
+  let texH = 0;
+
+  return {
+    dither(source, target, options) {
+      if (gl.isContextLost()) return false;
+      const targetCtx = target.getContext("2d");
+      if (!targetCtx) return false;
+      const gridW = Math.max(1, target.width);
+      const gridH = Math.max(1, target.height);
+      if (glCanvas.width !== gridW || glCanvas.height !== gridH) {
+        glCanvas.width = gridW;
+        glCanvas.height = gridH;
+      }
+
+      gl.viewport(0, 0, gridW, gridH);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.bindVertexArray(vao);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
+      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+      if (texW !== source.width || texH !== source.height) {
+        texW = source.width;
+        texH = source.height;
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+      } else {
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, source);
+      }
+
+      gl.useProgram(program);
+      gl.uniform1i(loc.uTex, 0);
+      gl.uniform2i(loc.uGridSize, gridW, gridH);
+      gl.uniform1i(loc.uLightMode, options.lightMode ? 1 : 0);
+      gl.uniform1i(loc.uPreserveColor, options.preserveColor === false ? 0 : 1);
+      gl.uniform1f(loc.uEdgeStrength, options.edgeStrength ?? 0.45);
+      gl.uniform1f(loc.uGamma, options.gamma ?? (options.lightMode ? 0.92 : 0.84));
+      gl.uniform1f(loc.uAlphaThreshold, (options.alphaThreshold ?? 40) / 255);
+      gl.uniform1f(loc.uReveal, options.reveal ?? 1);
+      gl.uniform1f(loc.uDitherAmount, options.ditherAmount ?? 0.22);
+      gl.uniform1f(loc.uLevels, Math.max(2, Math.round(options.levels ?? 4)));
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      const prevSmooth = targetCtx.imageSmoothingEnabled;
+      targetCtx.imageSmoothingEnabled = false;
+      targetCtx.clearRect(0, 0, gridW, gridH);
+      targetCtx.drawImage(glCanvas, 0, 0);
+      targetCtx.imageSmoothingEnabled = prevSmooth;
+      return true;
+    },
+  };
 }

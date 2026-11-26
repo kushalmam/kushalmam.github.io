@@ -15,6 +15,7 @@ import {
   CONTACT_TARGET_H,
   CONTACT_TARGET_W,
   CONTACT_WORDS,
+  contactWordHasMotion,
   renderContactSource,
   renderContactVisual,
 } from "./canvas/contactVisual";
@@ -174,6 +175,7 @@ let veilImageData: ImageData | null = null;
 let veilAlpha: Float32Array | null = null;
 let veilBytes: Uint8Array | null = null;
 let veilDirty = true;
+let veilHasActiveCells = false;
 let veilCols = 0;
 let veilRows = 0;
 let veilScale: HTMLCanvasElement | null = null;
@@ -185,6 +187,12 @@ let frameDelta = 1 / 60;
 let lastCubeFrame = -1;
 let scrollDirty = true;
 let fieldDirty = true;
+let displayFontsLoaded = false;
+let displayFontsPromise: Promise<void> | null = null;
+let lastContactSource: HTMLCanvasElement | null = null;
+let lastContactSourceKey = "";
+let lastContactDrawBucket = -1;
+let lastStageSourceKind: "project" | "contact" | "" = "";
 
 function isPortraitSettledStatic(): boolean {
   return story >= 2.85 && story <= 3.35 && ripples.length === 0 && Boolean(portrait);
@@ -224,7 +232,10 @@ function setTheme(mode: "light" | "dark", persist = true): void {
   }
   ripples = [];
   veilPresence = 0;
+  veilHasActiveCells = false;
   lastCubeFrame = -1;
+  lastContactSourceKey = "";
+  lastStageSourceKind = "";
   resetHobbyCaches();
   if (portrait) cachePortrait();
   document
@@ -398,9 +409,11 @@ function stepVeil(r: Rect): number {
   veilBrush.y = mix(veilBrush.y, ty, follow);
 
   const fade = dt / 1.35;
-  for (let i = 0; i < cells.length; i++) {
-    const v = cells[i] - fade;
-    cells[i] = v > 0 ? v : 0;
+  if (veilHasActiveCells) {
+    for (let i = 0; i < cells.length; i++) {
+      const v = cells[i] - fade;
+      cells[i] = v > 0 ? v : 0;
+    }
   }
 
   const radius =
@@ -455,15 +468,21 @@ function stepVeil(r: Rect): number {
   }
 
   let peak = 0;
+  let bytesChanged = false;
   const bytes = veilBytes;
   if (bytes) {
     for (let i = 0; i < cells.length; i++) {
       const v = cells[i];
       if (v > peak) peak = v;
-      bytes[i] = Math.min(255, (v * 255 + 0.5) | 0);
+      const b = Math.min(255, (v * 255 + 0.5) | 0);
+      if (bytes[i] !== b) {
+        bytes[i] = b;
+        bytesChanged = true;
+      }
     }
-    veilDirty = true;
+    if (bytesChanged) veilDirty = true;
   }
+  veilHasActiveCells = peak > 0.002;
   return peak;
 }
 
@@ -636,6 +655,7 @@ function drawProjects(): void {
 
   if (glStage) {
     const source = renderProjectSource(project.diagramId, local, time);
+    lastStageSourceKind = "project";
     glStage.drawDitheredSource(source, targetRect, {
       gridW: PROJECT_TARGET_W,
       gridH: PROJECT_TARGET_H,
@@ -703,17 +723,33 @@ function drawContact(): void {
   const drawRect: Rect = { x: drawX, y: targetRect.y, w: targetRect.w, h: targetRect.h };
 
   if (glStage) {
-    const source = renderContactSource(activeIdx, time);
-    glStage.drawDitheredSource(source, drawRect, {
-      gridW: CONTACT_GRID_W,
-      gridH: CONTACT_GRID_H,
-      lightMode: isLightMode(),
-      preserveColor: true,
-      edgeStrength: 0.36,
-      gamma: 0.9,
-      ditherAmount: 0.2,
-      reveal,
-    });
+    const hasMotion = contactWordHasMotion(activeIdx);
+    const drawClock = hasMotion ? time : Math.floor(time * 20) / 20;
+    const sourceKey = `${activeIdx}:${drawClock}:${displayFontsLoaded ? 1 : 0}`;
+    const needUpload =
+      lastStageSourceKind !== "contact" ||
+      sourceKey !== lastContactSourceKey ||
+      !lastContactSource;
+    if (needUpload) {
+      lastContactSource = renderContactSource(activeIdx, drawClock);
+      lastContactSourceKey = sourceKey;
+      lastStageSourceKind = "contact";
+    }
+    glStage.drawDitheredSource(
+      lastContactSource!,
+      drawRect,
+      {
+        gridW: CONTACT_GRID_W,
+        gridH: CONTACT_GRID_H,
+        lightMode: isLightMode(),
+        preserveColor: true,
+        edgeStrength: 0.36,
+        gamma: 0.9,
+        ditherAmount: 0.2,
+        reveal,
+      },
+      needUpload,
+    );
     return;
   }
 
@@ -725,16 +761,29 @@ function drawContact(): void {
   ctx2d.imageSmoothingEnabled = prevSmooth;
 }
 
-Promise.all([
-  document.fonts.load('400 150px "Bungee"'),
-  document.fonts.load('400 150px "Monoton"'),
-  document.fonts.load('400 150px "Dela Gothic One"'),
-  document.fonts.load('800 150px "Archivo"'),
-]).then(() => {
-  fieldDirty = true;
-  draw();
-  fieldDirty = false;
-});
+function ensureDisplayFonts(): void {
+  if (displayFontsPromise) return;
+  displayFontsPromise = Promise.all([
+    document.fonts.load('400 150px "Bungee"'),
+    document.fonts.load('400 150px "Monoton"'),
+    document.fonts.load('400 150px "Dela Gothic One"'),
+    document.fonts.load('800 150px "Archivo"'),
+  ]).then(() => {
+    displayFontsLoaded = true;
+    lastContactSourceKey = "";
+    fieldDirty = true;
+    if (story >= timeline.contactStart) {
+      draw();
+      fieldDirty = false;
+    }
+  });
+}
+
+if (typeof requestIdleCallback === "function") {
+  requestIdleCallback(() => ensureDisplayFonts(), { timeout: 2000 });
+} else {
+  setTimeout(ensureDisplayFonts, 1500);
+}
 
 function draw(): void {
   if (glStage) {
@@ -821,6 +870,7 @@ function update(): void {
       setPanel(panel, entry * (1 - out), (1 - entry) * 30 - out * 25);
     });
     setPanel(contact, ease((story - timeline.contactStart - 0.55) / 0.65));
+    if (story >= 5.5) ensureDisplayFonts();
     if (story < timeline.contactStart) contactWordClock = 0;
   }
 
@@ -921,7 +971,21 @@ function tick(now: number): void {
   }
 
   const staticPortrait = story >= 1.85 && isPortraitSettledStatic();
-  if (!staticPortrait) {
+  if (staticPortrait) {
+    // Keep idle GPU draw at 0 on settled portrait.
+  } else if (story >= timeline.contactStart + 0.9) {
+    const part = contactWordClock % CONTACT_PERIOD;
+    const wordIdx = Math.floor(contactWordClock / CONTACT_PERIOD) % CONTACT_WORDS.length;
+    if (part <= CONTACT_HOLD && !contactWordHasMotion(wordIdx)) {
+      const bucket = Math.floor(time * 20);
+      if (bucket !== lastContactDrawBucket) {
+        lastContactDrawBucket = bucket;
+        fieldDirty = true;
+      }
+    } else {
+      fieldDirty = true;
+    }
+  } else {
     fieldDirty = true;
   }
 
@@ -964,6 +1028,8 @@ canvas.addEventListener("webglcontextlost", (event) => {
 });
 canvas.addEventListener("webglcontextrestored", () => {
   glStage = GlStageRenderer.create(canvas);
+  lastContactSourceKey = "";
+  lastStageSourceKind = "";
   if (glStage && portrait) {
     glStage.setPortrait(portrait);
   }

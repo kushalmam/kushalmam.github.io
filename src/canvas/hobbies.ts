@@ -1,5 +1,6 @@
 import { clamp, ease } from "../timeline";
 import { renderBayerDither } from "./dither";
+import { createGpuDitherCanvas, type GpuDitherCanvas } from "./glStage";
 
 interface HobbyScratch {
   source: HTMLCanvasElement;
@@ -7,6 +8,7 @@ interface HobbyScratch {
 }
 
 const hobbyScratch = new WeakMap<HTMLCanvasElement, HobbyScratch>();
+let gpuDitherer: GpuDitherCanvas | null | undefined;
 
 export function resetHobbyCaches(): void {
   // Retained for theme-change cache hook compatibility.
@@ -24,7 +26,7 @@ export function buildHobbyArt(
     source.height = 300;
     scratch = {
       source,
-      ctx: source.getContext("2d", { willReadFrequently: true }),
+      ctx: source.getContext("2d"),
     };
     hobbyScratch.set(target, scratch);
   }
@@ -570,11 +572,27 @@ export function buildHobbyArt(
     target.height = 204;
   }
 
+  if (gpuDitherer === undefined) {
+    gpuDitherer = createGpuDitherCanvas(280, 204);
+  }
+  const edgeStrength = kind === "gundam" ? 0.55 : 0.42;
+  if (
+    gpuDitherer &&
+    gpuDitherer.dither(source, target, {
+      lightMode,
+      preserveColor: true,
+      edgeStrength,
+      ditherAmount: 0.22,
+    })
+  ) {
+    return;
+  }
+
   renderBayerDither(source, target, {
     cellSize: 1,
     ditherAmount: 0.22,
     lightMode,
     preserveColor: true,
-    edgeStrength: kind === "gundam" ? 0.55 : 0.42,
+    edgeStrength,
   });
 }
