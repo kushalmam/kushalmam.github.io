@@ -8,6 +8,7 @@ import {
   ease,
   mix,
   projectSlice,
+  snapBeatForStory,
 } from "./timeline";
 import {
   CONTACT_GRID_H,
@@ -167,7 +168,21 @@ interface AnchorScrollAnim {
   start: number;
   durationMs: number;
 }
+interface SnapSpring {
+  pos: number;
+  vel: number;
+  target: number;
+}
 let anchorAnim: AnchorScrollAnim | null = null;
+let snapSpring: SnapSpring | null = null;
+let snapTimer: number | null = null;
+let suppressSnapUntil = 0;
+let isTouching = false;
+let isPointerDown = false;
+let lastTrackedScrollY = window.scrollY;
+let lastTrackedScrollTime = performance.now();
+let scrollVelocityPx = 0;
+let scrollDir: -1 | 0 | 1 = 0;
 let journeyTop = 0;
 let scrollRange = 1;
 let lastScrollActivity = 0;
@@ -272,7 +287,10 @@ const panels = portfolioProjects.map((project, idx) => {
   panel.setAttribute("aria-labelledby", `${project.slug}-title`);
   const num = String(idx + 1).padStart(2, "0");
   const total = String(portfolioProjects.length).padStart(2, "0");
-  panel.innerHTML = `<span class="project-index">${num} / ${total}</span><h2 id="${project.slug}-title">${project.name}</h2><p>${project.summary}</p><a href="${project.href}">View source ↗</a><canvas class="reduced-diagram" role="img" aria-label="Dithered ${project.name} visual"></canvas>`;
+  const action = project.status
+    ? `<span class="project-status">${project.status}</span>`
+    : `<a href="${project.href}">View source ↗</a>`;
+  panel.innerHTML = `<span class="project-index">${num} / ${total}</span><h2 id="${project.slug}-title">${project.name}</h2><p>${project.summary}</p>${action}<canvas class="reduced-diagram" role="img" aria-label="Dithered ${project.name} visual"></canvas>`;
   stage.insertBefore(panel, stageFooter);
   return panel;
 });
@@ -705,7 +723,7 @@ function drawProjects(): void {
   const { hoverUv, interaction } = localInteraction(targetRect);
 
   if (glStage) {
-    if (project.diagramId === "cosmicrecomp") {
+    if (project.diagramId === "cosmicr") {
       const hoverSpin = hoverUv ? (hoverUv.x - 0.5) * 0.35 : 0;
       if (
         glStage.drawCosmicRecomp(targetRect, time, cosmicSpinBoost + hoverSpin, {
@@ -727,7 +745,7 @@ function drawProjects(): void {
       gridH: PROJECT_TARGET_H,
       lightMode: isLightMode(),
       preserveColor: true,
-      edgeStrength: project.diagramId === "cosmicrecomp" ? 0.56 : 0.48,
+      edgeStrength: project.diagramId === "cosmicr" ? 0.56 : 0.48,
       ditherAmount: 0.22,
       reveal,
       interaction,
@@ -1059,6 +1077,7 @@ function tick(now: number): void {
   if (anchorAnim) {
     const p = clamp((now - anchorAnim.start) / anchorAnim.durationMs);
     const eased = p * p * p * (p * (p * 6 - 15) + 10);
+    suppressSnapUntil = now + 150;
     window.scrollTo({
       top: anchorAnim.from + (anchorAnim.to - anchorAnim.from) * eased,
       behavior: "instant",
@@ -1066,6 +1085,33 @@ function tick(now: number): void {
     scrollDirty = true;
     lastUserActivity = now;
     if (p >= 1) anchorAnim = null;
+  }
+
+  if (snapSpring) {
+    const omega = 6;
+    const dt = Math.min(frameDelta, 0.033);
+    const diff = snapSpring.pos - snapSpring.target;
+    const exp = Math.exp(-omega * dt);
+    const nextPos =
+      snapSpring.target + (diff + (snapSpring.vel + omega * diff) * dt) * exp;
+    const nextVel =
+      (snapSpring.vel - omega * (snapSpring.vel + omega * diff) * dt) * exp;
+    snapSpring.pos = nextPos;
+    snapSpring.vel = nextVel;
+    const settled =
+      Math.abs(nextPos - snapSpring.target) < 0.5 && Math.abs(nextVel) < 5;
+    suppressSnapUntil = now + 150;
+    window.scrollTo({
+      top: settled ? snapSpring.target : nextPos,
+      behavior: "instant",
+    });
+    scrollDirty = true;
+    lastUserActivity = now;
+    if (settled) {
+      snapSpring = null;
+      scrollVelocityPx = 0;
+      scrollDir = 0;
+    }
   }
 
   if (scrollDirty) {
@@ -1126,6 +1172,7 @@ function tick(now: number): void {
     story < timeline.contactStart &&
     ripples.length === 0 &&
     !anchorAnim &&
+    !snapSpring &&
     now - lastUserActivity >= IDLE_SLEEP_MS;
   if (canSleep) {
     idleSlept = true;
@@ -1201,9 +1248,78 @@ new IntersectionObserver(([entry]) => {
   sync();
 }).observe(journey);
 
+const SNAP_IDLE_MS = 160;
+const SNAP_MAX_INITIAL_VEL_PX = 1200;
+
+const clearSnapTimer = () => {
+  if (snapTimer !== null) {
+    window.clearTimeout(snapTimer);
+    snapTimer = null;
+  }
+};
+
+const cancelSnapSpring = () => {
+  clearSnapTimer();
+  snapSpring = null;
+};
+
+const tryMagneticSnap = () => {
+  clearSnapTimer();
+  if (reduced.matches || paused || anchorAnim || snapSpring || isTouching || isPointerDown) {
+    return;
+  }
+  const now = performance.now();
+  if (now < suppressSnapUntil || scrollRange <= 1) return;
+
+  const currentY = window.scrollY;
+  const currentStory = clamp((currentY - journeyTop) / scrollRange) * timeline.end;
+  const targetBeat = snapBeatForStory(
+    currentStory,
+    timeline,
+    portfolioProjects.length,
+    scrollDir,
+  );
+  if (targetBeat === null) {
+    scrollVelocityPx = 0;
+    scrollDir = 0;
+    return;
+  }
+
+  const targetY = Math.max(
+    0,
+    Math.min(journeyTop + scrollRange, journeyTop + (scrollRange * targetBeat) / timeline.end),
+  );
+  if (Math.abs(targetY - currentY) < 2) {
+    scrollVelocityPx = 0;
+    scrollDir = 0;
+    return;
+  }
+
+  // Carry over only residual velocity pointing toward target so the critically-damped spring cannot overshoot.
+  const dirToTarget = Math.sign(targetY - currentY);
+  const alignedVel = Math.sign(scrollVelocityPx) === dirToTarget ? scrollVelocityPx : 0;
+  snapSpring = {
+    pos: currentY,
+    vel: Math.max(-SNAP_MAX_INITIAL_VEL_PX, Math.min(SNAP_MAX_INITIAL_VEL_PX, alignedVel)),
+    target: targetY,
+  };
+  idleSlept = false;
+  lastUserActivity = now;
+  wakeLoop();
+};
+
+const scheduleSnap = () => {
+  clearSnapTimer();
+  if (reduced.matches || paused || anchorAnim || snapSpring || isTouching || isPointerDown) {
+    return;
+  }
+  snapTimer = window.setTimeout(tryMagneticSnap, SNAP_IDLE_MS);
+};
+
 const markScrollActivity = () => {
-  lastScrollActivity = performance.now();
-  lastUserActivity = lastScrollActivity;
+  const now = performance.now();
+  lastScrollActivity = now;
+  lastUserActivity = now;
   idleSlept = false;
   scrollDirty = true;
   if (glStage) {
@@ -1211,10 +1327,29 @@ const markScrollActivity = () => {
     update();
   }
   wakeLoop();
+
+  const currentY = window.scrollY;
+  const dtSec = Math.max(0.004, (now - lastTrackedScrollTime) / 1000);
+  const dy = currentY - lastTrackedScrollY;
+  lastTrackedScrollY = currentY;
+  lastTrackedScrollTime = now;
+
+  if (anchorAnim || snapSpring || now < suppressSnapUntil) {
+    return;
+  }
+
+  if (Math.abs(dy) >= 0.5) {
+    const instantVel = dy / dtSec;
+    scrollVelocityPx = scrollVelocityPx * 0.45 + instantVel * 0.55;
+    scrollDir = dy > 0 ? 1 : -1;
+  }
+  scheduleSnap();
 };
 
-const cancelAnchorScroll = () => {
+const cancelUserScrollAnim = () => {
   anchorAnim = null;
+  cancelSnapSpring();
+  suppressSnapUntil = 0;
   wakeOnInput();
 };
 
@@ -1228,8 +1363,23 @@ const storyBeats = [
 ];
 
 window.addEventListener("scroll", markScrollActivity, { passive: true });
-window.addEventListener("wheel", cancelAnchorScroll, { passive: true });
-window.addEventListener("touchstart", cancelAnchorScroll, { passive: true });
+window.addEventListener("scrollend", tryMagneticSnap, { passive: true });
+window.addEventListener("wheel", cancelUserScrollAnim, { passive: true });
+window.addEventListener(
+  "touchstart",
+  () => {
+    isTouching = true;
+    cancelUserScrollAnim();
+  },
+  { passive: true },
+);
+const finishTouch = () => {
+  if (!isTouching) return;
+  isTouching = false;
+  scheduleSnap();
+};
+window.addEventListener("touchend", finishTouch, { passive: true });
+window.addEventListener("touchcancel", finishTouch, { passive: true });
 window.addEventListener("resize", () => {
   wakeOnInput();
   resize();
@@ -1239,6 +1389,9 @@ window.addEventListener("keydown", (event) => {
   if (event.metaKey || event.ctrlKey || event.altKey) return;
   const activeTag = (document.activeElement as Element | null)?.tagName;
   if (activeTag === "INPUT" || activeTag === "TEXTAREA" || activeTag === "SELECT") return;
+  if (event.key === " " || event.key === "PageUp" || event.key === "PageDown" || event.key === "Home" || event.key === "End" || event.key === "ArrowUp" || event.key === "ArrowDown") {
+    cancelSnapSpring();
+  }
   const forward = event.key === "ArrowDown" || event.key === "PageDown";
   const backward = event.key === "ArrowUp" || event.key === "PageUp";
   if (!forward && !backward) return;
@@ -1268,6 +1421,8 @@ window.addEventListener(
 window.addEventListener(
   "pointerdown",
   (event) => {
+    isPointerDown = true;
+    cancelSnapSpring();
     if (paused || reduced.matches) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     if ((event.target as Element | null)?.closest("a, button")) return;
@@ -1280,7 +1435,7 @@ window.addEventListener(
     });
     if (story >= 4.25 && story < timeline.contactStart) {
       const { index } = projectSlice(story, timeline, portfolioProjects.length);
-      if (portfolioProjects[index]?.diagramId === "cosmicrecomp") {
+      if (portfolioProjects[index]?.diagramId === "cosmicr") {
         cosmicSpinBoost += Math.PI / 4;
       }
     }
@@ -1289,6 +1444,17 @@ window.addEventListener(
   },
   { passive: true },
 );
+const finishPointer = () => {
+  if (!isPointerDown) return;
+  isPointerDown = false;
+  scheduleSnap();
+};
+window.addEventListener("pointerup", finishPointer, { passive: true });
+window.addEventListener("pointercancel", finishPointer, { passive: true });
+window.addEventListener("blur", () => {
+  isTouching = false;
+  isPointerDown = false;
+});
 document.documentElement.addEventListener("pointerleave", () => {
   hover.inside = false;
   if (!(story >= 1.85 && isPortraitSettledStatic())) {
@@ -1309,9 +1475,11 @@ window.addEventListener(
 );
 
 function scrollStory(target: number, duration: number): void {
+  cancelSnapSpring();
   scrollDirty = true;
   if (reduced.matches) {
     anchorAnim = null;
+    suppressSnapUntil = performance.now() + 150;
     window.scrollTo({ top: target, behavior: "instant" });
     wakeLoop();
     return;

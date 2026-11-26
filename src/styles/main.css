@@ -404,6 +404,13 @@ body[data-bg-paused="true"] .scroll-travel {
   text-underline-offset: 7px;
 }
 
+.project-status {
+  display: inline-block;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--quiet);
+}
+
 .reduced-photo,
 .reduced-diagram {
   display: none;

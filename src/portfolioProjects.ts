@@ -2,7 +2,7 @@ export type ProjectDiagramId =
   | "rekindle"
   | "autocpt"
   | "nbanomaly"
-  | "cosmicrecomp";
+  | "cosmicr";
 
 export interface PortfolioProject {
   name: string;
@@ -10,6 +10,7 @@ export interface PortfolioProject {
   diagramId: ProjectDiagramId;
   background: readonly [number, number, number];
   category: string;
+  status?: string;
   summary: string;
   description: string;
   href: string;
@@ -66,15 +67,16 @@ export const portfolioProjects: PortfolioProject[] = [
     alt: "NBAnomaly ScoutIQ dashboard showing player statistics and anomaly scores",
   },
   {
-    name: "CosmicRecomp",
-    slug: "cosmicrecomp",
-    diagramId: "cosmicrecomp",
+    name: "cosmicR",
+    slug: "cosmicr",
+    diagramId: "cosmicr",
     background: [11, 23, 16],
     category: "Static recompilation",
+    status: "Coming soon",
     summary:
       "A high-performance static recompilation port of Ben 10 Ultimate Alien: Cosmic Destruction, backed by automated correctness tests and verification harnesses.",
     description:
       "Static recompilation of Ben 10 Ultimate Alien: Cosmic Destruction to native PC.",
-    href: "https://github.com/Techdude01/CosmicRecomp",
+    href: "https://github.com/Techdude01/cosmicR",
   },
 ];

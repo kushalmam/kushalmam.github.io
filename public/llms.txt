@@ -13,7 +13,7 @@
 - [Rekindle](https://github.com/Techdude01/rekindle): next-review ranking pipeline. Offline NDCG@10 of 0.0104 against a 0.0071 baseline over 29,416 eligible warm test events, evaluated chronologically with models frozen before replay.
 - [AutoCPT](https://github.com/Techdude01/AutoCPT): browser speech transcription resolved into suggested CPT codes. HackNYU 2025 winner.
 - [NBAnomaly](https://github.com/Techdude01/NBAnomaly): basketball player anomaly detection over per-match statistics.
-- [CosmicRecomp](https://github.com/Techdude01/CosmicRecomp): high-performance static recompilation port of Ben 10 Ultimate Alien: Cosmic Destruction with automated correctness testing.
+- [cosmicR](https://github.com/Techdude01/cosmicR): high-performance static recompilation port of Ben 10 Ultimate Alien: Cosmic Destruction with automated correctness testing.
 
 ## Contact
 

@@ -705,7 +705,7 @@ export function renderProjectVisual(
     ditherAmount: 0.22,
     lightMode,
     preserveColor: true,
-    edgeStrength: id === "cosmicrecomp" ? 0.56 : 0.48,
+    edgeStrength: id === "cosmicr" ? 0.56 : 0.48,
     reveal,
   });
 
