@@ -14,6 +14,13 @@ export function resetHobbyCaches(): void {
   // Retained for theme-change cache hook compatibility.
 }
 
+export function warmupHobbyGpu(): void {
+  if (gpuDitherer === undefined) {
+    gpuDitherer = createGpuDitherCanvas(280, 204);
+  }
+  gpuDitherer?.warmup();
+}
+
 export function buildHobbyArt(
   target: HTMLCanvasElement,
   clock = 0,

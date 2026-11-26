@@ -8,6 +8,12 @@ export interface Rect {
   h: number;
 }
 
+export interface DitherInteraction {
+  pointerUv?: { x: number; y: number } | null;
+  hoverStrength?: number;
+  ripples?: readonly { x: number; y: number; radius: number; strength: number }[];
+}
+
 export interface DitherTexOptions {
   gridW: number;
   gridH: number;
@@ -19,6 +25,7 @@ export interface DitherTexOptions {
   reveal?: number;
   ditherAmount?: number;
   levels?: number;
+  interaction?: DitherInteraction;
 }
 
 export interface PortraitDrawParams {
@@ -41,6 +48,7 @@ export interface GpuDitherCanvas {
     options: Omit<DitherTexOptions, "gridW" | "gridH">,
   ): boolean;
   drawCube(target: HTMLCanvasElement, clock: number, lightMode: boolean): boolean;
+  warmup(): void;
 }
 
 const SCREEN_VERT_SRC = `#version 300 es
@@ -142,10 +150,10 @@ void main() {
   float v0 = sy / uSize.y;
 
   float quietLeft = exp(-p4((u0 - 0.3) / 0.3) - p4((v0 - 0.38) / 0.18)) * 0.3;
-  float quietIntro = exp(-p4((u0 - 0.79) / 0.19) - p4((v0 - 0.65) / 0.15)) * 0.48;
+  float quietIntro = exp(-p4((u0 - 0.79) / 0.21) - p4((v0 - 0.65) / 0.17)) * 0.68;
   float quietNav = exp(-p4((u0 - 0.84) / 0.2) - p4((v0 - 0.06) / 0.08)) * 0.5;
   float qMask = max(0.0, 1.0 - quietLeft - quietIntro - quietNav);
-  float atten = 1.0 - quietIntro * 0.42;
+  float atten = 1.0 - quietIntro * 0.52;
 
   float ring = 0.0;
   float pushX = 0.0;
@@ -253,6 +261,10 @@ uniform float uAlphaThreshold;
 uniform float uReveal;
 uniform float uDitherAmount;
 uniform float uLevels;
+uniform vec2 uPointerUv;
+uniform float uHoverStrength;
+uniform vec4 uLocalRipples[4];
+uniform int uLocalRippleCount;
 
 out vec4 outColor;
 
@@ -318,6 +330,31 @@ void main() {
   float seamLight = max(0.62, 1.0 - uEdgeStrength * 0.55);
   float seamDarkScale = max(0.48, 1.0 - uEdgeStrength * 0.9);
   float bayer = bayer8x8(cell) - 0.5;
+
+  float hoverGlow = 0.0;
+  float localRipple = 0.0;
+  if (uHoverStrength > 0.005 || uLocalRippleCount > 0) {
+    float aspect = float(uGridSize.x) / max(1.0, float(uGridSize.y));
+    if (uHoverStrength > 0.005 && uPointerUv.x >= 0.0) {
+      float dh = length((uv - uPointerUv) * vec2(aspect, 1.0));
+      hoverGlow = (1.0 - smoothstep(0.03, 0.24, dh)) * uHoverStrength;
+    }
+    for (int i = 0; i < 4; i++) {
+      if (i >= uLocalRippleCount) break;
+      vec4 rip = uLocalRipples[i];
+      float dr = length((uv - rip.xy) * vec2(aspect, 1.0));
+      float band = 0.09;
+      float gap = abs(dr - rip.z);
+      if (gap < band) {
+        float t = gap / band;
+        localRipple = max(localRipple, rip.w * (1.0 - t * t * (3.0 - 2.0 * t)));
+      }
+    }
+    if (hoverGlow > 0.01 || localRipple > 0.01) {
+      bayer += (localRipple * 0.36 + hoverGlow * 0.16) * (bayer > 0.0 ? -1.0 : 1.0);
+    }
+  }
+
   float invLevels = 1.0 / uLevels;
 
   vec3 r255 = rgb * 255.0;
@@ -384,9 +421,147 @@ void main() {
     outColor = vec4(0.0);
     return;
   }
+  if (localRipple > 0.02 || hoverGlow > 0.02) {
+    vec3 accent = uLightMode != 0 ? vec3(15.0, 143.0, 107.0) : vec3(122.0, 245.0, 200.0);
+    outRgb = mix(outRgb, accent, clamp(localRipple * 0.55 + hoverGlow * 0.24, 0.0, 0.65));
+  }
   float alpha = outA / 255.0;
   vec3 normRgb = clamp(outRgb / 255.0, 0.0, 1.0);
   outColor = vec4(normRgb * alpha, alpha);
+}
+`;
+
+const COSMIC_FRAG_SRC = `#version 300 es
+precision highp float;
+
+uniform float uClock;
+uniform float uSpinBoost;
+
+out vec4 outColor;
+
+float sdSeg(vec2 p, vec2 a, vec2 b) {
+  vec2 pa = p - a;
+  vec2 ba = b - a;
+  float h = clamp(dot(pa, ba) / max(1e-5, dot(ba, ba)), 0.0, 1.0);
+  return length(pa - ba * h);
+}
+
+vec2 rot2(vec2 p, float a) {
+  float c = cos(a);
+  float s = sin(a);
+  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
+}
+
+vec4 over(vec4 dst, vec3 rgb, float alpha) {
+  float a = clamp(alpha, 0.0, 1.0);
+  return vec4(rgb * a, a) + dst * (1.0 - a);
+}
+
+float easeCubic(float x) {
+  float t = clamp(x, 0.0, 1.0);
+  return t * t * (3.0 - 2.0 * t);
+}
+
+void main() {
+  vec2 p = vec2(gl_FragCoord.x - 240.0, gl_FragCoord.y - 180.0);
+  float r = length(p);
+
+  float period = 3.6;
+  float cyclePos = fract(uClock / period);
+  float spinStep = floor(uClock / period);
+  float detentPhase = easeCubic(cyclePos / 0.34);
+  float bezelAngle = (spinStep + detentPhase) * 0.78539816339 + uSpinBoost;
+  float corePop = cyclePos < 0.34
+    ? 0.0
+    : (cyclePos < 0.72
+      ? easeCubic((cyclePos - 0.34) / 0.16)
+      : 1.0 - easeCubic((cyclePos - 0.72) / 0.28));
+  float wavePhase = cyclePos > 0.56 ? clamp((cyclePos - 0.56) / 0.36, 0.0, 1.0) : 0.0;
+
+  vec4 col = vec4(0.0);
+
+  // 32 rotating perimeter ticks
+  if (r > 139.0 && r < 158.0) {
+    float ang = atan(p.y, p.x) - uClock * 0.08;
+    float idx = floor(mod((ang / 6.28318530718) * 32.0 + 32.5, 32.0));
+    float sector = idx * (6.28318530718 / 32.0);
+    bool major = mod(idx, 4.0) < 0.5;
+    float innerR = major ? 142.0 : 148.0;
+    vec2 dir = vec2(cos(sector), sin(sector));
+    vec2 tp = rot2(p, -uClock * 0.08);
+    float dTick = sdSeg(tp, dir * innerR, dir * 155.0) - (major ? 1.5 : 1.0);
+    if (dTick < 1.0) {
+      vec3 tickCol = major ? vec3(102.0, 240.0, 194.0) / 255.0 : vec3(82.0, 120.0, 106.0) / 255.0;
+      col = over(col, tickCol, clamp(0.8 - dTick, 0.0, 1.0));
+    }
+  }
+
+  // Diagonal clasp lugs & rotating bezel
+  vec2 bp = rot2(p, -bezelAngle);
+  for (int k = 0; k < 4; k++) {
+    vec2 lp = rot2(bp, -(0.78539816339 + float(k) * 1.57079632679));
+    float halfW = mix(22.0, 27.0, clamp((-104.0 - lp.y) / 18.0, 0.0, 1.0));
+    float dLug = max(abs(lp.y + 113.0) - 9.0, abs(lp.x) - halfW);
+    col = over(col, vec3(156.0, 176.0, 164.0) / 255.0, clamp(0.5 - dLug, 0.0, 1.0));
+    col = over(col, vec3(20.0, 26.0, 22.0) / 255.0, clamp(1.75 - abs(dLug), 0.0, 1.0));
+    float dSlot = max(abs(lp.y + 114.0) - 3.0, abs(lp.x) - 11.0);
+    col = over(col, vec3(52.0, 70.0, 61.0) / 255.0, clamp(0.5 - dSlot, 0.0, 1.0));
+  }
+
+  // Outer bevel ring (r = 112) & slate ring (r = 102) & dark groove (r = 91)
+  col = over(col, vec3(108.0, 125.0, 116.0) / 255.0, clamp(0.5 - (r - 112.0), 0.0, 1.0));
+  col = over(col, vec3(20.0, 26.0, 22.0) / 255.0, clamp(2.0 - abs(r - 112.0), 0.0, 1.0));
+  col = over(col, vec3(188.0, 201.0, 193.0) / 255.0, clamp(0.5 - (r - 102.0), 0.0, 1.0));
+  col = over(col, vec3(20.0, 26.0, 22.0) / 255.0, clamp(1.75 - abs(r - 102.0), 0.0, 1.0));
+  col = over(col, vec3(20.0, 26.0, 22.0) / 255.0, clamp(2.0 - abs(r - 91.0), 0.0, 1.0));
+
+  // 4 emerald indicator pips at 0, 90, 180, 270 deg
+  vec2 absBp = abs(bp);
+  vec2 pipPt = absBp.x > absBp.y ? vec2(98.0, 0.0) : vec2(0.0, 98.0);
+  float dPip = length(absBp - pipPt) - 6.0;
+  col = over(col, vec3(92.0, 242.0, 132.0) / 255.0, clamp(0.5 - dPip, 0.0, 1.0));
+  col = over(col, vec3(20.0, 26.0, 22.0) / 255.0, clamp(1.25 - abs(dPip), 0.0, 1.0));
+
+  // Dial interior (r <= 84)
+  float dialMask = clamp(0.5 - (r - 84.0), 0.0, 1.0);
+  if (dialMask > 0.0) {
+    float gt = clamp((r - 6.0) / 78.0, 0.0, 1.0);
+    vec3 emCol = gt < 0.55
+      ? mix(vec3(180.0, 255.0, 208.0) / 255.0, vec3(92.0, 242.0, 132.0) / 255.0, gt / 0.55)
+      : mix(vec3(92.0, 242.0, 132.0) / 255.0, vec3(48.0, 184.0, 88.0) / 255.0, (gt - 0.55) / 0.45);
+    if (detentPhase > 0.02 && detentPhase < 0.98) {
+      float offset = -120.0 + detentPhase * 240.0;
+      float dScan = sdSeg(p, vec2(offset - 70.0, -84.0), vec2(offset + 70.0, 84.0)) - 2.5;
+      emCol = mix(emCol, vec3(216.0, 255.0, 232.0) / 255.0, clamp(0.5 - dScan, 0.0, 1.0));
+    }
+
+    // Hourglass chevrons
+    float waistX = 10.0 + corePop * 5.0;
+    vec2 mp = abs(p);
+    float edgeX = mix(waistX, 62.0, clamp(mp.y / 74.0, 0.0, 1.0));
+    float plateMask = clamp(0.5 - max(edgeX - mp.x, mp.y - 74.0), 0.0, 1.0);
+    emCol = mix(emCol, vec3(17.0, 22.0, 19.0) / 255.0, plateMask);
+
+    float dV = sdSeg(mp, vec2(waistX, 0.0), vec2(62.0, 74.0));
+    emCol = mix(emCol, vec3(223.0, 230.0, 223.0) / 255.0, clamp(3.5 - dV, 0.0, 1.0));
+    emCol = mix(emCol, vec3(14.0, 19.0, 16.0) / 255.0, clamp(1.0 - dV, 0.0, 1.0));
+
+    col = over(col, emCol, dialMask);
+  }
+
+  // Dial border ring (r = 84)
+  col = over(col, vec3(20.0, 26.0, 22.0) / 255.0, clamp(2.0 - abs(r - 84.0), 0.0, 1.0));
+
+  // Expanding lock-in shockwave ring
+  if (wavePhase > 0.0 && wavePhase < 1.0) {
+    float waveR = 54.0 + wavePhase * 98.0;
+    float halfW = max(0.75, 2.25 * (1.0 - wavePhase));
+    float dWave = abs(r - waveR) - halfW;
+    vec3 wCol = wavePhase < 0.6 ? vec3(102.0, 240.0, 194.0) / 255.0 : vec3(68.0, 194.0, 154.0) / 255.0;
+    col = over(col, wCol, clamp(0.5 - dWave, 0.0, 1.0));
+  }
+
+  outColor = col;
 }
 `;
 
@@ -518,6 +693,11 @@ export class GlStageRenderer {
   private veilCols = 0;
   private veilRows = 0;
 
+  private cosmicProgram: WebGLProgram | null = null;
+  private cosmicFbo: WebGLFramebuffer | null = null;
+  private cosmicTex: WebGLTexture | null = null;
+  private cosmicLocs: Record<string, WebGLUniformLocation | null> = {};
+
   private widthCss = 1;
   private heightCss = 1;
   private tiltX = 0;
@@ -644,6 +824,10 @@ export class GlStageRenderer {
       "uReveal",
       "uDitherAmount",
       "uLevels",
+      "uPointerUv",
+      "uHoverStrength",
+      "uLocalRipples[0]",
+      "uLocalRippleCount",
     ]);
 
     this.blitLocs = getLocs(blitProgram, [
@@ -971,6 +1155,138 @@ export class GlStageRenderer {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 
+  private runDitherPass(
+    boundTex: WebGLTexture,
+    rect: Rect,
+    options: DitherTexOptions,
+  ): void {
+    const gl = this.gl;
+    const gridW = Math.max(1, options.gridW);
+    const gridH = Math.max(1, options.gridH);
+    const gamma = options.gamma ?? (options.lightMode ? 0.92 : 0.84);
+    const edgeStrength = options.edgeStrength ?? 0.45;
+    const alphaThreshold = (options.alphaThreshold ?? 40) / 255;
+    const reveal = options.reveal ?? 1;
+    const ditherAmount = options.ditherAmount ?? 0.22;
+    const levels = Math.max(2, Math.round(options.levels ?? 4));
+
+    this.ensureFbo(gridW, gridH);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+    gl.viewport(0, 0, gridW, gridH);
+    gl.disable(gl.BLEND);
+
+    gl.useProgram(this.ditherProgram);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, boundTex);
+
+    const L = this.ditherLocs;
+    gl.uniform1i(L["uTex"], 0);
+    gl.uniform2i(L["uGridSize"], gridW, gridH);
+    gl.uniform1i(L["uLightMode"], options.lightMode ? 1 : 0);
+    gl.uniform1i(L["uPreserveColor"], options.preserveColor === false ? 0 : 1);
+    gl.uniform1f(L["uEdgeStrength"], edgeStrength);
+    gl.uniform1f(L["uGamma"], gamma);
+    gl.uniform1f(L["uAlphaThreshold"], alphaThreshold);
+    gl.uniform1f(L["uReveal"], reveal);
+    gl.uniform1f(L["uDitherAmount"], ditherAmount);
+    gl.uniform1f(L["uLevels"], levels);
+
+    const inter = options.interaction;
+    if (inter?.pointerUv && (inter.hoverStrength ?? 0) > 0) {
+      gl.uniform2f(L["uPointerUv"], inter.pointerUv.x, inter.pointerUv.y);
+      gl.uniform1f(L["uHoverStrength"], inter.hoverStrength ?? 0);
+    } else {
+      gl.uniform2f(L["uPointerUv"], -1, -1);
+      gl.uniform1f(L["uHoverStrength"], 0);
+    }
+
+    const ripData = new Float32Array(16);
+    const rips = inter?.ripples;
+    let ripCount = 0;
+    if (rips && rips.length > 0) {
+      for (let i = 0; i < rips.length && ripCount < 4; i++) {
+        const rp = rips[i];
+        if (rp.strength <= 0.005) continue;
+        const base = ripCount * 4;
+        ripData[base] = rp.x;
+        ripData[base + 1] = rp.y;
+        ripData[base + 2] = rp.radius;
+        ripData[base + 3] = rp.strength;
+        ripCount++;
+      }
+    }
+    gl.uniform4fv(L["uLocalRipples[0]"], ripData);
+    gl.uniform1i(L["uLocalRippleCount"], ripCount);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    this.blitFbo(rect);
+  }
+
+  private ensureCosmicPipeline(): boolean {
+    if (this.cosmicProgram && this.cosmicFbo && this.cosmicTex) return true;
+    const gl = this.gl;
+    const prog = createProgram(gl, PASS_VERT_SRC, COSMIC_FRAG_SRC);
+    const fbo = gl.createFramebuffer();
+    const tex = gl.createTexture();
+    if (!prog || !fbo || !tex) {
+      if (prog) gl.deleteProgram(prog);
+      return false;
+    }
+    const posLoc = gl.getAttribLocation(prog, "aPos");
+    if (posLoc >= 0) {
+      gl.bindVertexArray(this.vao);
+      gl.enableVertexAttribArray(posLoc);
+      gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+    }
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 480, 360, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    this.cosmicProgram = prog;
+    this.cosmicFbo = fbo;
+    this.cosmicTex = tex;
+    this.cosmicLocs = {
+      uClock: gl.getUniformLocation(prog, "uClock"),
+      uSpinBoost: gl.getUniformLocation(prog, "uSpinBoost"),
+    };
+    return true;
+  }
+
+  warmup(): void {
+    this.ensureCosmicPipeline();
+  }
+
+  drawCosmicRecomp(
+    rect: Rect,
+    clock: number,
+    spinBoost: number,
+    options: Omit<DitherTexOptions, "gridW" | "gridH">,
+  ): boolean {
+    if (!this.ensureCosmicPipeline()) return false;
+    const gl = this.gl;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.cosmicFbo);
+    gl.viewport(0, 0, 480, 360);
+    gl.disable(gl.BLEND);
+    gl.bindVertexArray(this.vao);
+    gl.useProgram(this.cosmicProgram);
+    gl.uniform1f(this.cosmicLocs["uClock"], clock);
+    gl.uniform1f(this.cosmicLocs["uSpinBoost"], spinBoost);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    this.runDitherPass(this.cosmicTex!, rect, {
+      ...options,
+      gridW: 320,
+      gridH: 240,
+    });
+    return true;
+  }
+
   drawDitheredSource(
     source: HTMLCanvasElement,
     rect: Rect,
@@ -978,9 +1294,6 @@ export class GlStageRenderer {
     uploadSource = true,
   ): void {
     const gl = this.gl;
-    const gridW = Math.max(1, options.gridW);
-    const gridH = Math.max(1, options.gridH);
-
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.sourceTex);
     if (uploadSource) {
@@ -995,33 +1308,7 @@ export class GlStageRenderer {
       }
     }
 
-    const gamma = options.gamma ?? (options.lightMode ? 0.92 : 0.84);
-    const edgeStrength = options.edgeStrength ?? 0.45;
-    const alphaThreshold = (options.alphaThreshold ?? 40) / 255;
-    const reveal = options.reveal ?? 1;
-    const ditherAmount = options.ditherAmount ?? 0.22;
-    const levels = Math.max(2, Math.round(options.levels ?? 4));
-
-    this.ensureFbo(gridW, gridH);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
-    gl.viewport(0, 0, gridW, gridH);
-    gl.disable(gl.BLEND);
-
-    gl.useProgram(this.ditherProgram);
-    const L = this.ditherLocs;
-    gl.uniform1i(L["uTex"], 0);
-    gl.uniform2i(L["uGridSize"], gridW, gridH);
-    gl.uniform1i(L["uLightMode"], options.lightMode ? 1 : 0);
-    gl.uniform1i(L["uPreserveColor"], options.preserveColor === false ? 0 : 1);
-    gl.uniform1f(L["uEdgeStrength"], edgeStrength);
-    gl.uniform1f(L["uGamma"], gamma);
-    gl.uniform1f(L["uAlphaThreshold"], alphaThreshold);
-    gl.uniform1f(L["uReveal"], reveal);
-    gl.uniform1f(L["uDitherAmount"], ditherAmount);
-    gl.uniform1f(L["uLevels"], levels);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-    this.blitFbo(rect);
+    this.runDitherPass(this.sourceTex, rect, options);
   }
 }
 
@@ -1205,6 +1492,9 @@ export function createGpuDitherCanvas(width: number, height: number): GpuDitherC
     uReveal: gl.getUniformLocation(program, "uReveal"),
     uDitherAmount: gl.getUniformLocation(program, "uDitherAmount"),
     uLevels: gl.getUniformLocation(program, "uLevels"),
+    uPointerUv: gl.getUniformLocation(program, "uPointerUv"),
+    uHoverStrength: gl.getUniformLocation(program, "uHoverStrength"),
+    uLocalRippleCount: gl.getUniformLocation(program, "uLocalRippleCount"),
   };
 
   let texW = 0;
@@ -1322,6 +1612,9 @@ export function createGpuDitherCanvas(width: number, height: number): GpuDitherC
     gl.uniform1f(loc.uReveal, options.reveal ?? 1);
     gl.uniform1f(loc.uDitherAmount, options.ditherAmount ?? 0.22);
     gl.uniform1f(loc.uLevels, Math.max(2, Math.round(options.levels ?? 4)));
+    gl.uniform2f(loc.uPointerUv, -1, -1);
+    gl.uniform1f(loc.uHoverStrength, 0);
+    gl.uniform1i(loc.uLocalRippleCount, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
     const prevSmooth = targetCtx.imageSmoothingEnabled;
@@ -1383,6 +1676,12 @@ export function createGpuDitherCanvas(width: number, height: number): GpuDitherC
         edgeStrength: 0.42,
         ditherAmount: 0.22,
       });
+    },
+
+    warmup() {
+      if (!gl.isContextLost()) {
+        ensureCubePipeline();
+      }
     },
   };
 }

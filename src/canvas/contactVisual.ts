@@ -144,6 +144,7 @@ function drawFittedLine(
 export function renderContactSource(
   wordIndex: number,
   clock: number,
+  lightMode = false,
 ): HTMLCanvasElement {
   const canvases = ensureCanvases();
   if (!canvases) {
@@ -172,6 +173,7 @@ export function renderContactSource(
   grad.addColorStop(1, style.stops[2]);
 
   // Chromatic offset shadow layer for tactile depth
+  const shadowColor = lightMode ? "rgba(24, 30, 27, 0.35)" : style.shadow;
   drawFittedLine(
     ctx,
     "Let’s",
@@ -180,7 +182,7 @@ export function renderContactSource(
     90,
     108,
     540,
-    style.shadow,
+    shadowColor,
     5,
     6,
   );
@@ -192,7 +194,7 @@ export function renderContactSource(
     220,
     148,
     564,
-    style.shadow,
+    shadowColor,
     5,
     6,
   );
@@ -225,7 +227,7 @@ export function renderContactSource(
     ctx.stroke();
   } else if (style.accent === "slice") {
     const sliceY = 196 + Math.sin(clock * 2.8) * 18;
-    ctx.fillStyle = "#10110f";
+    ctx.fillStyle = lightMode ? "#f6f5f0" : "#10110f";
     ctx.fillRect(20, sliceY, 590, 6);
     ctx.fillStyle = style.stops[0];
     ctx.fillRect(24, sliceY + 12, Math.min(560, wordWidth * 0.45), 4);
@@ -255,7 +257,7 @@ export function renderContactVisual(
   lightMode: boolean,
   reveal = 1,
 ): HTMLCanvasElement {
-  const source = renderContactSource(wordIndex, clock);
+  const source = renderContactSource(wordIndex, clock, lightMode);
   const canvases = ensureCanvases();
   if (!canvases) {
     const fallback = document.createElement("canvas");

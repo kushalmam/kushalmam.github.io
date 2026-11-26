@@ -13,6 +13,23 @@ const TARGET_H = PROJECT_TARGET_H;
 let sharedSource: HTMLCanvasElement | null = null;
 let sharedTarget: HTMLCanvasElement | null = null;
 let sharedCtx: CanvasRenderingContext2D | null = null;
+const staticBaseCache = new Map<ProjectDiagramId, HTMLCanvasElement>();
+
+function getStaticBase(
+  id: ProjectDiagramId,
+  painter: (c: CanvasRenderingContext2D) => void,
+): HTMLCanvasElement {
+  let cached = staticBaseCache.get(id);
+  if (!cached) {
+    cached = document.createElement("canvas");
+    cached.width = SOURCE_W;
+    cached.height = SOURCE_H;
+    const c = cached.getContext("2d");
+    if (c) painter(c);
+    staticBaseCache.set(id, cached);
+  }
+  return cached;
+}
 
 function ensureCanvases(): {
   source: HTMLCanvasElement;
@@ -66,9 +83,38 @@ function drawRekindleScene(
 ): void {
   const pulse = 0.5 + 0.5 * Math.sin(clock * 2.2);
   const entrance = ease(phase / 0.35);
+  const streamColors = ["#52d4b8", "#8bf0b8", "#f2d67c"];
+
+  const base = getStaticBase("rekindle", (bc) => {
+    for (let s = 0; s < 3; s++) {
+      const startY = 82 + s * 98;
+      bc.beginPath();
+      bc.arc(34, startY, 10, 0, Math.PI * 2);
+      bc.fillStyle = streamColors[s];
+      bc.fill();
+      bc.strokeStyle = "#161b18";
+      bc.lineWidth = 3;
+      bc.stroke();
+    }
+    bc.save();
+    bc.translate(226, 180);
+    bc.beginPath();
+    bc.moveTo(-22, -46);
+    bc.lineTo(18, -56);
+    bc.lineTo(28, 0);
+    bc.lineTo(18, 56);
+    bc.lineTo(-22, 46);
+    bc.lineTo(-30, 0);
+    bc.closePath();
+    bc.fillStyle = "#213832";
+    bc.fill();
+    bc.strokeStyle = "#48c4a8";
+    bc.lineWidth = 3.5;
+    bc.stroke();
+    bc.restore();
+  });
 
   // Left: 3 braided history/signal streams converging into central prism encoder
-  const streamColors = ["#52d4b8", "#8bf0b8", "#f2d67c"];
   for (let s = 0; s < 3; s++) {
     const startY = 82 + s * 98;
     const endY = 180 + (s - 1) * 14;
@@ -86,17 +132,8 @@ function drawRekindleScene(
     c.lineWidth = 4;
     c.stroke();
 
-    // Source nodes
-    c.beginPath();
-    c.arc(34, startY, 10, 0, Math.PI * 2);
-    c.fillStyle = streamColors[s];
-    c.fill();
-    c.strokeStyle = "#161b18";
-    c.lineWidth = 3;
-    c.stroke();
-
     // Animated signal packet along each stream
-    const pt = ((clock * 0.42 + s * 0.33) % 1);
+    const pt = (clock * 0.42 + s * 0.33) % 1;
     const px = 34 + pt * 176;
     const py =
       mix(startY, endY, ease(pt)) +
@@ -110,28 +147,12 @@ function drawRekindleScene(
     c.stroke();
   }
 
-  // Central chamfered prism / two-tower encoder block
-  c.save();
-  c.translate(226, 180);
-  c.beginPath();
-  c.moveTo(-22, -46);
-  c.lineTo(18, -56);
-  c.lineTo(28, 0);
-  c.lineTo(18, 56);
-  c.lineTo(-22, 46);
-  c.lineTo(-30, 0);
-  c.closePath();
-  c.fillStyle = "#213832";
-  c.fill();
-  c.strokeStyle = "#48c4a8";
-  c.lineWidth = 3.5;
-  c.stroke();
+  c.drawImage(base, 0, 0);
 
   c.beginPath();
-  c.arc(0, 0, 10 + pulse * 3, 0, Math.PI * 2);
+  c.arc(226, 180, 10 + pulse * 3, 0, Math.PI * 2);
   c.fillStyle = "#9af7cc";
   c.fill();
-  c.restore();
 
   // Connector fan from prism to 6 ranked shelves
   const order = [2, 0, 4, 1, 5, 3];
@@ -189,14 +210,18 @@ function drawAutoCPTScene(
   c: CanvasRenderingContext2D,
   phase: number,
   clock: number,
+  hoverUv: { x: number; y: number } | null = null,
 ): void {
   // Left: Framed live audio waveform + scrolling clinical transcript lines
-  drawRoundedRect(c, 26, 46, 178, 268, 8);
-  c.fillStyle = "#1c2b30";
-  c.fill();
-  c.strokeStyle = "#6da3b0";
-  c.lineWidth = 3;
-  c.stroke();
+  const base = getStaticBase("autocpt", (bc) => {
+    drawRoundedRect(bc, 26, 46, 178, 268, 8);
+    bc.fillStyle = "#1c2b30";
+    bc.fill();
+    bc.strokeStyle = "#6da3b0";
+    bc.lineWidth = 3;
+    bc.stroke();
+  });
+  c.drawImage(base, 0, 0);
 
   // 28 animated spectrum bars
   for (let i = 0; i < 28; i++) {
@@ -236,7 +261,16 @@ function drawAutoCPTScene(
     { x: 262, y: 194 },
     { x: 366, y: 214 },
   ];
-  const activeCard = Math.floor(clock * 0.55 + clamp(phase) * 0.5) % 4;
+  let hoveredCard = -1;
+  if (hoverUv) {
+    const hx = hoverUv.x * SOURCE_W;
+    const hy = hoverUv.y * SOURCE_H;
+    hoveredCard = cards.findIndex(
+      (card) => hx >= card.x && hx <= card.x + 88 && hy >= card.y && hy <= card.y + 84,
+    );
+  }
+  const activeCard =
+    hoveredCard >= 0 ? hoveredCard : Math.floor(clock * 0.55 + clamp(phase) * 0.5) % 4;
   const sourceY = 207 + activeLine * 24;
 
   // Flowing curved connector traces from active transcript highlight to cards
@@ -323,25 +357,35 @@ function drawNBAnomalyScene(
   const radius = 84;
   const spin = clock * 0.45;
   const rise = ease(clamp((phase - 0.05) / 0.65));
+  const baseX = 238;
+  const baseY = 296;
+  const chartW = 216;
 
-  // Left: 3D-shaded rotating basketball with meridian & curved side seams
-  const grad = c.createRadialGradient(
-    cx - 28,
-    cy - 30,
-    10,
-    cx,
-    cy,
-    radius,
-  );
-  grad.addColorStop(0, "#f4a25e");
-  grad.addColorStop(0.55, "#dc7838");
-  grad.addColorStop(1, "#7a3c1c");
+  const base = getStaticBase("nbanomaly", (bc) => {
+    const grad = bc.createRadialGradient(cx - 28, cy - 30, 10, cx, cy, radius);
+    grad.addColorStop(0, "#f4a25e");
+    grad.addColorStop(0.55, "#dc7838");
+    grad.addColorStop(1, "#7a3c1c");
+    bc.beginPath();
+    bc.arc(cx, cy, radius, 0, Math.PI * 2);
+    bc.fillStyle = grad;
+    bc.fill();
+
+    bc.strokeStyle = "#5d788c";
+    bc.lineWidth = 2;
+    for (let g = 0; g < 4; g++) {
+      const gy = baseY - g * 66;
+      bc.beginPath();
+      bc.moveTo(baseX, gy);
+      bc.lineTo(baseX + chartW, gy);
+      bc.stroke();
+    }
+  });
+  c.drawImage(base, 0, 0);
 
   c.save();
   c.beginPath();
   c.arc(cx, cy, radius, 0, Math.PI * 2);
-  c.fillStyle = grad;
-  c.fill();
   c.clip();
 
   c.strokeStyle = "#191c1a";
@@ -381,20 +425,6 @@ function drawNBAnomalyScene(
   c.strokeStyle = "#191c1a";
   c.lineWidth = 4;
   c.stroke();
-
-  // Right: Baseline grid + 10 player-distribution columns
-  const baseX = 238;
-  const baseY = 296;
-  const chartW = 216;
-  c.strokeStyle = "#5d788c";
-  c.lineWidth = 2;
-  for (let g = 0; g < 4; g++) {
-    const gy = baseY - g * 66;
-    c.beginPath();
-    c.moveTo(baseX, gy);
-    c.lineTo(baseX + chartW, gy);
-    c.stroke();
-  }
 
   for (let col = 0; col < 10; col++) {
     const isOutlier = col === 6;
@@ -628,6 +658,7 @@ export function renderProjectSource(
   id: ProjectDiagramId,
   phase: number,
   clock: number,
+  hoverUv: { x: number; y: number } | null = null,
 ): HTMLCanvasElement {
   const canvases = ensureCanvases();
   if (!canvases) {
@@ -643,7 +674,7 @@ export function renderProjectSource(
   if (id === "rekindle") {
     drawRekindleScene(ctx, phase, clock);
   } else if (id === "autocpt") {
-    drawAutoCPTScene(ctx, phase, clock);
+    drawAutoCPTScene(ctx, phase, clock, hoverUv);
   } else if (id === "nbanomaly") {
     drawNBAnomalyScene(ctx, phase, clock);
   } else {

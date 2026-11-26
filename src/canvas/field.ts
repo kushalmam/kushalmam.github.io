@@ -85,19 +85,19 @@ function ensureSeaBuffers(
       const vv = ((y + 0.5) * cellSize) / height;
       const rowOff = y * cols;
       const qLeftY = Math.pow((vv - 0.38) / 0.18, 4);
-      const qIntroY = Math.pow((vv - 0.65) / 0.15, 4);
+      const qIntroY = Math.pow((vv - 0.65) / 0.17, 4);
       const qNavY = Math.pow((vv - 0.06) / 0.08, 4);
       for (let x = 0; x < cols; x++) {
         const u = ((x + 0.5) * cellSize) / width;
         const quietLeft =
           Math.exp(-Math.pow((u - 0.3) / 0.3, 4) - qLeftY) * 0.3;
         const quietIntro =
-          Math.exp(-Math.pow((u - 0.79) / 0.19, 4) - qIntroY) * 0.48;
+          Math.exp(-Math.pow((u - 0.79) / 0.21, 4) - qIntroY) * 0.68;
         const quietNav =
           Math.exp(-Math.pow((u - 0.84) / 0.2, 4) - qNavY) * 0.5;
         const i = rowOff + x;
         quietMask[i] = Math.max(0, 1 - quietLeft - quietIntro - quietNav);
-        introAttenMask[i] = 1 - quietIntro * 0.42;
+        introAttenMask[i] = 1 - quietIntro * 0.52;
       }
     }
   }

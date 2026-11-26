@@ -354,6 +354,35 @@ body[data-bg-paused="true"] .scroll-travel {
   will-change: transform, opacity;
 }
 
+.project-index {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--quiet);
+  margin-bottom: 14px;
+}
+
+.scroll-rail {
+  position: fixed;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 96px;
+  background: var(--rule);
+  z-index: 6;
+  pointer-events: none;
+}
+
+.scroll-rail-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: top;
+  transform: scaleY(0);
+}
+
 .project-panel h2 {
   font-size: clamp(40px, 5vw, 84px);
   line-height: 0.95;
@@ -632,6 +661,11 @@ html[data-mode="light"] .stage-footer {
     right: 20px;
     font-size: 10px;
   }
+
+  .scroll-rail {
+    right: 8px;
+    height: 64px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -729,7 +763,8 @@ html[data-mode="light"] .stage-footer {
     margin: 0 0 40px;
   }
 
-  .stage-footer {
+  .stage-footer,
+  .scroll-rail {
     display: none;
   }
 }

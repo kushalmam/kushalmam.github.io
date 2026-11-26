@@ -21,8 +21,12 @@ import {
 } from "./canvas/contactVisual";
 import { applyBayerMask, renderBayerDither } from "./canvas/dither";
 import { renderHeroSea } from "./canvas/field";
-import { GlStageRenderer, type Rect } from "./canvas/glStage";
-import { buildHobbyArt, resetHobbyCaches } from "./canvas/hobbies";
+import {
+  type DitherInteraction,
+  GlStageRenderer,
+  type Rect,
+} from "./canvas/glStage";
+import { buildHobbyArt, resetHobbyCaches, warmupHobbyGpu } from "./canvas/hobbies";
 import {
   PROJECT_TARGET_H,
   PROJECT_TARGET_W,
@@ -112,6 +116,7 @@ app.innerHTML = `
         </nav>
       </section>
       <div class="stage-footer" aria-hidden="true"></div>
+      <div class="scroll-rail" aria-hidden="true"><span class="scroll-rail-fill"></span></div>
     </div>
   </div>
 </main>
@@ -127,6 +132,7 @@ const opening = document.querySelector<HTMLElement>(".opening")!;
 const about = document.querySelector<HTMLElement>(".about")!;
 const contact = document.querySelector<HTMLElement>(".contact-ending")!;
 const stageFooter = document.querySelector<HTMLElement>(".stage-footer")!;
+const scrollRailFill = document.querySelector<HTMLElement>(".scroll-rail-fill");
 const themeToggle = document.querySelector<HTMLButtonElement>(".theme-toggle")!;
 const themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
 const root = document.documentElement;
@@ -194,6 +200,10 @@ let lastContactSourceKey = "";
 let lastContactHoldWordIdx = -1;
 let lastStageSourceKind: "project" | "contact" | "" = "";
 let activeNavHash = "";
+const IDLE_SLEEP_MS = 30_000;
+let lastUserActivity = performance.now();
+let idleSlept = false;
+let cosmicSpinBoost = 0;
 const navLinks = Array.from(
   document.querySelectorAll<HTMLAnchorElement>('header nav a[href^="#"]'),
 );
@@ -252,14 +262,19 @@ function setTheme(mode: "light" | "dark", persist = true): void {
   wakeLoop();
 }
 
-themeToggle.addEventListener("click", () => setTheme(isLightMode() ? "dark" : "light"));
+themeToggle.addEventListener("click", () => {
+  wakeOnInput();
+  setTheme(isLightMode() ? "dark" : "light");
+});
 
-const panels = portfolioProjects.map((project) => {
+const panels = portfolioProjects.map((project, idx) => {
   const panel = document.createElement("section");
   panel.className = "project-panel";
   panel.id = project.slug;
   panel.setAttribute("aria-labelledby", `${project.slug}-title`);
-  panel.innerHTML = `<h2 id="${project.slug}-title">${project.name}</h2><p>${project.summary}</p><a href="${project.href}">View source ↗</a><canvas class="reduced-diagram" role="img" aria-label="Dithered ${project.name} visual"></canvas>`;
+  const num = String(idx + 1).padStart(2, "0");
+  const total = String(portfolioProjects.length).padStart(2, "0");
+  panel.innerHTML = `<span class="project-index">${num} / ${total}</span><h2 id="${project.slug}-title">${project.name}</h2><p>${project.summary}</p><a href="${project.href}">View source ↗</a><canvas class="reduced-diagram" role="img" aria-label="Dithered ${project.name} visual"></canvas>`;
   stage.insertBefore(panel, stageFooter);
   return panel;
 });
@@ -640,6 +655,38 @@ function fitAspectRect(bounds: Rect, aspect: number): Rect {
   };
 }
 
+function localInteraction(rect: Rect): {
+  hoverUv: { x: number; y: number } | null;
+  interaction: DitherInteraction | undefined;
+} {
+  let hoverUv: { x: number; y: number } | null = null;
+  if (hover.inside && !reduced.matches && rect.w > 0 && rect.h > 0) {
+    const ux = (hover.x * w - rect.x) / rect.w;
+    const uy = (hover.y * h - rect.y) / rect.h;
+    if (ux >= 0 && ux <= 1 && uy >= 0 && uy <= 1) {
+      hoverUv = { x: ux, y: uy };
+    }
+  }
+  const localRipples = ripples
+    .map((rip) => ({
+      x: (rip.x * w - rect.x) / Math.max(1, rect.w),
+      y: (rip.y * h - rect.y) / Math.max(1, rect.h),
+      radius: rip.age * 0.95,
+      strength: 1 - clamp(rip.age / 1.15),
+    }))
+    .filter((rip) => rip.strength > 0.005);
+
+  const interaction: DitherInteraction | undefined =
+    hoverUv || localRipples.length > 0
+      ? {
+          pointerUv: hoverUv,
+          hoverStrength: hoverUv ? 0.85 : 0,
+          ripples: localRipples,
+        }
+      : undefined;
+  return { hoverUv, interaction };
+}
+
 function drawProjects(): void {
   if (story < 4.25 || story >= timeline.contactStart) return;
   const { index, local } = projectSlice(
@@ -657,9 +704,25 @@ function drawProjects(): void {
   if (reveal <= 0.005) return;
 
   const targetRect = fitAspectRect(diagramRect(), PROJECT_TARGET_W / PROJECT_TARGET_H);
+  const { hoverUv, interaction } = localInteraction(targetRect);
 
   if (glStage) {
-    const source = renderProjectSource(project.diagramId, local, time);
+    if (project.diagramId === "cosmicrecomp") {
+      const hoverSpin = hoverUv ? (hoverUv.x - 0.5) * 0.35 : 0;
+      if (
+        glStage.drawCosmicRecomp(targetRect, time, cosmicSpinBoost + hoverSpin, {
+          lightMode: isLightMode(),
+          preserveColor: true,
+          edgeStrength: 0.56,
+          ditherAmount: 0.22,
+          reveal,
+          interaction,
+        })
+      ) {
+        return;
+      }
+    }
+    const source = renderProjectSource(project.diagramId, local, time, hoverUv);
     lastStageSourceKind = "project";
     glStage.drawDitheredSource(source, targetRect, {
       gridW: PROJECT_TARGET_W,
@@ -669,6 +732,7 @@ function drawProjects(): void {
       edgeStrength: project.diagramId === "cosmicrecomp" ? 0.56 : 0.48,
       ditherAmount: 0.22,
       reveal,
+      interaction,
     });
     return;
   }
@@ -728,30 +792,33 @@ function drawContact(): void {
   const drawRect: Rect = { x: drawX, y: targetRect.y, w: targetRect.w, h: targetRect.h };
 
   if (glStage) {
+    const light = isLightMode();
     const hasMotion = contactWordHasMotion(activeIdx);
     const drawClock = hasMotion ? time : 0;
-    const sourceKey = `${activeIdx}:${drawClock}:${displayFontsLoaded ? 1 : 0}`;
+    const sourceKey = `${activeIdx}:${drawClock}:${displayFontsLoaded ? 1 : 0}:${light ? 1 : 0}`;
     const needUpload =
       lastStageSourceKind !== "contact" ||
       sourceKey !== lastContactSourceKey ||
       !lastContactSource;
     if (needUpload) {
-      lastContactSource = renderContactSource(activeIdx, drawClock);
+      lastContactSource = renderContactSource(activeIdx, drawClock, light);
       lastContactSourceKey = sourceKey;
       lastStageSourceKind = "contact";
     }
+    const { interaction } = localInteraction(drawRect);
     glStage.drawDitheredSource(
       lastContactSource!,
       drawRect,
       {
         gridW: CONTACT_GRID_W,
         gridH: CONTACT_GRID_H,
-        lightMode: isLightMode(),
+        lightMode: light,
         preserveColor: true,
         edgeStrength: 0.36,
         gamma: 0.9,
         ditherAmount: 0.2,
         reveal,
+        interaction,
       },
       needUpload,
     );
@@ -784,10 +851,16 @@ function ensureDisplayFonts(): void {
   });
 }
 
+function warmupIdleResources(): void {
+  ensureDisplayFonts();
+  warmupHobbyGpu();
+  glStage?.warmup();
+}
+
 if (typeof requestIdleCallback === "function") {
-  requestIdleCallback(() => ensureDisplayFonts(), { timeout: 2000 });
+  requestIdleCallback(() => warmupIdleResources(), { timeout: 2000 });
 } else {
-  setTimeout(ensureDisplayFonts, 1500);
+  setTimeout(warmupIdleResources, 1200);
 }
 
 function draw(): void {
@@ -882,7 +955,11 @@ function updateNavCurrent(): void {
 }
 
 function update(): void {
-  story = clamp((window.scrollY - journeyTop) / scrollRange) * timeline.end;
+  const progress = clamp((window.scrollY - journeyTop) / scrollRange);
+  story = progress * timeline.end;
+  if (scrollRailFill) {
+    scrollRailFill.style.transform = `scaleY(${progress})`;
+  }
   updateNavCurrent();
   if (!reduced.matches) {
     const exit = ease((story - 0.2) / 0.85);
@@ -953,8 +1030,16 @@ function resize(): void {
 
 const cubeArt = document.querySelector<HTMLCanvasElement>('[data-hobby="cube"]');
 
+function wakeOnInput(): void {
+  lastUserActivity = performance.now();
+  if (idleSlept) {
+    idleSlept = false;
+    wakeLoop();
+  }
+}
+
 function wakeLoop(): void {
-  if (document.hidden || !visible || paused || reduced.matches) {
+  if (document.hidden || !visible || paused || reduced.matches || idleSlept) {
     if (fieldDirty && visible && !document.hidden) {
       draw();
       fieldDirty = false;
@@ -981,6 +1066,7 @@ function tick(now: number): void {
       behavior: "instant",
     });
     scrollDirty = true;
+    lastUserActivity = now;
     if (p >= 1) anchorAnim = null;
   }
 
@@ -990,6 +1076,11 @@ function tick(now: number): void {
   }
 
   time += frameDelta;
+  if (cosmicSpinBoost > 0.001) {
+    cosmicSpinBoost *= Math.exp(-3.5 * frameDelta);
+  } else {
+    cosmicSpinBoost = 0;
+  }
   if (ripples.length) {
     ripples = ripples.filter((rip) => (rip.age += frameDelta) < 1.3);
   }
@@ -1006,7 +1097,7 @@ function tick(now: number): void {
   } else if (story >= timeline.contactStart + 0.9) {
     const part = contactWordClock % CONTACT_PERIOD;
     const wordIdx = Math.floor(contactWordClock / CONTACT_PERIOD) % CONTACT_WORDS.length;
-    if (part <= CONTACT_HOLD && !contactWordHasMotion(wordIdx)) {
+    if (part <= CONTACT_HOLD && !contactWordHasMotion(wordIdx) && ripples.length === 0) {
       if (wordIdx !== lastContactHoldWordIdx) {
         lastContactHoldWordIdx = wordIdx;
         fieldDirty = true;
@@ -1035,6 +1126,16 @@ function tick(now: number): void {
   if (fieldDirty) {
     draw();
     fieldDirty = false;
+  }
+
+  const canSleep =
+    story < timeline.contactStart &&
+    ripples.length === 0 &&
+    !anchorAnim &&
+    now - lastUserActivity >= IDLE_SLEEP_MS;
+  if (canSleep) {
+    idleSlept = true;
+    return;
   }
 
   raf = requestAnimationFrame(tick);
@@ -1108,6 +1209,8 @@ new IntersectionObserver(([entry]) => {
 
 const markScrollActivity = () => {
   lastScrollActivity = performance.now();
+  lastUserActivity = lastScrollActivity;
+  idleSlept = false;
   scrollDirty = true;
   if (glStage) {
     // Immediate sync update during native scroll so sticky stage matches scrollY in the same frame.
@@ -1118,12 +1221,41 @@ const markScrollActivity = () => {
 
 const cancelAnchorScroll = () => {
   anchorAnim = null;
+  wakeOnInput();
 };
+
+const storyBeats = [
+  0,
+  2.85,
+  ...portfolioProjects.map(
+    (_, i) => timeline.projectStart + i * timeline.projectLength + 0.85,
+  ),
+  Number((timeline.contactStart + 1.45).toFixed(2)),
+];
 
 window.addEventListener("scroll", markScrollActivity, { passive: true });
 window.addEventListener("wheel", cancelAnchorScroll, { passive: true });
 window.addEventListener("touchstart", cancelAnchorScroll, { passive: true });
-window.addEventListener("resize", resize);
+window.addEventListener("resize", () => {
+  wakeOnInput();
+  resize();
+});
+window.addEventListener("keydown", (event) => {
+  if (reduced.matches) return;
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+  const activeTag = (document.activeElement as Element | null)?.tagName;
+  if (activeTag === "INPUT" || activeTag === "TEXTAREA" || activeTag === "SELECT") return;
+  const forward = event.key === "ArrowDown" || event.key === "PageDown";
+  const backward = event.key === "ArrowUp" || event.key === "PageUp";
+  if (!forward && !backward) return;
+  event.preventDefault();
+  wakeOnInput();
+  const nextBeat = forward
+    ? storyBeats.find((b) => b > story + 0.25) ?? storyBeats[storyBeats.length - 1]
+    : [...storyBeats].reverse().find((b) => b < story - 0.25) ?? 0;
+  const targetY = journeyTop + (scrollRange * nextBeat) / timeline.end;
+  scrollStory(targetY, 1.8);
+});
 window.addEventListener(
   "pointermove",
   (event) => {
@@ -1131,7 +1263,8 @@ window.addEventListener(
     hover.x = event.clientX / Math.max(1, w);
     hover.y = event.clientY / Math.max(1, h);
     hover.inside = true;
-    if (story < 4.25 && !(story >= 1.85 && isPortraitSettledStatic())) {
+    wakeOnInput();
+    if (!(story >= 1.85 && isPortraitSettledStatic())) {
       fieldDirty = true;
       wakeLoop();
     }
@@ -1141,15 +1274,22 @@ window.addEventListener(
 window.addEventListener(
   "pointerdown",
   (event) => {
-    if (paused || reduced.matches || story >= 4.1) return;
+    if (paused || reduced.matches) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     if ((event.target as Element | null)?.closest("a, button")) return;
+    wakeOnInput();
     if (ripples.length >= 4) ripples.shift();
     ripples.push({
       x: event.clientX / Math.max(1, w),
       y: event.clientY / Math.max(1, h),
       age: 0,
     });
+    if (story >= 4.25 && story < timeline.contactStart) {
+      const { index } = projectSlice(story, timeline, portfolioProjects.length);
+      if (portfolioProjects[index]?.diagramId === "cosmicrecomp") {
+        cosmicSpinBoost += Math.PI / 4;
+      }
+    }
     fieldDirty = true;
     wakeLoop();
   },
@@ -1157,7 +1297,7 @@ window.addEventListener(
 );
 document.documentElement.addEventListener("pointerleave", () => {
   hover.inside = false;
-  if (story < 4.25 && !(story >= 1.85 && isPortraitSettledStatic())) {
+  if (!(story >= 1.85 && isPortraitSettledStatic())) {
     fieldDirty = true;
     wakeLoop();
   }
@@ -1166,7 +1306,7 @@ window.addEventListener(
   "pointercancel",
   () => {
     hover.inside = false;
-    if (story < 4.25 && !(story >= 1.85 && isPortraitSettledStatic())) {
+    if (!(story >= 1.85 && isPortraitSettledStatic())) {
       fieldDirty = true;
       wakeLoop();
     }
